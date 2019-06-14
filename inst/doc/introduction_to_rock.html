@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Gjalt-Jorn Peters &amp; Szilvia Zörgő" />
+
+<meta name="date" content="2019-06-13" />
+
+<title>Introduction to the Reproducible Open Coding Kit (ROCK)</title>
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to the Reproducible Open Coding Kit (ROCK)</h1>
+<h4 class="author">Gjalt-Jorn Peters &amp; Szilvia Zörgő</h4>
+<h4 class="date">2019-06-13</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#general-background-and-introduction">General background and introduction</a><ul>
+<li><a href="#rock-file-format"><code>.rock</code> file format</a><ul>
+<li><a href="#codes">Codes</a></li>
+<li><a href="#structuring-inductive-codes">Structuring inductive codes</a></li>
+<li><a href="#specifying-identifiers">Specifying identifiers</a></li>
+<li><a href="#specifying-deductive-coding-structures">Specifying deductive coding structures</a></li>
+<li><a href="#specifying-metadata">Specifying metadata</a></li>
+</ul></li>
+<li><a href="#examples">Examples</a><ul>
+<li><a href="#section-breaks">Section breaks</a></li>
+<li><a href="#identifiers">Identifiers</a></li>
+<li><a href="#codes-1">Codes</a></li>
+<li><a href="#helper-functions">Helper functions</a></li>
+</ul></li>
+<li><a href="#glossary">Glossary</a></li>
+</ul></li>
+<li><a href="#using-rock-for-epistemic-network-analysis">Using ROCK for Epistemic Network Analysis</a></li>
+<li><a href="#using-rock-for-cognitive-interviews">Using ROCK for Cognitive Interviews</a></li>
+<li><a href="#using-rock-with-a-decentralized-construct-taxonomy">Using ROCK with a Decentralized Construct Taxonomy</a></li>
+</ul>
+</div>
+
+<p>The Reproducible Open Coding Kit (ROCK) was developed to facilitate reproducible and open coding, specifically geared towards qualitative research methods. Although it is a general-purpose toolkit, three specific applications have been implemented:</p>
+<ul>
+<li>an interface to the <code>rENA</code> package that implements Epistemic Network Analysis (ENA);</li>
+<li>means to process notes from Cognitive Interviews (CIs);</li>
+<li>means to work with a decentralized construct taxonomy (DCT).</li>
+</ul>
+<p>In this introduction, first a general overview of the logic behind ROCK will be given, after which each of those three use cases will be discussed.</p>
+<div id="general-background-and-introduction" class="section level1">
+<h1>General background and introduction</h1>
+<p>Although the availability of tools for reproducible and open quantitative research is quickly increasing, there are few such options for researchers using qualitative methods. This hampers applying Open Science principles, and as a result, it often precludes re-use of data, learning from each other, and detecting errors. The Reproducible Open Coding Kit (ROCK) aims to fill this gap.</p>
+<p>ROCK consists of two parts. On the one hand, there is the <code>rock</code> R package that makes it easy to work with <code>.rock</code> files. This makes it easy to, for example, process coded sources and collapse the most specific levels of hierarchical coding trees into their parents, specify which utterances form stanzas or strophes for Epistemic Network Analysis, or</p>
+<p>On the other hand, there is the <code>.rock</code> file format: plain text files that can include YAML fragments and follow conventions that allow extracting metadata, deductive and inductive coding trees, and codes as applied to lines of each source. Because these are plain text files, they are easily accessible to other researchers, regardless of the software they use.</p>
+<div id="rock-file-format" class="section level2">
+<h2><code>.rock</code> file format</h2>
+<p>The <code>.rock</code> file format uses a number of conventions to represent codes, metadata, and data structures. Although the functions in the <code>rock</code> package have been built to allow flexibility, this vignette uses the defaults (there is something to say for uniformity, after all).</p>
+<div id="codes" class="section level3">
+<h3>Codes</h3>
+<p>Codes are by default any string of characters (specifically, lower or uppercase letters, digits, periods, underscores, larger than signs, and dashes) in between two pairs of square brackets (<code>[[</code> and <code>]]</code>). This is described by the regular expression <code>\[\[([a-zA-Z0-9._&gt;-]+)\]\]</code>; note that the escaping backslashes must be escaped themselves by prepending a second backslash when specifying this regular expression in R. Codes are designated per utterance, or in other words, per line. As many codes can be specified per line as one wishes. For example, see these two lines (utterances):</p>
+<pre><code>So what went right [[reflection-positive]]
+What went wrong [[reflection-negative]]</code></pre>
+<p>The first line is coded with <code>reflection-positive</code>, and the second line with code <code>reflection-negative</code>.</p>
+</div>
+<div id="structuring-inductive-codes" class="section level3">
+<h3>Structuring inductive codes</h3>
+<p>When engaging in inductive coding (i.e. when not working with a prespecified code structure, but instead developing the code structure as one goes along; see the section below re: deductive coding), it can be desirable to structure the codes hierarchically. For example, perhaps a researchers wants to specify a parent code such as <code>reflection</code> with two child codes such as <code>positive</code> and <code>negative</code>. This helps one to identify patterns in the data, and makes it possible to easily extract all utterances coded as any type of reflection. By default, the marker that can be used to structure inductive codes is the greater than sign (specified by the regular expression <code>&gt;</code>). For example, see the same fragment but coded in two levels:</p>
+<pre><code>So what went right [[reflection&gt;positive]]
+What went wrong [[reflection&gt;negative]]</code></pre>
+<p>When this source is parsed by <code>rock</code>, it will recognize these deductive codes and their structure, and it will generate the corresponding hierarchical coding structure, as illustrated in the more extensive example below.</p>
+</div>
+<div id="specifying-identifiers" class="section level3">
+<h3>Specifying identifiers</h3>
+<p>It is often desirable to attach specific attributes to utterances. For example, one may want to compare the patterns in codes between different categories of participants, such as those who do and do not own a car, or those that listen to progressive metal versus those that listen to psychedelic trance. Instead of coding all utterances with all relevant attributes, instead, it is possible to specify identifier to easily link utterances to characteristics of the data provision (such as data providers, for example participants, or the moment of data collection, for example daytime or nighttime, or winter or summer, or the location of data collection, such as in a busy place or in a silent office).</p>
+<p>This can be done by specifying identifiers. These are again specified using regular expressions. By default, two types of identifiers are specified: case identifiers and stanza identifiers. They are again specified using two pairs of square brackets, but this time, the opening brackets are immediately follow by a string of identifying characters (the ‘identifier identifier’, so to speak), followed by an equals sign, and then by the unique identifier. This may seem a bit abstract; it will become clearer as we look at the first example.</p>
+<div id="case-identifiers" class="section level4">
+<h4>Case identifiers</h4>
+<p>Case identifiers can be used to link utterances to data providers, such as participants. Their ‘identifier identifier’ is <code>cid</code>, and by default, their full regular expression is <code>\[\[cid=([a-zA-Z0-9._-]+)\]\]</code>. A source excerpt coded with only case identifiers may look like this:</p>
+<pre><code>CAIAPHAS: No, wait!   We need a more permanent solution to our problem. [[cid=1]]
+
+ANNAS: What then to do about Jesus of Nazareth?   Miracle wonderman, hero of fools. [[cid=2]]
+
+PRIEST THREE: No riots, no army, no fighting, no slogans. [[cid=3]]
+
+CAIAPHAS: One thing I&#39;ll say for him -- Jesus is cool. [[cid=1]]
+
+ANNAS: We dare not leave him to his own devices.   His half-witted fans will get out of control. [[cid=2]]</code></pre>
+<p>(Note that in this example, the names of the participants were retained; normally, the researcher would anonimyze the transcripts so as to allow publication of the coded transcripts.)</p>
+<p>WHen <code>rock</code> parses this source, it will know that the first and fourth utterances belong to the same case, as do the second and fifth. The attributes specified for these cases will then be attached to these utterances (see the section about metadata below).</p>
+</div>
+<div id="stanza-identifiers" class="section level4">
+<h4>Stanza identifiers</h4>
+<p>A stanza is a unit of analysis in ENA analysis (see the glossary for the exact definition).</p>
+</div>
+</div>
+<div id="specifying-deductive-coding-structures" class="section level3">
+<h3>Specifying deductive coding structures</h3>
+<p>When a researcher works with a prespecified coding structure (i.e. engages in deductive coding), they only use codes that were determined a priori. Like in inductive coding, there are often multiple levels in such a coding structure, with the codes organised hierarchically. To efficiently be able to collapse codes to higher levels, <code>rock</code> needs to know the deductive coding structure. This can be specified using YAML fragments in the sources. YAML fragments are, by default, delimited by two lines that each contain only three dashes (<code>---</code>). Between those delimiters, YAML (a recursive acronym that stands for ‘YAML ain’t markup language’) can be specified. Specifically, in YAML terminology, each fragment should be a sequence of mappings that is named <code>codes</code>.</p>
+<p>The coding tree specified in the section on inductive coding, for example, can be efficiently specified as a deductive coding structure like this:</p>
+<pre><code>---
+codes:
+  -
+    id: reflection
+    children:
+      -
+        id: positive
+      -
+        id: negative
+---</code></pre>
+<p>If all children of a code are so-called ‘leaves’ (i.e. in the coding tree, they have no children of their own<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>) they can be specified more efficiently:</p>
+<pre><code>---
+codes:
+  -
+    id: reflection
+    children: [&quot;positive&quot;, &quot;negative&quot;]
+---</code></pre>
+<p>When <code>rock</code> parses the sources, it will collect all such code specifications and combined them into one coding three using each code’s identifiers. It is possible to specify a parent in other code specification fragment by adding the field <code>parentId</code>. For example, in other sourrce, we could add this fragment:</p>
+<pre><code>---
+codes:
+  -
+    id: neutral
+    parentId: reflection
+---</code></pre>
+<p>This would add <code>neutral</code> as a sibling to <code>positive</code> and <code>negative</code>.</p>
+</div>
+<div id="specifying-metadata" class="section level3">
+<h3>Specifying metadata</h3>
+</div>
+</div>
+<div id="examples" class="section level2">
+<h2>Examples</h2>
+<div id="section-breaks" class="section level3">
+<h3>Section breaks</h3>
+<pre><code>So what went right
+What went wrong
+---paragraph-break---
+Was it a story
+or was it a song
+---paragraph-break---
+Was it over night
+Or did it take you long
+---paragraph-break---
+Was knowing your weakness
+what made you strong</code></pre>
+<p><em>Source excerpt as example of section breaks (lyrics from Smiley Faces by Gnarls Barclay)</em></p>
+</div>
+<div id="identifiers" class="section level3">
+<h3>Identifiers</h3>
+<pre><code>CAIAPHAS
+No, wait!   We need a more permanent solution to our problem.
+
+ANNAS
+What then to do about Jesus of Nazareth?   Miracle wonderman, hero of fools.
+
+PRIEST THREE
+No riots, no army, no fighting, no slogans.
+
+CAIAPHAS
+One thing I&#39;ll say for him -- Jesus is cool.
+
+ANNAS
+We dare not leave him to his own devices.   His half-witted fans will get out of control.
+
+PRIESTS
+But how can we stop him?   His glamour increases   By leaps every moment; he&#39;s top of the poll.
+
+CAIAPHAS
+I see bad things arising.   The crowd crown him king; which the Romans would ban.
+I see blood and destruction,   Our elimination because of one man.   Blood and destruction because of one man.
+
+ALL (inside)
+Because, because, because of one man.
+
+CAIAPHAS
+Our elimination because of one man.
+
+ALL (inside)
+Because, because, because of one, &#39;cause of one, &#39;cause of one man.
+
+PRIEST THREE
+What then to do about this Jesus-mania?
+
+ANNAS
+How do we deal with a carpenter king?
+
+PRIESTS
+Where do we start with a man who is bigger   Than John was when John did his baptism thing?
+
+CAIAPHAS
+Fools, you have no perception!   The stakes we are gambling are frighteningly high!
+We must crush him completely,   So like John before him, this Jesus must die.   For the sake of the nation, this Jesus must die.</code></pre>
+<p><em>This Jesus Must Die by Andrew Lloyd Webber</em></p>
+</div>
+<div id="codes-1" class="section level3">
+<h3>Codes</h3>
+</div>
+<div id="helper-functions" class="section level3">
+<h3>Helper functions</h3>
+<div id="clean_source-and-clean_sources" class="section level4">
+<h4><code>clean_source</code> and <code>clean_sources</code></h4>
+<p>Sometimes, sources are a bit messy.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> In such cases, it can be efficient to preprocess them and perform some search and replace actions. This can be done for one or multiple source files using <code>clean_source</code> (for one file) and <code>clean_sources</code> (for multiple files; it basically just calls <code>clean_transcript</code> for multiple files).</p>
+<p>For example, a researcher will often want every sentence, as transcribed, to be on its own line (as lines correspond to utterances). In fact, this is the basic function of the <code>clean_source</code> function: by default, if used without other arguments, they try to (more or less smartly) split a transcript such that each transcribed sentence (as marked by a period (<code>.</code>), a question mark (<code>?</code>), an exclamation mark (<code>!</code>), or an ellipsis (<code>…</code>)) ends up on its own line. Before doing this, <code>clean_source</code> replaces all occurrences of exactly consecutive periods (<code>..</code>) with one period, all occurrences of four or more consecutive periods with three periods, and all occurrences of three or more newlines (<code>\n</code>) with two newlines.</p>
+<p>But this function can also be used to perform additonal (or other) replacements. For example, imagine that a transcriber used a dash at the beginning of a line, followed by a space, to indicate when a person starts talking. To easily group all utterances by the same person together, it would be convenient if this was expressed in the source file in a way that fits with ROCK’s conventions. There are four ways to achieve this.</p>
+<p>First, that sequence of characters (actually a newline character (<code>\n</code>) followed by a dash (<code>-</code>) followed by a whitespace character (<code>\s</code>)) can be converted into section break ‘<code>---turn-of-talk---</code>’ like this:</p>
+<pre><code>rock::clean_source(&quot;
+- Something said by one speaker
+- Something said by another speaker
+&quot;,
+                   replacements=list(c(&quot;\\n-\\s&quot;, &quot;\n---turn-of-talk---\n&quot;)));</code></pre>
+<p>To also maintain the default replacements, more can be added by specifying them in argument <code>extraReplacements</code> instead of <code>replacements</code>. For <code>clean_source</code>, as the first argument (<code>input</code>), either a character vector (like in the example above) or a path to a file can be specified, in which case the files contents will be read. If the second argument (<code>outputFile</code>) is specified, the result is saved to that file; if not, it is returned (and printed by R).</p>
+<div id="a-word-of-caution" class="section level5">
+<h5>A word of caution</h5>
+<p>If you use this function to clean one or more transcripts, make sure that whenever you edit the <code>outputFile</code>, you save it under another name! Otherwise, rerunning the script to clean the transcripts will overwrite your edits.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="glossary" class="section level2">
+<h2>Glossary</h2>
+<dl>
+<dt>Attribute <em>(ROCK term)</em></dt>
+<dd>An attribute is a characteristic of a case. FOr example, if the cases are persons, attributes can be characteristics such as sex, age, region of residence, or diagnosis. All attributes of a case are attached to all utterances coded as belonging to that case.
+</dd>
+<dt>Case <em>(ROCK term)</em></dt>
+<dd>A case is a data provider, such as a person, a family, an organisation, or any other research unit. In psychological research, cases are almost always persons, but in a qualitative study of organisation policy documents, each organisation would be a case.
+</dd>
+<dt>Conversation <em>(ENA term)</em></dt>
+<dd>In ENA terminology, a source is called a conversation (see <em>source</em>).
+</dd>
+<dt>Discourse <em>(ENA term)</em></dt>
+<dd>In ENA terminology, a discourse is the full set of all utterances (and therefore, all sources) under analysis.
+</dd>
+<dt>Identifier <em>(ROCK term)</em></dt>
+<dd>In ROCK, an identifier provides a way to specify metadata (i.e. one or more attributes) about utterances. The most common identifiers are cases, but in ROCK, this concept is generalized, and different types of identifiers can be specified. This makes it possible to quickly attach other attributes to utterances as well. For example, one could use case identifiers to attach personal characteristics such as sex or age to utterances, and interview location identifiers to attach information about the interview context to utterances.
+</dd>
+<dt>Metadata <em>(ENA term)</em></dt>
+<dd>Metadata refers to the attributes that can be specified about cases (or more generally, can be attached to identifiers), and so can be attached to utterances. This metadata then makes it possible to group or compare patterns in codes.
+</dd>
+<dt>Section <em>(ROCK term)</em></dt>
+<dd>A section is a set of one or more consecutive utterances. Section markers can be used to divide a source into sections. Multiple different section markers can be used, and so a source can simultaneously be divided into sections differently.
+</dd>
+<dt>Section marker <em>(ROCK term)</em></dt>
+<dd>A section marker is a sequence of characters that marks a section division. Every section marker encountered in a source signals the ending of the preceding and the beginning of the following section. In the produced dataframe with utterances, this is shown by increasing section numbers.
+</dd>
+<dt>Source <em>(ROCK term)</em></dt>
+<dd>A file with content to code. The file can contain, for example, a transcript of an interview or focus group, or it can be something else, like a policy document, a discussion in an online forum, or a list of twitter posts. A source consists of utterances.
+</dd>
+<dt>Stanza <em>(ENA term)</em></dt>
+<dd>a set of one or more utterances that occur in close proximity and that are defined by … (the complicated bit), i.e. the smallest unit of analysis psychologically. Stanzas are a solution for the fact that peoples’ sentence length is not closely related to the psychological unity of the matter they discuss. E.g. Alice could discuss her ideas about the cause of the disease in three sentences while Bob would use only one, but both explanations would be the same stanza. Stanzas are what in written text would be paragraphs. Except that spoken text is more messy, and so ‘paragraphs’ can be interspersed by unrelated utterances. Therefore, utterances in close proximity can be combined into the same stanza even if they are separated by a small number of unrelated utterances. Note, however, that stanzas remain defined as ‘messy paragraphs’; if an interviewee starts referring back to something discussed half an hour earlier, that doesn’t justify combining those utterances into the same stanza. (Note, however, that they <em>could</em> be combined through stanza sets / strophes, if they happen to be codes by the same codes, <em>and</em> if strophes are composed by collapsing stanzas with those codes.)
+</dd>
+<dt>Strophe <em>(ENA term)</em></dt>
+<dd>a set of one or more stanzas that are combined based on sharing the same code, identifier, or attribute. Strophes, therefore, are collected over the entire transcript/source or over all transcripts/sources; proximity is irrelevant.
+</dd>
+<dt>Topic <em>(ROCK term)</em></dt>
+<dd>A topic is a distinct subject area covered by data in a source. For example, for interviews or focus groups, the topics can be the topics that form the toic list or the interview scheme.
+</dd>
+<dt>Transcript <em>(ROCK term)</em></dt>
+<dd>The verbatim text of an interview or focus group in a text file.
+</dd>
+<dt>Unit <em>(ENA term)</em></dt>
+<dd>a set of one or more utterances that share a given attribute
+</dd>
+<dt>Utterance <em>(ENA &amp; ROCK term)</em></dt>
+<dd>An utterance is the smallest unit of analysis in a study. This is usually one sentence, but in any case it is one line in the <code>rock</code> file (a line being defined as zero or more characters ending with a line ending). That is, when reading the sources, <code>rock</code> splits each source at the line endings (newline characters).
+</dd>
+</dl>
+</div>
+</div>
+<div id="using-rock-for-epistemic-network-analysis" class="section level1">
+<h1>Using ROCK for Epistemic Network Analysis</h1>
+<p>In Epistemic Network Analysis (ENA), the data are segmented and co-occurrences of codes in segments called stanzas are determined, after which these co-occurrences are visualised in a network. In ENA, the smallest unit of analysis is that stanza, but stanzas are composed of one or more utterances. An utterance can be, for example, a sentence, but it can also be several sentences or parts of sentences. Stanzas can be entire interviews, or paragraphs within an interview, or sets of two or three utterances. Each of these are determined depending on what is sensible given the type of data and research question at hand. In ENA vocabulary, a conversation defines a set of utterances that can be segmented into stanzas. The role of these conversations is to explicitly specify where co-occurrences can exist (i.e. only within the same conversation). When specifying stanzas ‘manually’, this is of limited added value, but when specifying stanzas automatically, for example using what is called the moving stanza window in ENA vocabulary, such delineations are used to constrain the possible stanzas.</p>
+<p>In addition to this segmentation in stanzas, the data are segmented into units. A unit is defined by a nesting of characteristics. In research in humans, one such characteristic that would make sense to distinguish is a person: designating persons as one level in the unit specification ensures that the dependence between utterances of the same person is taken into account properly. Similarly, subsamples of interest can be defined, such as categories of a categorical variable that has been collected as metadata (e.g. country of residence of participants, or sexual preference, or age group). It is also possible to define unit specification levels that are <em>smaller</em> than persons, for example by specifying the different questions in an interview scheme or topic list as a level in the unit specification.</p>
+<p>In the ROCK, the identifiers, such as case identifiers and section identifiers, can be used, as well as metadata or even codes.</p>
+<p>It is important to have sufficient units compared to the number of codes. This equation expresses how many units you need as a function of the number of codes:</p>
+<p><span class="math display">\[\text{units} \geq {\text{codes} \choose 2} + 1\]</span></p>
+<p>Discourse - big D discourse = the norms, consistency in communications;</p>
+<p>quantitative ethnography</p>
+<p>discourse = ‘population’</p>
+<p>sample has observations - inferences towards discourse</p>
+<p>unit = anything you want to see a network for. Can be entire sample; can also be subsample.</p>
+<p>conversation = interview; metadata may nest within conversations</p>
+<p>conversations determine the boundaries where the conversations (used to be called strophe)</p>
+<p>co-occurrences can only occur within conversations</p>
+<p>interpretation of the ENA space requires n+2 codes</p>
+<p>n choose 2</p>
+<p>combinations</p>
+<p>so 10 choose 2 means you need 45 codes +1 = 46</p>
+<p>units are the combination</p>
+<p>rigid body rotation - always the same</p>
+<p>units are a sequence of nestings where one level can be the question, one level can be the individuals, one level can be an attribute (categorisation) of the individuals</p>
+<p>n choose 2 + 1</p>
+</div>
+<div id="using-rock-for-cognitive-interviews" class="section level1">
+<h1>Using ROCK for Cognitive Interviews</h1>
+</div>
+<div id="using-rock-with-a-decentralized-construct-taxonomy" class="section level1">
+<h1>Using ROCK with a Decentralized Construct Taxonomy</h1>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>This is less sad than it may look; voluntary childlessness is becoming more and more common, and not having children is one of the most effective choices one can make to save the environment.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>Well, they are messy more often than not, unfortunately.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
