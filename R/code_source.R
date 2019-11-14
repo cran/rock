@@ -21,7 +21,7 @@
 #' brackets).
 #' @param indices A logical vector of the same length as `input`
 #' that indicates to which utterance the code in `codes` should be
-#' applied. Note that if `indiced` is provided, only the first
+#' applied. Note that if `indices` is provided, only the first
 #' element of `codes` is used, and its name is ignored.
 #' @param codeDelimiters A character vector of two elements
 #' specifying the opening and closing delimiters of codes (conform
@@ -60,7 +60,7 @@
 #' ### Show line 71
 #' cat(codedExample[71]);
 #'
-#' ### Also add code "foo" to utteranced with code 'ipsum'
+#' ### Also add code "foo" to utterances with code 'ipsum'
 #' moreCodedExample <- code_source(codedExample,
 #'                                 c("[[ipsum]]" = "foo"));
 #'

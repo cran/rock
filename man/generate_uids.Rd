@@ -24,7 +24,7 @@ understand very well what you're doing!).}
 A vector of UIDs.
 }
 \description{
-Generate utterance identifiers (UIDs)
+This function generated utterance identifiers.
 }
 \examples{
 generate_uids(5);

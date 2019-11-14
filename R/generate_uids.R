@@ -1,5 +1,7 @@
 #' Generate utterance identifiers (UIDs)
 #'
+#' This function generated utterance identifiers.
+#'
 #' @param x The number of identifiers te generate.
 #' @param origin The origin to use when generating the actual
 #' identifiers. These identifiers are the present UNIX timestamp
@@ -19,11 +21,14 @@
 generate_uids <- function(x,
                           origin=Sys.time()) {
 
+  uidPrefix <- rock::opts$get(uidPrefix);
+  codeDelimiters <- rock::opts$get(codeDelimiters);
+
   timeNrString <- as.character(round(as.numeric(origin) * 100, 0));
   timeNrs <-
     as.numeric(timeNrString) + (0:(x-1));
   res <-
     unlist(lapply(timeNrs,
                   numericToBase30));
-  return(paste0("[[uid:", res, "]]"));
+  return(paste0(codeDelimiters[1], uidPrefix, res, codeDelimiters[2]));
 }

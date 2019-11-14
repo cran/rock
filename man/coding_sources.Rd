@@ -30,7 +30,7 @@ brackets).}
 
 \item{indices}{A logical vector of the same length as \code{input}
 that indicates to which utterance the code in \code{codes} should be
-applied. Note that if \code{indiced} is provided, only the first
+applied. Note that if \code{indices} is provided, only the first
 element of \code{codes} is used, and its name is ignored.}
 
 \item{codeDelimiters}{A character vector of two elements
@@ -78,7 +78,7 @@ codedExample <- code_source(loadedExample,
 ### Show line 71
 cat(codedExample[71]);
 
-### Also add code "foo" to utteranced with code 'ipsum'
+### Also add code "foo" to utterances with code 'ipsum'
 moreCodedExample <- code_source(codedExample,
                                 c("[[ipsum]]" = "foo"));
 

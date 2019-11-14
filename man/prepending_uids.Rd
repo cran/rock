@@ -8,10 +8,12 @@
 \title{Prepending unique utterance identifiers}
 \usage{
 prepend_ids_to_source(input, output = NULL, origin = Sys.time(),
-  preventOverwriting = TRUE, encoding = "UTF-8", silent = FALSE)
+  preventOverwriting = rock::opts$get(preventOverwriting),
+  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
 
-prepend_ids_to_sources(input, output = NULL, preventOverwriting = TRUE,
-  encoding = "UTF-8", origin = Sys.time(), silent = FALSE)
+prepend_ids_to_sources(input, output = NULL, origin = Sys.time(),
+  preventOverwriting = rock::opts$get(preventOverwriting),
+  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
 }
 \arguments{
 \item{input}{The filename or contents of the source

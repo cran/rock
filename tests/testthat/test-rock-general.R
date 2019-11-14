@@ -104,10 +104,40 @@ testthat::test_that("A deductive code tree is read correctly from multiple DCT f
 
 });
 
+###-----------------------------------------------------------------------------
+
+testthat::test_that("Sources are exported to html properly", {
+
+  examplePath <- file.path(system.file(package="rock"), 'extdata');
+
+  testres <- parse_sources(examplePath,
+                           extension="rock",
+                           silent=TRUE);
+
+  testres <- export_to_html(testres);
+
+  testthat::expect_true(grepl('<span class="code codes">[[grandchildCode2]]</span>',
+                              testres[["example-1.rock"]],
+                              fixed=TRUE));
+
+});
 
 
-# clean_transcript(input=file.path(workingPath, "test", "P.I.int.txt"),
-#                  outputFile=file.path(workingPath, "test", "P.I.int.rock"),
-#                  extraReplacements=list(c("\\n-\\s", "\n---turn-of-talk---\n")));
+###-----------------------------------------------------------------------------
 
+testthat::test_that("Coded fragments are collected properly", {
+
+  examplePath <- file.path(system.file(package="rock"), 'extdata');
+
+  testres <- parse_sources(examplePath,
+                           extension="rock",
+                           silent=TRUE);
+
+  testres <- collect_coded_fragments(testres);
+
+  testthat::expect_true(grepl('\n### Topic2 *(path: codes>Topic2)*\n\n-----\n\n\n\n**Source: `longer-test.rock`**\n\n<div class=\"utterance\">It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. <span class=\"code codes\">[[Topic2]]</span>',
+                              testres,
+                              fixed=TRUE));
+
+});
 

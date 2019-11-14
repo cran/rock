@@ -1,23 +1,27 @@
 #' @rdname cleaning_sources
+#' @param recursive Whether to search all subdirectories (`TRUE`) as well or not.
+#' @param filenameRegex A regular expression to match against located files; only
+#' files matching this regular expression are processed.
+#' @param filenamePrefix,filenameSuffix The prefix and suffix to add to the
+#' filenames when writing the processed files to disk.
 #' @export
 clean_sources <- function(input,
                           output,
-                          replacementsPre = list(c("([^\\.])(\\.\\.)([^\\.])",
-                                                   "\\1.\\3"),
-                                                 c("([^\\.])(\\.\\.\\.\\.+)([^\\.])",
-                                                   "\\1...\\3"),
-                                                 c("(\\s*\\r?\\n){3,}",
-                                                   "\n")),
+                          filenamePrefix = "",
+                          filenameSuffix = "",
+                          recursive=TRUE,
+                          filenameRegex=".*",
+                          replacementsPre = rock::opts$get(replacementsPre),
+                          replacementsPost = rock::opts$get(replacementsPost),
                           extraReplacementsPre = NULL,
-                          utteranceSplits = c("([\\?\\!]+\\s?|\u2026\\s?|[[:alnum:]\\s?]\\.(?!\\.\\.)\\s?)"),
-                          utteranceMarker = "\n",
-                          replacementsPost = list(c("([^\\,]),([^\\s])",
-                                                    "\\1, \\2")),
                           extraReplacementsPost = NULL,
-                          preventOverwriting=TRUE,
                           removeNewlines = FALSE,
-                          encoding = "UTF-8",
-                          silent=FALSE) {
+                          utteranceSplits = rock::opts$get(utteranceSplits),
+                          preventOverwriting = rock::opts$get(preventOverwriting),
+                          encoding = rock::opts$get(encoding),
+                          silent=rock::opts$get(silent)) {
+
+  utteranceMarker <- rock::opts$get(utteranceMarker);
 
   if (!is.character(input) || !length(input)==1) {
     stop("Only specify a single string as 'input'!");
@@ -33,38 +37,65 @@ clean_sources <- function(input,
          "') does not exist!");
   }
 
-  if (!dir.exists(output)) {
-    warning("Directory provided to write to ('",
-            output,
-            "') does not exist - creating it!");
-    dir.create(output,
-               recursive = TRUE);
+  if (!(tolower(output) == "same")) {
+    if (!dir.exists(output)) {
+      warning("Directory provided to write to ('",
+              output,
+              "') does not exist - creating it!");
+      dir.create(output,
+                 recursive = TRUE);
+    }
   }
 
   rawSourceFiles <-
     list.files(input,
-               full.names=TRUE);
+               full.names=TRUE,
+               pattern = filenameRegex,
+               recursive=recursive);
+
+  ### Delete directories, if any were present
+  rawSourceFiles <-
+    setdiff(rawSourceFiles,
+            list.dirs(input,
+                      full.names=TRUE));
+
+  if (any(grepl("\\.rock$",
+                rawSourceFiles))) {
+    if ((nchar(filenamePrefix) == 0) && (nchar(filenameSuffix) == 0)) {
+      stop("At least one of the input files already has the .rock extension! ",
+           "Therefore, you have to provide at least one of `filenamePrefix` and `filenameSuffix` ",
+           "to allow saving the files to new names!");
+    }
+  }
 
   res <- character();
   for (filename in rawSourceFiles) {
     newFilename <-
-      paste0(sub("^(.*)\\.[a-zA-Z0-9]+$",
+      paste0(filenamePrefix,
+             sub("^(.*)\\.[a-zA-Z0-9]+$",
                  "\\1",
                  basename(filename)),
+             filenameSuffix,
              ".rock");
+    if (tolower(output) == "same") {
+      newFileDir <-
+        dirname(filename);
+    } else {
+      newFileDir <-
+        output;
+    }
     clean_source(input = filename,
-                 output = file.path(output,
+                 output = file.path(newFileDir,
                                     newFilename),
                  replacementsPre=replacementsPre,
                  extraReplacementsPre=extraReplacementsPre,
                  utteranceSplits=utteranceSplits,
-                 utteranceMarker=utteranceMarker,
                  replacementsPost=replacementsPost,
                  extraReplacementsPost=extraReplacementsPost,
                  preventOverwriting=preventOverwriting,
                  removeNewlines=removeNewlines,
                  encoding=encoding,
-                 silent=TRUE);
+                 silent=silent);
     res <-
       c(res,
         newFilename);

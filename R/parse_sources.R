@@ -4,22 +4,22 @@ parse_sources <- function(path,
                           extension = "rock|dct",
                           regex=NULL,
                           recursive=TRUE,
-                          codeRegexes = c(codes = "\\[\\[([a-zA-Z0-9._>-]+)\\]\\]"),
-                          idRegexes = c(caseId = "\\[\\[cid=([a-zA-Z0-9._-]+)\\]\\]",
-                                        stanzaId = "\\[\\[sid=([a-zA-Z0-9._-]+)\\]\\]"),
-                          sectionRegexes = c(paragraphs = "---paragraph-break---",
-                                             secondary = "---<[a-zA-Z0-9]?>---"),
-                          autoGenerateIds = c('stanzaId'),
-                          persistentIds = c('caseId'),
-                          noCodes = "^uid:|^dct:|^ci:",
-                          inductiveCodingHierarchyMarker = ">",
-                          metadataContainers = c("metadata"),
-                          codesContainers = c("codes", "dct"),
-                          delimiterRegEx = "^---$",
-                          ignoreRegex = "^#",
                           ignoreOddDelimiters = FALSE,
-                          encoding="UTF-8",
-                          silent=TRUE) {
+                          encoding=rock::opts$get(encoding),
+                          silent=rock::opts$get(silent)) {
+
+  codeRegexes <- rock::opts$get(codeRegexes);
+  idRegexes <- rock::opts$get(idRegexes);
+  sectionRegexes <- rock::opts$get(sectionRegexes);
+  uidRegex <- rock::opts$get(uidRegex);
+  autoGenerateIds <- rock::opts$get(autoGenerateIds);
+  persistentIds <- rock::opts$get(persistentIds);
+  noCodes <- rock::opts$get(noCodes);
+  inductiveCodingHierarchyMarker <- rock::opts$get(inductiveCodingHierarchyMarker);
+  attributeContainers <- rock::opts$get(attributeContainers);
+  codesContainers <- rock::opts$get(codesContainers);
+  delimiterRegEx <- rock::opts$get(delimiterRegEx);
+  ignoreRegex <- rock::opts$get(ignoreRegex);
 
   if (!dir.exists(path)) {
     stop("Directory '",
@@ -56,17 +56,6 @@ parse_sources <- function(path,
   res$parsedSources <-
     lapply(fileList,
            parse_source,
-           codeRegexes=codeRegexes,
-           idRegexes=idRegexes,
-           sectionRegexes=sectionRegexes,
-           autoGenerateIds=autoGenerateIds,
-           persistentIds=persistentIds,
-           noCodes=noCodes,
-           inductiveCodingHierarchyMarker=inductiveCodingHierarchyMarker,
-           metadataContainers=metadataContainers,
-           codesContainers=codesContainers,
-           delimiterRegEx = delimiterRegEx,
-           ignoreRegex = ignoreRegex,
            ignoreOddDelimiters = ignoreOddDelimiters,
            encoding=encoding,
            postponeDeductiveTreeBuilding = TRUE,
@@ -90,6 +79,18 @@ parse_sources <- function(path,
     sort(unique(unlist(res$convenience$rawCodings)));
   res$convenience$codingLeaves <-
     sort(unique(unlist(res$convenience$rawCodingLeaves)));
+
+  # res$convenience$metadata <-
+  #   dplyr::bind_rows(
+  #     lapply(res$parsedSource,
+  #            function(x) {
+  #              if (is.data.frame(x$metadataDf)) {
+  #                return(x$metadataDf);
+  #              } else {
+  #                return(NULL);
+  #              }
+  #            })
+  #   );
 
   res$convenience$metadata <-
     dplyr::bind_rows(purrr::map(res$parsedSource,
@@ -184,9 +185,19 @@ parse_sources <- function(path,
     dplyr::bind_rows(purrr::map(res$parsedSources,
                                 'sourceDf'));
 
+
   ### Merge merged source dataframes
   res$mergedSourceDf <-
-    dplyr::bind_rows(purrr::map(res$parsedSources,
+    dplyr::bind_rows(purrr::map(lapply(res$parsedSources,
+                                       function(x) {
+                                         if (is.data.frame(x$mergedSourceDf)) {
+                                           return(x);
+                                         } else {
+                                           x$mergedSourceDf <-
+                                             NULL;
+                                           return(x);
+                                         }
+                                       }),
                                 'mergedSourceDf'),
                      .id="originalSource");
 
@@ -267,10 +278,8 @@ parse_sources <- function(path,
 
   metadataDf <-
     res$metadataDf <-
-    dplyr::bind_rows(lapply(purrr::map(res$parsedSources,
-                                       'metadata'),
-                            as.data.frame,
-                            stringsAsFactors=FALSE));
+    dplyr::bind_rows(purrr::map(res$parsedSources,
+                                'metadataDf'));
 
   ### Add metadata to the utterances
   for (i in seq_along(idRegexes)) {
@@ -279,12 +288,26 @@ parse_sources <- function(path,
       if (!silent) {
         print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, metadata was provided: proceeding to join to sources dataframe.\n"));
       }
-      ### Convert to character to avoid errors
-      metadataDf[, names(idRegexes)[i]] <-
-        as.character(metadataDf[, names(idRegexes)[i]]);
+      ### Convert to character to avoid errors and delete
+      ### empty columns from merged source dataframe
+      usedIdRegexes <-
+        names(idRegexes)[names(idRegexes) %in% names(metadataDf)];
+      for (j in usedIdRegexes) {
+        metadataDf[, j] <-
+          as.character(metadataDf[, j]);
+      }
+      for (j in intersect(names(res$mergedSourceDf),
+                          names(metadataDf))) {
+        if (all(is.na(res$mergedSourceDf[, j]))) {
+          res$mergedSourceDf[, j] <- NULL;
+        }
+      }
+
+      # metadataDf[, names(idRegexes)[i]] <-
+      #   as.character(metadataDf[, names(idRegexes)[i]]);
       ### Join metadata based on identifier
-      res$sourcesDf <-
-        dplyr::left_join(res$sourcesDf,
+      res$mergedSourceDf <-
+        dplyr::left_join(res$mergedSourceDf,
                          metadataDf[, setdiff(names(metadataDf), 'type')],
                          by=names(idRegexes)[i]);
     } else {
@@ -389,15 +412,29 @@ parse_sources <- function(path,
     cat("\n\n");
   }
 
-
-
-
-
-
-
-
-
-
+  if ("Node" %in% class(res$fullyMergedCodeTrees)) {
+    res$convenience$codingPaths <- c();
+    res$convenience$codingPaths <-
+      gsub("/", ">", res$fullyMergedCodeTrees$Get("pathString"));
+  } else {
+    ###------------------------------------------------------------------------
+    ### This needs to be fixed to properly work with multiple parallel coding
+    ### systems
+    ###------------------------------------------------------------------------
+    if ("Node" %in% class (res$deductiveCodeTrees)) {
+      res$convenience$codingPaths <-
+        gsub("/", ">", res$deductiveCodeTrees$Get("pathString"));
+    } else {
+      if (!is.na(res$inductiveCodeTrees)) {
+        res$convenience$codingPaths <- c();
+        for (i in names(res$inductiveCodeTrees)) {
+          res$convenience$codingPaths <-
+            c(res$convenience$codingPaths,
+              gsub("/", ">", res$inductiveCodeTrees[[i]]$root$Get("pathString")));
+        }
+      }
+    }
+  }
 
   # ### Get the codes
   # deductiveCodeLists <- list();

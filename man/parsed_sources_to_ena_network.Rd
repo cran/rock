@@ -40,7 +40,9 @@ parsedExamples <- rock::parse_sources(examplePath);
 ### Add something to indicate which units belong together; normally,
 ### these would probably be indicated using one of the identifier,
 ### for example the stanza identifiers, the sid's
-parsedExamples$mergedSourceDf$units <- rep(1:11, each=9);
+nChunks <- nrow(parsedExamples$mergedSourceDf) \%/\% 10;
+parsedExamples$mergedSourceDf$units <-
+  c(rep(1:nChunks, each=10), rep(max(nChunks), nrow(parsedExamples$mergedSourceDf) - (10*nChunks)));
 
 ### Generate ENA plot
 enaPlot <-

@@ -25,9 +25,10 @@
 prepend_ids_to_source <- function(input,
                                   output = NULL,
                                   origin=Sys.time(),
-                                  preventOverwriting=TRUE,
-                                  encoding="UTF-8",
-                                  silent=FALSE) {
+                                  preventOverwriting=rock::opts$get(preventOverwriting),
+                                  encoding=rock::opts$get(encoding),
+                                  silent=rock::opts$get(silent)) {
+
   if (file.exists(input)) {
     res <- readLines(input,
                      encoding=encoding);

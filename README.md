@@ -1,21 +1,24 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# <img src='img/hex-logo.png' align="right" height="200" /> rock 📦
-
-## Reproducible Open Coding Kit
-
 <!-- badges: start -->
 
 [![Pipeline
 status](https://gitlab.com/r-packages/rock/badges/master/pipeline.svg)](https://gitlab.com/r-packages/rock/commits/master)
-
 [![Coverage
 status](https://codecov.io/gl/r-packages/rock/branch/master/graph/badge.svg)](https://codecov.io/gl/r-packages/rock?branch=master)
-
+[![Version on
+CRAN](https://www.r-pkg.org/badges/version/rock?color=brightgreen)](https://cran.r-project.org/package=rock)
+[![Version on
+CRAN](https://cranlogs.r-pkg.org/badges/last-month/rock?color=brightgreen)](https://cran.r-project.org/package=rock)
+[![Version on
+CRAN](https://cranlogs.r-pkg.org/badges/grand-total/rock?color=brightgreen)](https://cran.r-project.org/package=rock)
 <!-- [![Dependency status](https://tinyverse.netlify.com/badge/rock)](https://CRAN.R-project.org/package=rock) -->
-
 <!-- badges: end -->
+
+# <img src='img/hex-logo.png' align="right" height="200" /> rock 📦
+
+## Reproducible Open Coding Kit
 
 The pkgdown website for this project is located at
 <https://r-packages.gitlab.io/rock>.
@@ -41,8 +44,11 @@ for an introduction.
 
 There is a FLOSS interface for the ROCK, iROCK, available at
 <https://r-packages.gitlab.io/rock/iROCK/>
+
 <!--------------------------------------------->
+
 <!--  End of a custom bit for every package  -->
+
 <!--------------------------------------------->
 
 ## Installation
