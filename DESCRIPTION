@@ -1,6 +1,6 @@
 Package: rock
 Title: Reproducible Open Coding Kit
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     c(person(given = "Gjalt-Jorn Ygram",
              family = "Peters",
@@ -20,7 +20,7 @@ Description: The Reproducible Open Coding Kit ('ROCK', and this package, 'rock')
   implements Epistemic Network Analysis ('ENA'), means to process notes
   from Cognitive Interviews ('CIs'), and means to work with decentralized
   construct taxonomies ('DCTs').
-BugReports: https://gitlab.com/r-packages/rock/issues
+BugReports: https://gitlab.com/r-packages/rock/-/issues
 URL: https://r-packages.gitlab.io/rock
 License: GPL-3
 Encoding: UTF-8
@@ -33,9 +33,9 @@ Imports: data.tree (>= 0.7.8), dplyr (>= 0.7.8), DiagrammeR (>= 1.0.0),
 Suggests: covr, knitr, rENA (>= 0.1.6), rmarkdown, testthat
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-11-14 19:07:17 UTC; micro
 Author: Gjalt-Jorn Ygram Peters [aut, cre]
     (<https://orcid.org/0000-0002-0336-9589>),
   Szilvia Zorgo [ctb] (<https://orcid.org/0000-0002-6916-2097>)
+Packaged: 2020-10-16 13:00:00 UTC; micro
 Repository: CRAN
-Date/Publication: 2019-11-14 19:50:03 UTC
+Date/Publication: 2020-10-18 22:10:02 UTC

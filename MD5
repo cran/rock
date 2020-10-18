@@ -1,4 +1,4 @@
-d8b4c39d3297287c6e04dd5133796e79 *DESCRIPTION
+2df865b175e86b6c4033b0377a5e1caa *DESCRIPTION
 573abac574bbc7e48288060ed8f8a1ea *NAMESPACE
 9f3ebbd3aa7dff31aa4d2b7004e607bc *R/add_html_tags.R
 cedb2de056ee5ff6d317f3d6aefb381a *R/apply_graph_theme.R
@@ -26,7 +26,7 @@ fb71ec1e464ccb8563d9fa6287451c25 *R/load_source.R
 4d6ef3d3cfb3f40dd2d1a5c8bdc8c437 *R/merge_sources.R
 fd5f20882538f69adec138fec7f3190c *R/numericToBase30.R
 94fb426d0f1364378e0d578791a1d72e *R/opts.R
-03fb96666f5a35ef04ab964419329ec8 *R/parse_source.R
+4c9dc789e3d5c586db4a6b93de396551 *R/parse_source.R
 507c1fc7ef2cbffe5c695cf7b651f8f2 *R/parse_source_by_coderId.R
 7b874a05d1b9e067cc22de614d8dc1bb *R/parse_sources.R
 f709266286a346c90f62f2bc53bb9e10 *R/parse_sources_by_coderId.R
@@ -40,7 +40,7 @@ c4fb74f411088bea5a9b0acbdff9b9e6 *R/search_and_replace_in_source.R
 bbe8ff2dd2faee0aa25a7276a1f19c70 *R/split_source.R
 6c5541d350d6888fd2d75b2d664505f0 *R/split_sources.R
 2413957e3eb857d215b84584ccc3e427 *R/vecTxt.R
-efea8c84b873697894ecfd69d846199b *README.md
+d9502f7774f8674add1c5d5a30423c18 *README.md
 6e2cb7590a15d12b028c294fbd6b4aad *build/vignette.rds
 29916f37ac22750dc162ba6a0faa802e *inst/css/basic.css
 92af3981f10606ab3532f7ab30c68c52 *inst/css/bootstrap.min.css

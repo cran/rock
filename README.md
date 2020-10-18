@@ -61,7 +61,7 @@ install.packages('rock');
 ```
 
 You can install the development version of `rock` from
-[GitLab](https://gitlab.com) with:
+[GitLab](https://about.gitlab.com/) with:
 
 ``` r
 remotes::install_gitlab('r-packages/rock');

@@ -421,7 +421,8 @@ parse_source <- function(text,
 
       } else {
         codeProcessing[[codeRegex]] <-
-          list(splitCodings = lapply(codings[[codeRegex]], return),
+          list(splitCodings = lapply(codings[[codeRegex]],
+		                             function(x) return(x)),
                leafCodes = codings[[codeRegex]],
                inductiveCodes = codings[[codeRegex]][!(codings[[codeRegex]] %in% res$deductiveCodes)]);
       }
