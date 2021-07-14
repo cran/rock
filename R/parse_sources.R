@@ -5,6 +5,8 @@ parse_sources <- function(path,
                           regex=NULL,
                           recursive=TRUE,
                           ignoreOddDelimiters = FALSE,
+                          checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
+                          mergeInductiveTrees = FALSE,
                           encoding=rock::opts$get(encoding),
                           silent=rock::opts$get(silent)) {
 
@@ -20,6 +22,7 @@ parse_sources <- function(path,
   codesContainers <- rock::opts$get(codesContainers);
   delimiterRegEx <- rock::opts$get(delimiterRegEx);
   ignoreRegex <- rock::opts$get(ignoreRegex);
+  codeTreeMarker <- rock::opts$get(codeTreeMarker);
 
   if (!dir.exists(path)) {
     stop("Directory '",
@@ -45,6 +48,12 @@ parse_sources <- function(path,
                pattern=regex,
                recursive=recursive,
                full.names=TRUE);
+
+  if (length(fileList) == 0) {
+    cat0("\nThere are no files matching regular expression '",
+         regex, "' in directory '", path, "', so I have nothing to do.\n");
+    return(invisible(NULL));
+  }
 
   res <- list(input=as.list(environment()));
 
@@ -78,35 +87,60 @@ parse_sources <- function(path,
   res$convenience$codings <-
     sort(unique(unlist(res$convenience$rawCodings)));
   res$convenience$codingLeaves <-
-    sort(unique(unlist(res$convenience$rawCodingLeaves)));
+    sort(
+      unique(
+        unlist(
+          get_leaf_codes(
+            res$convenience$rawCodingLeaves,
+            inductiveCodingHierarchyMarker=inductiveCodingHierarchyMarker
+          )
+        )
+      )
+    );
 
-  # res$convenience$metadata <-
+  # res$convenience$attributes <-
   #   dplyr::bind_rows(
   #     lapply(res$parsedSource,
   #            function(x) {
-  #              if (is.data.frame(x$metadataDf)) {
-  #                return(x$metadataDf);
+  #              if (is.data.frame(x$attributesDf)) {
+  #                return(x$attributesDf);
   #              } else {
   #                return(NULL);
   #              }
   #            })
   #   );
 
-  res$convenience$metadata <-
-    dplyr::bind_rows(purrr::map(res$parsedSource,
-                                'metadataDf'));
+  res$convenience$attributes <-
+    rbind_df_list(
+      lapply(
+        res$parsedSources,
+        function(x) {
+          return(x$attributesDf);
+        }
+      )
+    );
 
-  res$convenience$metadataVars <-
-    sort(unique(c(unlist(lapply(purrr::map(res$parsedSource,
-                                           'convenience'),
-                                function(x) {
-                                  return(x$metadataVars);
-                                })))));
+    # dplyr::bind_rows(purrr::map(res$parsedSources,
+    #                             'attributesDf'));
+
+  res$convenience$attributesVars <-
+    sort(unique(c(unlist(lapply(
+      res$parsedSource,
+      function(x) {
+        return(x$convenience$attributeVars);
+      }
+    )))));
+
+    # sort(unique(c(unlist(lapply(purrr::map(res$parsedSource,
+    #                                        'convenience'),
+    #                             function(x) {
+    #                               return(x$attributesVars);
+    #                             })))));
 
          # codings = purrr::map(res$parsedSources,
          #                      'codings'),
-         # metadata = purrr::map(res$parsedSources,
-         #                       'metadata'));
+         # attributes = purrr::map(res$parsedSources,
+         #                       'attributes'));
 
   ### Get a list of all names of codes (usually just 'codes', but
   ### in theory, people could use multiple types of code)
@@ -176,30 +210,94 @@ parse_sources <- function(path,
              }
            });
 
-  if (!silent) {
-    cat0("Successfully built the inductive code trees. Merging source dataframes.\n");
+  if ((!(is.null(res$inductiveCodeTrees))) &&
+      (length(res$inductiveCodeTrees) > 0) &&
+      (!(all(is.na(res$inductiveCodeTrees))))) {
+
+    res$inductiveCodeTreeGraphs <-
+      lapply(
+        res$inductiveCodeTrees,
+        function(tree) {
+          tree$root$Set(name = 'codes',
+                        filterFun=function(x) x$isRoot);
+          res <- data.tree::ToDiagrammeRGraph(tree);
+          res <-
+            apply_graph_theme(res,
+                              c("layout", "dot", "graph"),
+                              c("rankdir", "LR", "graph"),
+                              c("outputorder", "edgesfirst", "graph"),
+                              c("fixedsize", "false", "node"),
+                              c("shape", "box", "node"),
+                              c("style", "rounded,filled", "node"),
+                              c("fontname", "Arial", "node"),
+                              c("color", "#000000", "node"),
+                              c("color", "#888888", "edge"),
+                              c("dir", "none", "edge"),
+                              c("headclip", "false", "edge"),
+                              c("tailclip", "false", "edge"),
+                              c("fillcolor", "#FFFFFF", "node"));
+          return(res);
+        }
+      );
+
+    if (!silent) {
+      cat0("Successfully built the inductive code trees. Merging source dataframes.\n");
+    }
+
+  } else {
+
+    if (!silent) {
+      cat0("No inductive code trees found/combined. Merging source dataframes.\n");
+    }
+
   }
+
+  ###---------------------------------------------------------------------------
 
   ### Merge source dataframes
   res$sourceDf <-
-    dplyr::bind_rows(purrr::map(res$parsedSources,
-                                'sourceDf'));
+    rbind_df_list(
+      lapply(
+        res$parsedSources,
+        function(x) {
+          return(x$sourceDf);
+        }
+      )
+    );
 
+    # dplyr::bind_rows(purrr::map(res$parsedSources,
+    #                             'sourceDf'));
 
   ### Merge merged source dataframes
   res$mergedSourceDf <-
-    dplyr::bind_rows(purrr::map(lapply(res$parsedSources,
-                                       function(x) {
-                                         if (is.data.frame(x$mergedSourceDf)) {
-                                           return(x);
-                                         } else {
-                                           x$mergedSourceDf <-
-                                             NULL;
-                                           return(x);
-                                         }
-                                       }),
-                                'mergedSourceDf'),
-                     .id="originalSource");
+    rbind_df_list(
+      lapply(
+        names(res$parsedSources),
+        function(i) {
+          if (is.data.frame(res$parsedSources[[i]]$mergedSourceDf) &&
+              nrow(res$parsedSources[[i]]$mergedSourceDf) > 0) {
+            tmpRes <- res$parsedSources[[i]]$mergedSourceDf;
+            tmpRes$originalSource <- i;
+            return(tmpRes);
+          } else {
+            return(NULL);
+          }
+        }
+      )
+    );
+
+    # dplyr::bind_rows(purrr::map(lapply(res$parsedSources,
+    #                                    function(x) {
+    #                                      if (is.data.frame(x$mergedSourceDf)) {
+    #                                        return(x);
+    #                                      } else {
+    #                                        x$mergedSourceDf <-
+    #                                          NULL;
+    #                                        return(x);
+    #                                      }
+    #                                    }),
+    #                             'mergedSourceDf'),
+    #                  .id="originalSource");
 
   res$mergedSourceDf[, res$convenience$codingLeaves] <-
     lapply(res$mergedSourceDf[, res$convenience$codingLeaves],
@@ -244,22 +342,22 @@ parse_sources <- function(path,
   #   yum::load_yaml_list(yamlLineSets);
   #
   # if (!silent) {
-  #   print(glue::glue("\n\nLoaded {length(rawSpecs)} raw metadata specifications.\n"));
+  #   print(glue::glue("\n\nLoaded {length(rawSpecs)} raw attributes specifications.\n"));
   # }
   #
-  # ### Get the metadata
-  # metadataList <- list();
-  # for (currentMetadataContainer in metadataContainers) {
-  #   metadataList <-
-  #     c(metadataList,
+  # ### Get the attributes
+  # attributesList <- list();
+  # for (currentattributesContainer in attributesContainers) {
+  #   attributesList <-
+  #     c(attributesList,
   #       unlist(purrr::map(rawSpecs,
-  #                         currentMetadataContainer),
+  #                         currentattributesContainer),
   #              recursive=FALSE));
   # }
   #
   # ### Add type and convert to data frame
-  # metadataDfs <-
-  #   lapply(metadataList,
+  # attributesDfs <-
+  #   lapply(attributesList,
   #          function(x) {
   #            x$type <-
   #              names(idRegexes)[names(idRegexes) %in% names(x)];
@@ -268,58 +366,175 @@ parse_sources <- function(path,
   #          });
   #
   # ### Bind together into one dataframe
-  # res$metadata <-
-  #   metadataDf <-
-  #   dplyr::bind_rows(metadataDfs);
+  # res$attributes <-
+  #   attributesDf <-
+  #   dplyr::bind_rows(attributesDfs);
 
   if (!silent) {
-    cat0("Creating metadata dataframe and merging with source dataframe.\n");
+    cat0("Creating attributes dataframe and merging with source dataframe.\n");
   }
 
-  metadataDf <-
-    res$metadataDf <-
-    dplyr::bind_rows(purrr::map(res$parsedSources,
-                                'metadataDf'));
+  attributesDf <-
+    res$attributesDf <-
+    # dplyr::bind_rows(purrr::map(res$parsedSources,
+    #                             'attributesDf'));
+    rbind_df_list(
+      lapply(
+        res$parsedSources,
+        function(parsedSource) {
+          return(parsedSource$attributesDf);
+        }
+      )
+    );
 
-  ### Add metadata to the utterances
+  ###---------------------------------------------------------------------------
+  ###
+  ### START --- move this to a separate function for parse_source and parse_sources
+  ###
+  ###---------------------------------------------------------------------------
+
+  ### Add attributes to the utterances
   for (i in seq_along(idRegexes)) {
-    ### Check whether metadata was provided for this identifier
-    if (names(idRegexes)[i] %in% names(metadataDf)) {
+    ### Check whether attributes was provided for this identifier
+    if (names(idRegexes)[i] %in% names(attributesDf)) {
       if (!silent) {
-        print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, metadata was provided: proceeding to join to sources dataframe.\n"));
+        print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, attributes were provided: proceeding to join to sources dataframe.\n"));
       }
       ### Convert to character to avoid errors and delete
       ### empty columns from merged source dataframe
       usedIdRegexes <-
-        names(idRegexes)[names(idRegexes) %in% names(metadataDf)];
+        names(idRegexes)[names(idRegexes) %in% names(attributesDf)];
       for (j in usedIdRegexes) {
-        metadataDf[, j] <-
-          as.character(metadataDf[, j]);
+        attributesDf[, j] <-
+          as.character(attributesDf[, j]);
       }
       for (j in intersect(names(res$mergedSourceDf),
-                          names(metadataDf))) {
+                          names(attributesDf))) {
         if (all(is.na(res$mergedSourceDf[, j]))) {
           res$mergedSourceDf[, j] <- NULL;
         }
       }
 
-      # metadataDf[, names(idRegexes)[i]] <-
-      #   as.character(metadataDf[, names(idRegexes)[i]]);
-      ### Join metadata based on identifier
-      res$mergedSourceDf <-
-        dplyr::left_join(res$mergedSourceDf,
-                         metadataDf[, setdiff(names(metadataDf), 'type')],
-                         by=names(idRegexes)[i]);
+      if (!(names(idRegexes)[i] %in% names(res$mergedSourceDf))) {
+        msg <-
+          paste0("When processing identifier regex '", idRegexes[i],
+                 "', I failed to find its name ('", names(idRegexes[i]),
+                 "') in the column names of the merged ",
+                 "sources data frame (",
+                 vecTxtQ(names(res$mergedSourceDf)), "), so not merging ",
+                 "the attributes data frame with the source data frame for ",
+                 "this class instance identifier..");
+        if (checkClassInstanceIds) {
+          warning(msg);
+        }
+        if (!silent) {
+          cat(msg);
+        }
+      } else if (!(names(idRegexes)[i] %in% setdiff(names(attributesDf), 'type'))) {
+        msg <-
+          paste0("When processing identifier regex '", idRegexes[i],
+                 "', I failed to find its name (", names(idRegexes[i]),
+                 ") in the column names of the merged ",
+                 "attributes data frame, so not merging ",
+                 "the attributes data frame with the source data frame for ",
+                 "this class instance identifier..");
+        if (checkClassInstanceIds) {
+          warning(msg);
+        }
+        if (!silent) {
+          cat(msg);
+        }
+      } else {
+
+        attributesToLookFor <-
+          setdiff(
+            names(attributesDf),
+            names(idRegexes)[i]
+          );
+
+        alreadyPresentAttributeIndices <-
+          attributesToLookFor %in% names(res$mergedSourceDf);
+
+        alreadyPresentAttributes <-
+          attributesToLookFor[alreadyPresentAttributeIndices];
+
+        if (any(alreadyPresentAttributeIndices)) {
+
+          if (!silent) {
+            cat0("\n\nOne or more attribute columns already exist in the merged ",
+                 "source data frame. To be safe, proceeding to check whether ",
+                 "after merging again, the results are the same.");
+          }
+
+          testDf <-
+            dplyr::left_join(res$mergedSourceDf,
+                             attributesDf[, setdiff(names(attributesDf), 'type')],
+                             by=names(idRegexes)[i]);
+
+          for (i in alreadyPresentAttributes) {
+
+            if (i %in% names(testDf)) {
+
+              if (res$mergedSourceDf[, i] != testDf[, i]) {
+
+                cat("\nFound a difference in column ", i, ".");
+                stop("Found a difference in column ", i, ".");
+
+              }
+
+            } else {
+
+              if (!silent) {
+                cat0("\nColumn ", i, " does not exist in the newly merged ",
+                     "data frame.");
+              }
+
+            }
+
+          }
+
+          if (!silent) {
+            cat0("\nAll columns that existed in both data frames are ",
+                 "the same. Not performing the merge of the attribute ",
+                 "data frame and the source data frame.");
+          }
+
+          #res$mergedSourceDf <- testDf;
+
+        } else {
+
+          # attributesDf[, names(idRegexes)[i]] <-
+          #   as.character(attributesDf[, names(idRegexes)[i]]);
+          ### Join attributes based on identifier
+          res$mergedSourceDf <-
+            dplyr::left_join(
+              res$mergedSourceDf,
+              attributesDf[, setdiff(names(attributesDf), 'type')],
+              by=names(idRegexes)[i]
+            );
+
+        }
+
+      }
+
     } else {
       if (!silent) {
-        print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, no metadata was provided.\n"));
+        print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, no attributes were provided.\n"));
       }
     }
   }
 
   if (!silent) {
-    cat0("Finished merging metadata with source dataframe. Starting to collect deductive code trees.\n");
+    cat0("\nFinished merging attributes with source dataframe. Starting to collect deductive code trees.\n");
   }
+
+  ###---------------------------------------------------------------------------
+  ###
+  ### END --- move this to a separate function for parse_source and parse_sources
+  ###
+  ###---------------------------------------------------------------------------
+
+  ###---------------------------------------------------------------------------
 
   deductiveCodeLists <-
     do.call(c,
@@ -345,8 +560,11 @@ parse_sources <- function(path,
     res$deductiveCodeTrees <-
       yum::build_tree(deductiveCodeLists);
 
-    res$deductiveCodeTrees$root$Set(name = 'codes',
-                                   filterFun=function(x) x$isRoot);
+    res$deductiveCodeTrees$root$Set(
+      name = 'codes',
+      filterFun=function(x) x$isRoot
+    );
+
     res$deductiveCodeTreeGraph <-
       data.tree::ToDiagrammeRGraph(res$deductiveCodeTrees);
 
@@ -354,13 +572,15 @@ parse_sources <- function(path,
       apply_graph_theme(res$deductiveCodeTreeGraph,
                         c("layout", "dot", "graph"),
                         c("rankdir", "LR", "graph"),
-                        c("outputorder", "nodesfirst", "graph"),
+                        c("outputorder", "edgesfirst", "graph"),
                         c("fixedsize", "false", "node"),
                         c("shape", "box", "node"),
                         c("style", "rounded,filled", "node"),
                         c("color", "#000000", "node"),
                         c("color", "#888888", "edge"),
                         c("dir", "none", "edge"),
+                        c("headclip", "false", "edge"),
+                        c("tailclip", "false", "edge"),
                         c("fillcolor", "#FFFFFF", "node"));
 
     if (!silent) {
@@ -406,7 +626,17 @@ parse_sources <- function(path,
 
   } else {
     res$extendedDeductiveCodeTrees <- NA;
-    res$fullyMergedCodeTrees <- NA;
+
+    if (length(res$inductiveCodeTrees) == 1) {
+      res$fullyMergedCodeTrees <- res$inductiveCodeTrees[[1]];
+    } else {
+      if (mergeInductiveTrees) {
+        warning("Multiple inductive code trees found; functionality to merge ",
+                "these currently not yet implemented. Setting ",
+                "`fullyMergedCodeTrees` to NA (missing).");
+      }
+      res$fullyMergedCodeTrees <- NA;
+    }
   }
   if (!silent) {
     cat("\n\n");
@@ -415,7 +645,9 @@ parse_sources <- function(path,
   if ("Node" %in% class(res$fullyMergedCodeTrees)) {
     res$convenience$codingPaths <- c();
     res$convenience$codingPaths <-
-      gsub("/", ">", res$fullyMergedCodeTrees$Get("pathString"));
+      gsub("/",
+           codeTreeMarker,
+           res$fullyMergedCodeTrees$Get("pathString"));
   } else {
     ###------------------------------------------------------------------------
     ### This needs to be fixed to properly work with multiple parallel coding
@@ -423,15 +655,29 @@ parse_sources <- function(path,
     ###------------------------------------------------------------------------
     if ("Node" %in% class (res$deductiveCodeTrees)) {
       res$convenience$codingPaths <-
-        gsub("/", ">", res$deductiveCodeTrees$Get("pathString"));
+        gsub("/",
+             codeTreeMarker,
+             res$deductiveCodeTrees$Get("pathString"));
+      ### Not needed, because the names are already the node names
+      # res$convenience$codingPaths <-
+      #   codePaths_to_namedVector(
+      #     res$convenience$codingPaths
+      #   );
     } else {
-      if (!is.na(res$inductiveCodeTrees)) {
+      if (any(!is.na(res$inductiveCodeTrees))) {
         res$convenience$codingPaths <- c();
         for (i in names(res$inductiveCodeTrees)) {
           res$convenience$codingPaths <-
             c(res$convenience$codingPaths,
-              gsub("/", ">", res$inductiveCodeTrees[[i]]$root$Get("pathString")));
+              gsub("/",
+                   codeTreeMarker,
+                   res$inductiveCodeTrees[[i]]$root$Get("pathString")));
         }
+        ### Not needed, because the names are already the node names
+        # res$convenience$codingPaths <-
+        #   codePaths_to_namedVector(
+        #     res$convenience$codingPaths
+        #   );
       }
     }
   }
@@ -484,14 +730,14 @@ parse_sources <- function(path,
   # }
 
   return(structure(res,
-                   class="rockParsedSources"));
+                   class="rock_parsedSources"));
 
 }
 
 #' @rdname parsing_sources
-#' @method print rockParsedSources
+#' @method print rock_parsedSources
 #' @export
-print.rockParsedSources <- function(x, prefix="### ",  ...) {
+print.rock_parsedSources <- function(x, prefix="### ",  ...) {
   sourceFileNames <- names(x$parsedSources);
   print(glue::glue("Parsed {length(sourceFileNames)} sources, with filenames ",
                    "{vecTxtQ(sourceFileNames)}."));
@@ -500,9 +746,9 @@ print.rockParsedSources <- function(x, prefix="### ",  ...) {
 }
 
 #' @rdname parsing_sources
-#' @method plot rockParsedSources
+#' @method plot rock_parsedSources
 #' @export
-plot.rockParsedSources <- function(x, ...) {
+plot.rock_parsedSources <- function(x, ...) {
   if (!is.null(x$deductiveCodeTreeGraph)) {
     return(DiagrammeR::render_graph(x$deductiveCodeTreeGraph));
   } else {

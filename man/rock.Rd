@@ -3,8 +3,7 @@
 \docType{package}
 \name{rock}
 \alias{rock}
-\alias{rock-package}
-\title{rock: A Reprocucible Open Coding Kit}
+\title{rock: A Reproducible Open Coding Kit}
 \description{
 This package implements an open standard for working with
 qualitative data, as such, it has two parts: a file format/convention
@@ -17,9 +16,9 @@ The .rock files are plain text files where a number of conventions are used
 to add metadata. Normally these are the following conventions:
 \itemize{
 \item The smallest 'codeable unit' is called an utterance, and utterances are separated by newline characters (i.e. every line of the file is an utterance);
-\item Codes are in between double square brackets: \code{[[code1]]} and \code{[[code2]]};
-\item Hierarchy in inductive code trees can be indicated using the greater than sign (\code{>}): \code{[[parent1>child1]]};
-\item Utterances can have unique identifiers called 'utterance identifiers' or 'UIDs', which are unique short alphanumeric strings placed in between double square brackets after 'uid:', e.g. \code{[[uid:73xk2q07]]};
+\item Codes are in between double square brackets: \verb{[[code1]]} and \verb{[[code2]]};
+\item Hierarchy in inductive code trees can be indicated using the greater than sign (\code{>}): \verb{[[parent1>child1]]};
+\item Utterances can have unique identifiers called 'utterance identifiers' or 'UIDs', which are unique short alphanumeric strings placed in between double square brackets after 'uid:', e.g. \verb{[[uid:73xk2q07]]};
 \item Deductive code trees can be specified using YAML
 }
 }

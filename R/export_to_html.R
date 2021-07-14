@@ -3,13 +3,13 @@
 #' These function can be used to convert one or more parsed sources to HTML,
 #' or to convert all sources to tabbed sections in Markdown.
 #'
-#' @param input An object of class `rockParsedSource` (as resulting from a call
-#' to `parse_source`) or of class `rockParsedSources` (as resulting from a call
+#' @param input An object of class `rock_parsedSource` (as resulting from a call
+#' to `parse_source`) or of class `rock_parsedSources` (as resulting from a call
 #' to `parse_sources`.
 #' @param heading,headingLevel For
 #' @param output For `export_to_html`, either NULL to not write any files,
-#' or, if `input` is a single `rockParsedSource`, the filename to write to,
-#' and if `input` is a `rockParsedSources` object, the path to write to.
+#' or, if `input` is a single `rock_parsedSource`, the filename to write to,
+#' and if `input` is a `rock_parsedSources` object, the path to write to.
 #' This path will be created with a warning if it does not exist.
 #' @param template The template to load; either the name of one
 #' of the ROCK templates (currently, only 'default' is available), or
@@ -69,7 +69,7 @@ export_to_html <- function(input,
   utterancePost <-
     "</div>\n";
 
-  if ("rockParsedSource" %in% class(input)) {
+  if ("rock_parsedSource" %in% class(input)) {
 
     res <-
       add_html_tags(x = input$rawSourceDf$utterances_raw);
@@ -118,7 +118,7 @@ export_to_html <- function(input,
         invisible(res);
       }
     }
-  } else if  ("rockParsedSources" %in% class(input)) {
+  } else if  ("rock_parsedSources" %in% class(input)) {
     filenames <- names(input$parsedSources);
     if (!is.null(output)) {
       if (!dir.exists(output)) {

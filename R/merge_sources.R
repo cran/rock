@@ -97,6 +97,10 @@ merge_sources <- function(input,
                  encoding=encoding,
                  silent=ifelse(inheritSilence, silent, TRUE)));
 
+  if (!silent) {
+    cat0("\n\nRead ", length(parsedSources$parsedSources), " sources.");
+  }
+
   allCodedUtterances <-
     names(parsedSources$utterances);
 
@@ -111,6 +115,10 @@ merge_sources <- function(input,
     cat0("\n\nStarting to load primary sources in directory '",
          primarySourcesPath, "'.\n\n");
   }
+
+  ### Processing section breaks
+  sectionBreaksByUID <-
+    sectionBreaksByCoder_to_sectionBreaksByUID(parsedSources$sectionBreaksByCoder);
 
   ### Read primary sources
   primarySources <-
@@ -159,7 +167,8 @@ merge_sources <- function(input,
            sum(uidRegexMatches), " match the uidRegex (i.e. contain an utterance identifier).");
     }
 
-    ### Extract the UIDs and store in a vector, where every element corresponds to a line in the source.
+    ### Extract the UIDs and store in a vector, where every element
+    ### corresponds to a line in the source.
     primarySourceUids[[i]] <-
       ifelse(uidRegexMatches,
              gsub(paste0(".*", uidRegex, ".*"),
@@ -177,10 +186,11 @@ merge_sources <- function(input,
 
       currentUID <- primarySourceUids[[i]][j];
 
-      if (getOption('rock.debug', FALSE)) {
+      if (rock::opts$get(debug)) {
         cat0("\n     - Processing UID '", currentUID, "'.");
       }
 
+      ### Process coded utterances
       if (currentUID %in% allCodedUtterances) {
         nrOfMergedUtteranceCodings <-
           nrOfMergedUtteranceCodings + 1;
@@ -188,7 +198,7 @@ merge_sources <- function(input,
         codings <-
           unname(unlist(parsedSources$utterances[[currentUID]]));
 
-        if (getOption('rock.debug', FALSE)) {
+        if (rock::opts$get(debug)) {
           cat0("\n       - Found codings: ", vecTxtQ(codings), " in utterance:\n",
                "         '", mergedSources[[i]][j], "'");
         }
@@ -199,7 +209,7 @@ merge_sources <- function(input,
                         x = mergedSources[[i]][j],
                         fixed=TRUE));
 
-        if (getOption('rock.debug', FALSE)) {
+        if (rock::opts$get(debug)) {
           cat0("\n       - Already applied codings: ", vecTxtQ(codings[alreadyAppliedCodings]), ".");
         }
 
@@ -209,14 +219,123 @@ merge_sources <- function(input,
                  paste0(codings[!alreadyAppliedCodings],
                         collapse = " "));
 
-        if (getOption('rock.debug', FALSE)) {
+        if (rock::opts$get(debug)) {
           cat0("\n       - Added codings: ", vecTxtQ(codings[!alreadyAppliedCodings]), ".");
         }
 
       }
+
     }
+
     if (!silent) {
       cat0("\n   - ", nrOfMergedUtteranceCodings, " utterances merged.");
+    }
+
+    if (!silent) {
+      cat0("\n   - Starting to merge section breaks - starting with checking ",
+           length(sectionBreaksByUID$matches_pre), " section breaks to insert after a UID.");
+    }
+
+    if (any(primarySourceUids[[i]] %in% names(sectionBreaksByUID$matches_pre))) {
+
+      if (rock::opts$get(debug)) {
+        cat0("\n   - At least one utterance matches the list of utterances after which to insert a section break.");
+      }
+
+      ### Get indices (and so, line numbers) of the lines after which to
+      ### insert section breaks. Reverse the order because we have to start
+      ### at the end with inserting the section breaks - otherwise the line
+      ### numbers shift.
+      preSectionBreakUIDindices <-
+        rev(which(primarySourceUids[[i]] %in% names(sectionBreaksByUID$matches_pre)));
+
+      for (currentPreSectionBreakUIDindex in preSectionBreakUIDindices) {
+
+        currentUID <- primarySourceUids[[i]][currentPreSectionBreakUIDindex];
+        currentSectionBreak <-
+          sectionBreaksByUID$matches_pre[names(sectionBreaksByUID$matches_pre) == currentUID];
+
+        ###---------------------------------------------------------------------
+        ### At some point - try to find the appropriate content and add it in here.
+        ###---------------------------------------------------------------------
+
+        # currentContent <-
+
+
+        if (length(currentSectionBreak) > 1) {
+          if (rock::opts$get(debug)) {
+            cat0("\n     - Processing UID '", currentUID, "', which matches multiple section breaks: ",
+                 vecTxtQ(currentSectionBreak), ". ");
+          }
+        } else {
+          if (rock::opts$get(debug)) {
+            cat0("\n     - Processing UID '", currentUID, "' and section break '",
+                 currentSectionBreak, "'. ");
+          }
+        }
+
+        if (grepl(paste0(rock::opts$get(sectionRegexes), collapse="|"),
+                  mergedSources[[i]][currentPreSectionBreakUIDindex+1])) {
+
+          ### There's already a section break on that line
+          if (rock::opts$get(debug)) {
+            cat0("The next line ('",
+                 trimws(mergedSources[[i]][currentPreSectionBreakUIDindex+1]),
+                 "') already contains a section break; ");
+          }
+
+          ### Check whether the section break we're checking for is already on that line.
+          sectionBreaksAlreadyThere <-
+            multigrepl(currentSectionBreak,
+                       mergedSources[[i]][currentPreSectionBreakUIDindex+1],
+                       fixed=TRUE);
+          if (all(sectionBreaksAlreadyThere)) {
+            if (rock::opts$get(debug)) {
+              cat0("and it's the one we were about to add ('", currentSectionBreak,
+                   "'), so not doing anything.");
+            }
+          } else {
+            ### It isn't - we can just append this one
+            mergedSources[[i]][currentPreSectionBreakUIDindex+1] <-
+              paste(mergedSources[[i]][currentPreSectionBreakUIDindex+1],
+                    currentSectionBreak[!sectionBreaksAlreadyThere]);
+            # stop("Just added '", currentSectionBreak, "' to line '",
+            #      mergedSources[[i]][currentPreSectionBreakUIDindex+1], "'.")
+            if (rock::opts$get(debug)) {
+              cat0("but it's a different one from the one we were about to add ('",
+                   currentSectionBreak[!sectionBreaksAlreadyThere],
+                   "'), so we append it to that line.");
+            }
+          }
+
+        } else {
+
+          if (rock::opts$get(debug)) {
+            cat0("The next line does not already contain a section break; shifting ",
+                 "all subsequent lines one position and inserting a line ",
+                 "containing only section break '", currentSectionBreak, "'.");
+          }
+
+          ### We have to shift all subsequent lines and then insert this one
+          lastLineIndex <- length(primarySourceUids[[i]]);
+
+          linesOfLastPartOfSource_preShift <- (currentPreSectionBreakUIDindex+1):lastLineIndex;
+          linesOfLastPartOfSource_postShift <- linesOfLastPartOfSource_preShift + 1;
+
+          #### Shift
+          mergedSources[[i]][linesOfLastPartOfSource_postShift] <-
+            mergedSources[[i]][linesOfLastPartOfSource_preShift];
+
+          ### Insert line containing only the section break
+          mergedSources[[i]][currentPreSectionBreakUIDindex+1] <-
+            sectionBreaksByUID$matches_pre[currentUID];
+
+        }
+      }
+    } else {
+      if (rock::opts$get(debug)) {
+        cat0("\n   - None of the utterances matches the list of utterances before which to insert a section break.");
+      }
     }
 
     newFilename <-
@@ -235,6 +354,11 @@ merge_sources <- function(input,
     }
     newFullname <- file.path(newFileDir,
                              newFilename);
+
+    if (!utils::tail(mergedSources[[i]], 1) == "") {
+      mergedSources[[i]] <-
+        c(mergedSources[[i]], "");
+    }
 
     if (!silent) {
       cat0("\nStarting to write merged source '", newFilename,
@@ -259,6 +383,7 @@ merge_sources <- function(input,
 
   res <- list(parsedSources = parsedSources,
               primarySources = primarySources,
+              sectionBreaksByUID = sectionBreaksByUID,
               mergedSources = mergedSources);
 
   return(invisible(res));

@@ -23,5 +23,5 @@ Repeat a string a number of times
 repStr(10);
 
 ### Three euro symbols:
-repStr("\\u20ac", 3);
+repStr("\u20ac", 3);
 }

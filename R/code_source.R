@@ -19,15 +19,17 @@
 #' source. If specifying an utterance ID or code, make sure
 #' that the code delimiters are included (normally, two square
 #' brackets).
-#' @param indices A logical vector of the same length as `input`
+#' @param indices If `input` is a source as loaded by
+#' `loading_sources`, `indices` can be used to pass a logical
+#' vector of the same length as `input`
 #' that indicates to which utterance the code in `codes` should be
 #' applied. Note that if `indices` is provided, only the first
 #' element of `codes` is used, and its name is ignored.
-#' @param codeDelimiters A character vector of two elements
-#' specifying the opening and closing delimiters of codes (conform
-#' the default ROCK convention, two square brackets). The square
-#' brackets will be escaped; other characters will not, but will
-#' be used as-is.
+#' @param output If specified, the coded source will be written here.
+#' @param preventOverwriting Whether to prevent overwriting existing files.
+#' @param encoding The encoding to use.
+#' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
+#' with a newline character.
 #' @param silent Whether to be chatty or quiet.
 #'
 #' @return Invisibly, the coded source object.
@@ -78,14 +80,29 @@
 #' @export
 code_source <- function(input,
                         codes,
-                        indices=NULL,
-                        codeDelimiters = c("[[", "]]"),
-                        silent=TRUE) {
+                        indices = NULL,
+                        output = NULL,
+                        preventOverwriting = rock::opts$get('preventOverwriting'),
+                        rlWarn = rock::opts$get(rlWarn),
+                        encoding = rock::opts$get('encoding'),
+                        silent = rock::opts$get('silent')) {
 
-  if (!("rock_source" %in% class(input))) {
-    stop("With the `input` argument you must pass a ROCK source ",
+  ### Read input, if it's a file
+  if ((length(input) == 1) && (file.exists(input))) {
+    input <- readLines(input,
+                       encoding=encoding,
+                       warn = rlWarn);
+    input <- cleaned_source_to_utterance_vector(input);
+  } else if ("character" %in% class(input)) {
+    input <- cleaned_source_to_utterance_vector(input);
+  } else if (!("rock_source" %in% class(input))) {
+    stop("With the `input` argument you must pass either the ",
+         "path to a file with a source, a character vector ",
+         "containing the source, or a ROCK source ",
          "as loaded with load_source or load_sources.\n");
   }
+
+  codeDelimiters <- rock::opts$get(codeDelimiters);
 
   if (!is.null(indices) && (is.logical(indices) && (length(indices) == length(input)))) {
     ### The indices are already set as a (valid) logical vector
@@ -93,11 +110,11 @@ code_source <- function(input,
                         codes[1],
                         codeDelimiters[2]);
     if (!silent) {
-      cat0("The first argument is a logical vector indicating to which utterances to apply code '",
+      cat0("The 'indices' argument is a logical vector indicating to which utterances to apply code '",
                 codes[1], "' (specifically, the utterances on lines ",
                 vecTxt(which(indices)), ").\n");
     }
-  } else if (!is.null(indices) && (is.numeric(indices)) && ((min(indices) > 1) && (max(indices) <= length(input)))) {
+  } else if (!is.null(indices) && (is.numeric(indices)) && ((min(indices) >= 1) && (max(indices) <= length(input)))) {
     ### The indices are already set as a (valid) numeric vector
     codeToAdd <- paste0(codeDelimiters[1],
                         codes[1],
@@ -119,10 +136,13 @@ code_source <- function(input,
              "$");
 
     if (!silent) {
-      cat0("Multiple codes to check have been specified. Starting processing of ",
-                vecTxtQ(names(codes)),
-                " against the regular expression ",
-                vecTxtQ(regexMatchingCode), ".\n");
+      if (length(codes) > 1) {
+        cat0("Multiple codes to check have been specified.");
+      }
+      cat0("Starting processing of ",
+           vecTxtQ(names(codes)),
+           " against the regular expression ",
+           vecTxtQ(regexMatchingCode), ".\n");
     }
 
     for (i in seq_along(codes)) {
@@ -157,7 +177,7 @@ code_source <- function(input,
       } else if (grepl("^[0-9]+$", names(codes)[i])) {
         ### It's a number, so a line number; check whether
         ### it's not too high and then add code
-        if (names(codes)[i] <= length(input)) {
+        if (as.numeric(names(codes)[i]) <= length(input)) {
           ### (Only one index, really)
           indices <- as.numeric(names(codes)[i]);
         } else {
@@ -180,22 +200,55 @@ code_source <- function(input,
         }
       }
 
-      ### Append code
-      input[indices] <-
-        paste(input[indices],
-              codeToAdd,
-              sep=" ");
-
-      if (!silent) {
-        cat0("Appending code '", codeToAdd, "' to utterances at those line numbers.\n");
-      }
     }
+
   }
 
-  res <- input;
+  ### Append code
+  input[indices] <-
+    paste(input[indices],
+          codeToAdd,
+          sep=" ");
 
-  class(res) <- c("rock_source", "character");
+  if (!silent) {
+    cat0("Appending code '", codeToAdd, "' to utterances at those line numbers.\n");
+  }
 
-  return(invisible(res));
+  if (is.null(output)) {
+    class(input) <- c("rock_source", "character");
+    return(input);
+  } else {
+
+    if (!dir.exists(dirname(output))) {
+      stop("The directory specified where the output file '",
+           basename(output), "' is supposed to be written ('",
+           dirname(output),
+           "') does not exist.");
+    }
+    if (file.exists(output) && preventOverwriting) {
+      if (!silent) {
+        message("File '",
+                output, "' exists, and `preventOverwriting` was `TRUE`, so I did not ",
+                "write the source with added codes to disk.");
+      }
+    } else {
+      con <- file(description=output,
+                  open="w",
+                  encoding=encoding);
+      writeLines(text=input,
+                 con=con);
+      close(con);
+    }
+    if (!silent) {
+      message("I just wrote a source with added codes to file '",
+              output,
+              "'.");
+    }
+
+    class(input) <- c("rock_source", "character");
+    return(invisible(input));
+
+  }
+
 
 }

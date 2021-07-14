@@ -5,22 +5,32 @@
 \alias{export_to_markdown}
 \title{Export parsed sources to HTML or Markdown}
 \usage{
-export_to_html(input, output = NULL, template = "default",
+export_to_html(
+  input,
+  output = NULL,
+  template = "default",
   fragment = FALSE,
   preventOverwriting = rock::opts$get(preventOverwriting),
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 
-export_to_markdown(input, heading = "Sources", headingLevel = 2,
-  template = "default", silent = rock::opts$get(silent))
+export_to_markdown(
+  input,
+  heading = "Sources",
+  headingLevel = 2,
+  template = "default",
+  silent = rock::opts$get(silent)
+)
 }
 \arguments{
-\item{input}{An object of class \code{rockParsedSource} (as resulting from a call
-to \code{parse_source}) or of class \code{rockParsedSources} (as resulting from a call
+\item{input}{An object of class \code{rock_parsedSource} (as resulting from a call
+to \code{parse_source}) or of class \code{rock_parsedSources} (as resulting from a call
 to \code{parse_sources}.}
 
 \item{output}{For \code{export_to_html}, either NULL to not write any files,
-or, if \code{input} is a single \code{rockParsedSource}, the filename to write to,
-and if \code{input} is a \code{rockParsedSources} object, the path to write to.
+or, if \code{input} is a single \code{rock_parsedSource}, the filename to write to,
+and if \code{input} is a \code{rock_parsedSources} object, the path to write to.
 This path will be created with a warning if it does not exist.}
 
 \item{template}{The template to load; either the name of one

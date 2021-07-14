@@ -3,11 +3,13 @@
 #' @param template The template to load; either the name of one
 #' of the ROCK templates (currently, only 'default' is available), or
 #' the path and filename of a CSS file.
+#' @param includeBootstrap Whether to include the default bootstrap CSS.
 #'
 #' @return A character vector with the HTML fragment.
 #'
 #' @export
-css <- function(template = "default") {
+css <- function(template = "default",
+                includeBootstrap = rock::opts$get("includeBootstrap")) {
 
   ### Load stylesheets
   bootstrapCSS <-
@@ -34,7 +36,9 @@ css <- function(template = "default") {
   ### Merge stylesheets
   fullCSS <-
     paste0("\n<style\n>",
-           bootstrapCSS,
+           ifelse(includeBootstrap,
+                  bootstrapCSS,
+                  ""),
            "\n\n",
            basicCSS,
            "\n\n",

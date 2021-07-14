@@ -52,7 +52,6 @@ extract_codings_by_coderId <- function(input,
                  encoding=encoding,
                  silent=silent));
 
-  sectionMatchCols <- paste0(names(sectionRegexes), "_match");
   idNames <- names(idRegexes);
 
   res <- list(parsedSources = parsedSources,
@@ -77,7 +76,7 @@ extract_codings_by_coderId <- function(input,
         sourceDf <-
           parsedSources[[filename]]$parsedSubsources[[coderId]]$rawSourceDf;
         codings <-
-          parsedSources[[filename]]$parsedSubsources[[coderId]]$codings;
+          parsedSources[[filename]]$parsedSubsources[[coderId]]$convenience$codingLeaves;
         if (length(codings) == 0) {
           codingsList <- NA;
         } else {
@@ -103,9 +102,14 @@ extract_codings_by_coderId <- function(input,
 
         sectionMatches <- list();
 
-        for (j in sectionMatchCols) {
+        for (j in names(sectionRegexes)) {
+
           sectionMatches[[j]] <-
-            list(index = which(sourceDf[, j]));
+            list(index = which(sourceDf[, paste0(j, "_match")]));
+
+          sectionMatches[[j]]$content <-
+            sourceDf[sectionMatches[[j]]$index, paste0(j, "_content")];
+
           sectionMatches[[j]]$uid_pre <-
             unlist(lapply(sectionMatches[[j]]$index-1,
                           function(i) {
@@ -117,19 +121,26 @@ extract_codings_by_coderId <- function(input,
                                 'uids']);
                             }
                           }));
+
           sectionMatches[[j]]$uid_at <-
             sourceDf[sectionMatches[[j]]$index, "uids"];
+
           sectionMatches[[j]]$uid_post <-
             unlist(lapply(sectionMatches[[j]]$index+1,
                           function(i) {
                             if (i > nrow(sourceDf)) {
                               return(NA);
                             } else {
-                              return(sourceDf[
-                                ### Correct for index starting at i (i starts at next row)
-                                i-1 +
-                                  min(which(nchar(sourceDf[i:nrow(sourceDf), 'uids']) > 0)),
-                                'uids']);
+                              if (any(nchar(sourceDf[i:nrow(sourceDf), 'uids']) > 0)) {
+                                return(sourceDf[
+                                  ### Correct for index starting at i (i starts at next row)
+                                  i-1 +
+                                    min(which(nchar(sourceDf[i:nrow(sourceDf), 'uids']) > 0)),
+                                  'uids']
+                                );
+                              } else {
+                                return(NA);
+                              }
                             }
                           }));
         }
@@ -151,55 +162,54 @@ extract_codings_by_coderId <- function(input,
 
   res$utterances <- list();
 
-  for (i in names(res$codingsByCoder)) {
-
+  for (currentSource in names(res$codingsByCoder)) {
 
     if (!silent) {
-      cat0("\nProcessing source '", i, "'.\n");
+      cat0("\nProcessing source '", currentSource, "'.\n");
     }
 
-    for (j in names(res$codingsByCoder[[i]])) {
+    for (currentCoderId in names(res$codingsByCoder[[currentSource]])) {
 
       if (!silent) {
-        cat0("\nProcessing codings by coder with identifier '", j, "'.\n");
+        cat0("\nProcessing codings by coder with identifier '", currentCoderId, "'.\n");
       }
 
       utterancesInSource <-
-        names(res$codingsByCoder[[i]][[j]]);
+        names(res$codingsByCoder[[currentSource]][[currentCoderId]]);
       codedUtterances <-
-        which(unlist(lapply(res$codingsByCoder[[i]][[j]],
+        which(unlist(lapply(res$codingsByCoder[[currentSource]][[currentCoderId]],
                             length)) > 0);
-      for (k in utterancesInSource[codedUtterances]) {
+      for (currentUID in utterancesInSource[codedUtterances]) {
         ### Loop through all coded utterances by this coder in this source
 
         ### Get original codings from original source
         originalSourceLine <-
-          parsedSources[[i]]$parsedSubsources[[j]]$rawSourceDf[
-            parsedSources[[i]]$parsedSubsources[[j]]$rawSourceDf$uids == k,
+          parsedSources[[currentSource]]$parsedSubsources[[currentCoderId]]$rawSourceDf[
+            parsedSources[[currentSource]]$parsedSubsources[[currentCoderId]]$rawSourceDf$uids == currentUID,
             'utterances_raw'];
         rawCodings <-
           regmatches(originalSourceLine,
                      gregexpr(paste0(codeRegexes, collapse="|"),
                               originalSourceLine));
         codingInfo <-
-          stats::setNames(rawCodings, #list(res$codingsByCoder[[i]][[j]][[k]]),
-                          i);
+          stats::setNames(rawCodings, #list(res$codingsByCoder[[currentSource]][[currentCoderId]][[currentUID]]),
+                          currentSource);
 
-        if (k %in% res$utterances) {
+        if (currentUID %in% names(res$utterances)) {
           ### If this uid already contains information, append the new info
-          if (j %in% names(res$utterances[[k]])) {
-            res$utterances[[k]][[j]] <-
-              c(res$utterances[[k]][[j]],
+          if (currentCoderId %in% names(res$utterances[[currentUID]])) {
+            res$utterances[[currentUID]][[currentCoderId]] <-
+              c(res$utterances[[currentUID]][[currentCoderId]],
                 codingInfo);
           } else {
-            res$utterances[[k]][[j]] <-
+            res$utterances[[currentUID]][[currentCoderId]] <-
               codingInfo;
           }
         } else {
           ### No coding information about this utterance has been added yet
-          res$utterances[[k]] <-
+          res$utterances[[currentUID]] <-
             stats::setNames(list(codingInfo),
-                            j);
+                            currentCoderId);
         }
       }
     }

@@ -4,7 +4,8 @@
 #' containing the text of the relevant source *or* a path to a file that
 #' contains the source text; for `parse_sources_by_coderId`, a path to a
 #' directory that contains the sources to parse.
-#' @inheritParams parse_source
+#' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
+#' with a newline character.
 #' @rdname parsing_sources_by_coderId
 #' @examples ### Get path to example source
 #' examplePath <-
@@ -21,6 +22,7 @@
 parse_source_by_coderId <- function(input,
                                     ignoreOddDelimiters=FALSE,
                                     postponeDeductiveTreeBuilding = TRUE,
+                                    rlWarn = rock::opts$get(rlWarn),
                                     encoding="UTF-8",
                                     silent=TRUE) {
 
@@ -42,7 +44,8 @@ parse_source_by_coderId <- function(input,
   ### Read input, if it's a file
   if (file.exists(input)) {
     x <- readLines(input,
-                   encoding=encoding);
+                   encoding=encoding,
+                   warn = rlWarn);
   } else {
     x <- input;
   }

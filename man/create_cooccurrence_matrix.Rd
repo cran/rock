@@ -4,8 +4,11 @@
 \alias{create_cooccurrence_matrix}
 \title{Create a co-occurrence matrix}
 \usage{
-create_cooccurrence_matrix(x, codes = x$convenience$codingLeaves,
-  plotHeatmap = FALSE)
+create_cooccurrence_matrix(
+  x,
+  codes = x$convenience$codingLeaves,
+  plotHeatmap = FALSE
+)
 }
 \arguments{
 \item{x}{The parsed source(s) as provided by \code{rock::parse_source} or \code{rock::parse_sources}.}

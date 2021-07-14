@@ -27,71 +27,76 @@
 #'   c(rep(1:nChunks, each=10), rep(max(nChunks), nrow(parsedExamples$mergedSourceDf) - (10*nChunks)));
 #'
 #' ### Generate ENA plot
+#' \donttest{
 #' enaPlot <-
 #'   rock::parsed_sources_to_ena_network(parsedExamples,
 #'                                       unitCols='units');
 #'
 #' ### Show the resulting plot
-#' \donttest{print(enaPlot);}
+#' print(enaPlot);
+#' }
 #'
 parsed_sources_to_ena_network <- function(x,
                                           unitCols,
                                           conversationCols = 'originalSource',
                                           codes = x$convenience$codingLeaves,
-                                          metadata = x$convenience$metadataVars) {
+                                          metadata = x$convenience$attributesVars) {
 
-  if (!requireNamespace("rENA", quietly = TRUE)) {
+  if (requireNamespace("rENA", quietly = TRUE)) {
+
+    if (!("rock_parsedSource" %in% class(x)) &&
+        !("rock_parsedSources" %in% class(x))) {
+      stop(glue::glue("The object you provided (as argument `x`) has class '{vecTxtQ(class(x))}', ",
+                      "but I can only process objects obtained by parsing one or more sources (with ",
+                      "`rock::parse_source` or `rock::parse_sources`), which have class 'rock_parsedSource' ",
+                      "or 'rock_parsedSources'."));
+    }
+
+    allCols <-
+      c(unitCols,
+        conversationCols,
+        codes,
+        metadata);
+
+    if (!all(allCols %in% names(x$mergedSourceDf))) {
+      stop(glue::glue("Not all columns you specified exist in the 'mergedSourceDf' in the object you provided! Specifically, you provided:\n\n",
+                      "unitCols = {vecTxtQ(unitCols)}\n",
+                      "conversationCols = {vecTxtQ(conversationCols)}\n",
+                      "codes = {vecTxtQ(codes)}\n",
+                      "metadata = {vecTxtQ(metadata)}\n\n",
+                      "However, the following columns were not found: {vecTxtQ(allCols[!(allCols %in% names(x$mergedSourceDf))])}."));
+    }
+
+    dat <-
+      x$mergedSourceDf[, allCols];
+
+    ENA_accumulated_data <-
+      rENA::ena.accumulate.data(
+        units = dat[, unitCols, drop=FALSE],
+        conversation = dat[, conversationCols, drop=FALSE],
+        codes = dat[, codes, drop=FALSE],
+        metadata = dat[, metadata, drop=FALSE],
+        window = "Conversation"
+      );
+
+    ENA_set <-
+      rENA::ena.make.set(enadata=ENA_accumulated_data);
+
+    ENA_plot <-
+      rENA::ena.plot(ENA_set,
+                     rotation.by = rENA::ena.rotate.by.mean);
+
+    ENA_network_plot <-
+      rENA::ena.plot.network(ENA_plot,
+                             network=colSums(ENA_set$line.weights));
+
+    return(ENA_network_plot);
+
+  } else {
     stop("To create ENA networks, the \"rENA\" package is required. ",
          "Please install it using `install.packages('rENA');`.",
          call. = FALSE);
   }
 
-  if (!("rockParsedSource" %in% class(x)) &&
-      !("rockParsedSources" %in% class(x))) {
-    stop(glue::glue("The object you provided (as argument `x`) has class '{vecTxtQ(class(x))}', ",
-                    "but I can only process objects obtained by parsing one or more sources (with ",
-                    "`rock::parse_source` or `rock::parse_sources`), which have class 'rockParsedSource' ",
-                    "or 'rockParsedSources'."));
-  }
-
-  allCols <-
-    c(unitCols,
-      conversationCols,
-      codes,
-      metadata);
-
-  if (!all(allCols %in% names(x$mergedSourceDf))) {
-    stop(glue::glue("Not all columns you specified exist in the 'mergedSourceDf' in the object you provided! Specifically, you provided:\n\n",
-                    "unitCols = {vecTxtQ(unitCols)}\n",
-                    "conversationCols = {vecTxtQ(conversationCols)}\n",
-                    "codes = {vecTxtQ(codes)}\n",
-                    "metadata = {vecTxtQ(metadata)}\n\n",
-                    "However, the following columns were not found: {vecTxtQ(allCols[!(allCols %in% names(x$mergedSourceDf))])}."));
-  }
-
-  dat <-
-    x$mergedSourceDf[, allCols];
-
-  ENA_accumulated_data <-
-    rENA::ena.accumulate.data(
-      units = dat[, unitCols, drop=FALSE],
-      conversation = dat[, conversationCols, drop=FALSE],
-      codes = dat[, codes, drop=FALSE],
-      metadata = dat[, metadata, drop=FALSE],
-      window = "Conversation"
-    );
-
-  ENA_set <-
-    rENA::ena.make.set(enadata=ENA_accumulated_data);
-
-  ENA_plot <-
-    rENA::ena.plot(ENA_set,
-                   rotation.by = rENA::ena.rotate.by.mean);
-
-  ENA_network_plot <-
-    rENA::ena.plot.network(ENA_plot,
-                           network=colSums(ENA_set$line.weights));
-
-  return(ENA_network_plot);
 
 }

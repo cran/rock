@@ -5,11 +5,23 @@
 \alias{load_sources}
 \title{Load a source from a file or a string}
 \usage{
-load_source(input, encoding = "UTF-8", silent = FALSE)
+load_source(
+  input,
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent"),
+  rlWarn = rock::opts$get(rlWarn),
+  diligentWarnings = rock::opts$get("diligentWarnings")
+)
 
-load_sources(input, encoding = "UTF-8", filenameRegex = ".*",
-  ignoreRegex = NULL, recursive = TRUE, full.names = FALSE,
-  silent = FALSE)
+load_sources(
+  input,
+  filenameRegex = ".*",
+  ignoreRegex = NULL,
+  recursive = TRUE,
+  full.names = FALSE,
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent")
+)
 }
 \arguments{
 \item{input}{The filename or contents of the source
@@ -20,10 +32,16 @@ sources for \code{load_sources}.}
 
 \item{silent}{Whether to be chatty or quiet.}
 
+\item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
+with a newline character.}
+
+\item{diligentWarnings}{Whether to display very diligent warnings.}
+
 \item{filenameRegex}{A regular expression to match against located files; only
 files matching this regular expression are processed.}
 
-\item{ignoreRegex}{Regular expression indicating which files to ignore.}
+\item{ignoreRegex}{Regular expression indicating which files to ignore. This
+is a perl-style regular expression (see \link[base:regex]{base::regex}).}
 
 \item{recursive}{Whether to search all subdirectories (\code{TRUE}) as well or not.}
 
@@ -42,4 +60,16 @@ first, using one of the \code{\link[=clean_sources]{clean_sources()}} functions,
 and you'll probably want to add utterance identifiers
 to each utterance using one of the \code{\link[=prepending_uids]{prepending_uids()}}
 functions.
+}
+\examples{
+### Get path to example source
+examplePath <-
+  system.file("extdata", package="rock");
+
+### Get a path to one example file
+exampleFile <-
+  file.path(examplePath, "example-1.rock");
+
+### Parse single example source
+loadedSource <- rock::load_source(exampleFile);
 }

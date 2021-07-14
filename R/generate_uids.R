@@ -1,6 +1,6 @@
 #' Generate utterance identifiers (UIDs)
 #'
-#' This function generated utterance identifiers.
+#' This function generates utterance identifiers.
 #'
 #' @param x The number of identifiers te generate.
 #' @param origin The origin to use when generating the actual

@@ -20,6 +20,7 @@
 #'   \item{option}{For `rock::opts$set`, the name of the option to set.}
 #'   \item{default}{For `rock::opts$get`, the default value to return if the
 #'   option has not been manually specified.}
+#'
 #' }
 #'
 #' The following options can be set:
@@ -67,9 +68,17 @@
 #'
 #'   \item{delimiterRegEx}{The regular expression that is used to extract the YAML fragments.}
 #'
+#'   \item{codeDelimiters}{A character vector of two elements
+#' specifying the opening and closing delimiters of codes (conform
+#' the default ROCK convention, two square brackets). The square
+#' brackets will be escaped; other characters will not, but will
+#' be used as-is.}
+#'
 #'   \item{ignoreRegex}{The regular expression that is used to delete lines before any other
 #'   processing. This can be used to enable adding comments to sources, which are then ignored
 #'   during analysis.}
+#'
+#'   \item{includeBootstrap}{Whether to include the default bootstrap CSS.}
 #'
 #'   \item{utteranceMarker}{How to specify breaks between utterances in the source(s). The
 #'   ROCK convention is to use a newline (`\\n`).}
@@ -81,7 +90,6 @@
 #'   have a coder id (i.e. utterance that occur in a source that does not specify
 #'   a coder id, or above the line where a coder id is specified).}
 #'
-#'   \item{Two}{Second item}
 #' }
 #'
 #' @aliases opts set get reset
@@ -115,7 +123,8 @@ opts$set <- function(...) {
     do.call(options,
             dots);
   } else {
-    stop("Option '", option, "' is not a valid (i.e. existing) option for the rock!");
+    option <- dotNames;
+    stop("Option(s) ", vecTxtQ(option), " is/are not a valid (i.e. existing) option for the rock!");
   }
 }
 
@@ -153,27 +162,41 @@ opts$reset <- function(...) {
 
 opts$defaults <-
   list(### Used throughout
-       codeRegexes = c(codes = "\\[\\[([a-zA-Z0-9._>-]+)\\]\\]"),
-       idRegexes = c(caseId = "\\[\\[cid[=:]([a-zA-Z0-9._-]+)\\]\\]",
-                     stanzaId = "\\[\\[sid[=:]([a-zA-Z0-9._-]+)\\]\\]",
-                     coderId = "\\[\\[coderId[=:]([a-zA-Z0-9._-]+)\\]\\]"),
+       codeRegexes = c(codes = "\\[\\[([a-zA-Z0-9_>]+)\\]\\]",
+                       ci = "\\[\\[ci[=:]([a-zA-Z0-9_>]+)\\]\\]"),
+       idRegexes = c(caseId = "\\[\\[cid[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     stanzaId = "\\[\\[sid[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     uiid = "\\[\\[uiid[=:]([a-zA-Z0-9_]+)\\]\\]"),
+       codeValueRegexes = c(codeValues = "\\[\\[([a-zA-Z0-9_>]+)\\|\\|([a-zA-Z0-9.,_: -]+)\\]\\]"),
        sectionRegexes = c(paragraphs = "---paragraph-break---",
-                          secondary = "---<[a-zA-Z0-9]?>---"),
-       uidRegex = "\\[\\[uid[=:]([a-zA-Z0-9._-]+)\\]\\]",
+                          secondary = "---<[a-zA-Z0-9_]+>---"),
+       uidRegex = "\\[\\[uid[=:]([a-zA-Z0-9_]+)\\]\\]",
        inductiveCodingHierarchyMarker = ">",
+       codeTreeMarker = ">",
+
+       ### Regular expression describing the characters that can be used for
+       ### code identifiers (has to include `inductiveCodingHierarchyMarker`
+       ### and `codeTreeMarker`).
+       validCodeCharacters = "[a-zA-Z0-9_>]",
 
        ### Used to parse sources
        autoGenerateIds = c('stanzaId'),
-       persistentIds = c('caseId', 'coderId'),
-       noCodes = "^uid:|^uid=|^dct:|^ci:",
-       attributeContainers = c("rock_attributes"),
+       persistentIds = c('caseId', 'coderId', 'uiid'),
+       noCodes = "^uid[=:]|^dct[=:]|^ci[=:]|^uiid[=:]",
+       attributeContainers = c("ROCK_attributes"),
        codesContainers = c("codes", "dct"),
+       sectionBreakContainers = c("section_breaks"),
        delimiterRegEx = "^---$",
        ignoreRegex = "^#",
 
        ### Used to merge sources
-       coderId = "\\[\\[coderId=([a-zA-Z0-9._-]+)\\]\\]",
+       coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
        idForOmittedCoderIds = "noCoderId",
+
+       ### Whether to warn if a class instance identifier for specified
+       ### attributes isn't encountered.
+       checkClassInstanceIds = FALSE,
 
        ### Used for cleaning sources and adding UIDs
        codeDelimiters = c("[[", "]]"),
@@ -189,6 +212,13 @@ opts$defaults <-
        replacementsPost = list(c("([^\\,]),([^\\s])",
                                  "\\1, \\2")),
        utteranceSplits = c("([\\?\\!]+\\s?|\u2026\\s?|[[:alnum:]\\s?]\\.(?!\\.\\.)\\s?)"),
+       nestingMarker = "~",
+
+       ### Saniziting for DiagrammeR
+       diagrammerSanitizing = list(c("\\\"", "`"),
+                                   c("\\'", "`"),
+                                   c("\\\\", "/"),
+                                   c("[^a-zA-Z0-9;)(,._/`-]", " ")),
 
        ### Used for collecting sources
        utteranceGlue = "\n\n",
@@ -202,9 +232,45 @@ opts$defaults <-
        uidClass = "uid",
        utteranceClass = "utterance",
 
+       ### When displaying code identifiers, whether to by default show the
+       ### full path or just the code identifier itself
+       showFullCodePaths = TRUE,
+
+       ### When displaying code paths, whether to by default strip the root
+       stripRootsFromCodePaths = TRUE,
+
+       ### For justifications
+       justificationFile = "default_justifier_log.jmd",
+
        ### Used throughout for working with files
        encoding = "UTF-8",
        preventOverwriting = TRUE,
+       rlWarn = FALSE, ### Whether to let readLines emit a warning
+
+       ### Whether to include bootstrap CSS when collecting fragments
+       includeBootstrap = "smart",
+
+       ### Whether to show table output in the console or viewer,
+       ### if shown interactively
+       tableOutput = c("viewer", "console"),
+
+       ### color to use for the background when exporting to html
+       exportHTMLbackground = "white",
+
+       ### CSS for tableOutput
+       tableOutputCSS = paste0("<style>",
+                               "p,th,td{font-family:sans-serif}",
+                               "td{padding:3px;vertical-align:top;}",
+                               "tr:nth-child(even){background-color:#f2f2f2}",
+                               "</style>"),
+
+       ### Used throughout for debugging,
+       debug = FALSE,
 
        ### Used throughout for suppressing messages
-       silent = TRUE);
+       silent = TRUE,
+
+       ### And warnings
+       diligentWarnings = TRUE
+
+    );

@@ -1,4 +1,5 @@
 testthat::context("general ROCK tests")
+require(rock);
 
 ###-----------------------------------------------------------------------------
 ###-----------------------------------------------------------------------------
@@ -11,7 +12,7 @@ testthat::test_that("reading a source with no ROCK stuff works properly", {
   testres <- parse_source(file.path(examplePath,
                                     "lorum-ipsum.rock"));
 
-  testthat::expect_s3_class(testres, "rockParsedSource");
+  testthat::expect_s3_class(testres, "rock_parsedSource");
 
 });
 
@@ -47,6 +48,7 @@ testthat::test_that("a code tree is printed correctly", {
                           "This source contained deductive coding trees.");
 
 });
+
 ###-----------------------------------------------------------------------------
 
 testthat::test_that("a single deductive code tree is read correctly", {
@@ -122,7 +124,6 @@ testthat::test_that("Sources are exported to html properly", {
 
 });
 
-
 ###-----------------------------------------------------------------------------
 
 testthat::test_that("Coded fragments are collected properly", {
@@ -135,9 +136,110 @@ testthat::test_that("Coded fragments are collected properly", {
 
   testres <- collect_coded_fragments(testres);
 
-  testthat::expect_true(grepl('\n### Topic2 *(path: codes>Topic2)*\n\n-----\n\n\n\n**Source: `longer-test.rock`**\n\n<div class=\"utterance\">It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. <span class=\"code codes\">[[Topic2]]</span>',
+  testthat::expect_true(grepl('\n#### Topic2 *(path: codes>Topic2)*\n\n-----\n\n\n\n**Source: `longer-test.rock`**\n\n<div class=\"utterance\">It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. <span class=\"code codes\">[[Topic2]]</span>',
                               testres,
                               fixed=TRUE));
 
 });
 
+###-----------------------------------------------------------------------------
+
+testthat::test_that("the example in export_codes_to_txt.Rd runs properly", {
+
+  testthat::expect_true({
+    ### Get path to example source
+    examplePath <-
+      system.file("extdata", package="rock");
+
+    ### Parse all example sources in that directory
+    parsedExamples <- rock::parse_sources(examplePath);
+
+    ### Show results of exporting the codes
+    export_codes_to_txt(parsedExamples);
+
+    ### Only show select a narrow set of codes
+    export_codes_to_txt(parsedExamples,
+                        leavesOnly=TRUE,
+                        includePath=FALSE,
+                        onlyChildrenOf = "parentCode2",
+                        regex="5|6");
+
+    TRUE;
+  });
+});
+
+###-----------------------------------------------------------------------------
+
+testthat::test_that("recoding works", {
+
+  testthat::expect_true({
+    ### Get path to example source
+    examplePath <-
+      system.file("extdata", package="rock");
+
+    ### Get filename
+    exampleFile <-
+      file.path(examplePath, "example-1.rock");
+
+    ### Load a source
+    loadedExample <- rock::load_source(exampleFile);
+
+    ### Take a subset to keep the overview
+    subExample <- loadedExample[21:27];
+
+    rock::recode_rename(
+      subExample,
+      c(childCode4 = "bla")
+    );
+
+    TRUE;
+  });
+});
+
+###-----------------------------------------------------------------------------
+
+
+###-----------------------------------------------------------------------------
+###-----------------------------------------------------------------------------
+###-----------------------------------------------------------------------------
+
+testthat::test_that("merging two sources works properly", {
+
+  examplePath <- file.path(system.file(package="rock"), 'extdata');
+
+  tmpDir <- tempdir(check=TRUE);
+
+  # devtools::load_all();
+  # rock::opts$set(debug = TRUE);
+
+  testres <- merge_sources(
+    input = examplePath,
+    output = tmpDir,
+    filenameRegex = "merging-test-1",
+    primarySourcesRegex = "merging-test-1-primary",
+    preventOverwriting = FALSE,
+    silent = FALSE
+  );
+
+  testResult <-
+    readLines(file.path(tmpDir, "merging-test-1-primary_merged.rock"));
+
+  testthat::expect_equal(
+    testResult[9],
+    "---<some_section_break>--- ---<[a-zA-Z0-9_]+>---"
+  );
+
+  ### readLines(file.path(examplePath, "merging-test-1-primary.rock"))[15]
+  ### readLines(file.path(examplePath, "merging-test-1-secondary.rock"))[14]
+
+  testthat::expect_equal(
+    testResult[16],
+    "[[uid=7d8m7295]] Quisque non pretium mi. [[code2]] [[code3]] [[code2>code4]] [[code5]]"
+  );
+
+});
+
+
+###-----------------------------------------------------------------------------
+###-----------------------------------------------------------------------------
+###-----------------------------------------------------------------------------

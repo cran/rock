@@ -4,15 +4,24 @@
 \alias{merge_sources}
 \title{Merge source files by different coders}
 \usage{
-merge_sources(input, output, outputPrefix = "",
-  outputSuffix = "_merged", primarySourcesRegex = ".*",
-  primarySourcesIgnoreRegex = outputSuffix, primarySourcesPath = input,
-  recursive = TRUE, primarySourcesRecursive = recursive,
-  filenameRegex = ".*", postponeDeductiveTreeBuilding = TRUE,
+merge_sources(
+  input,
+  output,
+  outputPrefix = "",
+  outputSuffix = "_merged",
+  primarySourcesRegex = ".*",
+  primarySourcesIgnoreRegex = outputSuffix,
+  primarySourcesPath = input,
+  recursive = TRUE,
+  primarySourcesRecursive = recursive,
+  filenameRegex = ".*",
+  postponeDeductiveTreeBuilding = TRUE,
   ignoreOddDelimiters = FALSE,
   preventOverwriting = rock::opts$get(preventOverwriting),
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent),
-  inheritSilence = FALSE)
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent),
+  inheritSilence = FALSE
+)
 }
 \arguments{
 \item{input}{The directory containing the input sources.}

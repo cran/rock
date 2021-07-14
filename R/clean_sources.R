@@ -2,13 +2,13 @@
 #' @param recursive Whether to search all subdirectories (`TRUE`) as well or not.
 #' @param filenameRegex A regular expression to match against located files; only
 #' files matching this regular expression are processed.
-#' @param filenamePrefix,filenameSuffix The prefix and suffix to add to the
+#' @param outputPrefix,outputSuffix The prefix and suffix to add to the
 #' filenames when writing the processed files to disk.
 #' @export
 clean_sources <- function(input,
                           output,
-                          filenamePrefix = "",
-                          filenameSuffix = "",
+                          outputPrefix = "",
+                          outputSuffix = "_cleaned",
                           recursive=TRUE,
                           filenameRegex=".*",
                           replacementsPre = rock::opts$get(replacementsPre),
@@ -37,7 +37,13 @@ clean_sources <- function(input,
          "') does not exist!");
   }
 
-  if (!(tolower(output) == "same")) {
+  if (tolower(output) == "same") {
+    if ((is.null(outputPrefix) || (nchar(outputPrefix) == 0)) &&
+        (is.null(outputSuffix) || (nchar(outputSuffix) == 0))) {
+      stop("If writing the output to the same directory, you must specify ",
+           "an outputPrefix and/or an outputSuffix!");
+    }
+  } else {
     if (!dir.exists(output)) {
       warning("Directory provided to write to ('",
               output,
@@ -59,23 +65,25 @@ clean_sources <- function(input,
             list.dirs(input,
                       full.names=TRUE));
 
-  if (any(grepl("\\.rock$",
-                rawSourceFiles))) {
-    if ((nchar(filenamePrefix) == 0) && (nchar(filenameSuffix) == 0)) {
-      stop("At least one of the input files already has the .rock extension! ",
-           "Therefore, you have to provide at least one of `filenamePrefix` and `filenameSuffix` ",
-           "to allow saving the files to new names!");
+  if (input == output) {
+    if (any(grepl("\\.rock$",
+                  rawSourceFiles))) {
+      if (isTRUE(nchar(outputPrefix) == 0) && isTRUE(nchar(outputSuffix) == 0)) {
+        stop("At least one of the input files already has the .rock extension! ",
+             "Therefore, you have to provide at least one of `outputPrefix` and `outputSuffix` ",
+             "to allow saving the files to new names!");
+      }
     }
   }
 
   res <- character();
   for (filename in rawSourceFiles) {
     newFilename <-
-      paste0(filenamePrefix,
+      paste0(outputPrefix,
              sub("^(.*)\\.[a-zA-Z0-9]+$",
                  "\\1",
                  basename(filename)),
-             filenameSuffix,
+             outputSuffix,
              ".rock");
     if (tolower(output) == "same") {
       newFileDir <-
@@ -84,6 +92,7 @@ clean_sources <- function(input,
       newFileDir <-
         output;
     }
+
     clean_source(input = filename,
                  output = file.path(newFileDir,
                                     newFilename),

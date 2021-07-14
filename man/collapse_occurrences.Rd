@@ -4,8 +4,12 @@
 \alias{collapse_occurrences}
 \title{Collapse the occurrences in utterances into groups}
 \usage{
-collapse_occurrences(parsedSource, collapseBy = "stanzaId",
-  columns = NULL, logical = FALSE)
+collapse_occurrences(
+  parsedSource,
+  collapseBy = "stanzaId",
+  columns = NULL,
+  logical = FALSE
+)
 }
 \arguments{
 \item{parsedSource}{The parsed sources as provided by \code{\link[=parse_source]{parse_source()}}.}
@@ -29,7 +33,7 @@ for \code{collapseBy} and each of the \code{columns}, with in the cells the coun
 \description{
 This function collapses all occurrences into groups
 sharing the same identifier, by default the \code{stanzaId}
-identifier (\code{[[sid=..]]}).
+identifier (\verb{[[sid=..]]}).
 }
 \examples{
 ### Get path to example source

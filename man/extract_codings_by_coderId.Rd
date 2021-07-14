@@ -4,10 +4,15 @@
 \alias{extract_codings_by_coderId}
 \title{Extract the codings by each coder using the coderId}
 \usage{
-extract_codings_by_coderId(input, recursive = TRUE,
-  filenameRegex = ".*", postponeDeductiveTreeBuilding = TRUE,
-  ignoreOddDelimiters = FALSE, encoding = rock::opts$get(encoding),
-  silent = rock::opts$get(silent))
+extract_codings_by_coderId(
+  input,
+  recursive = TRUE,
+  filenameRegex = ".*",
+  postponeDeductiveTreeBuilding = TRUE,
+  ignoreOddDelimiters = FALSE,
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 }
 \arguments{
 \item{input}{The directory with the sources.}

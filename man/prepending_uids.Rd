@@ -7,13 +7,26 @@
 \alias{prepend_ids_to_sources}
 \title{Prepending unique utterance identifiers}
 \usage{
-prepend_ids_to_source(input, output = NULL, origin = Sys.time(),
+prepend_ids_to_source(
+  input,
+  output = NULL,
+  origin = Sys.time(),
+  rlWarn = rock::opts$get(rlWarn),
   preventOverwriting = rock::opts$get(preventOverwriting),
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 
-prepend_ids_to_sources(input, output = NULL, origin = Sys.time(),
+prepend_ids_to_sources(
+  input,
+  output = NULL,
+  outputPrefix = "",
+  outputSuffix = "_withUIDs",
+  origin = Sys.time(),
   preventOverwriting = rock::opts$get(preventOverwriting),
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 }
 \arguments{
 \item{input}{The filename or contents of the source
@@ -26,22 +39,28 @@ resulting files for \code{prepend_ids_to_sources}}
 
 \item{origin}{The time to use for the first identifier.}
 
+\item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
+with a newline character.}
+
 \item{preventOverwriting}{Whether to overwrite existing files (\code{FALSE})
 or prevent that from happening (\code{TRUE}).}
 
 \item{encoding}{The encoding of the file(s).}
 
 \item{silent}{Whether to be chatty or quiet.}
+
+\item{outputPrefix, outputSuffix}{The prefix and suffix to add to the
+filenames when writing the processed files to disk.}
 }
 \value{
 The source with prepended uids, either invisible (if \code{output}
 if specified) or visibly (if not).
 }
 \description{
-This function prepending unique utterance identifiers to each
+This function prepends unique utterance identifiers to each
 utterance (line) in a source. Note that you'll probably want
 to clean the sources using \code{\link[=clean_sources]{clean_sources()}} first.
 }
 \examples{
-prepend_ids_to_source(input = "brief\\nexample\\nsource");
+prepend_ids_to_source(input = "brief\nexample\nsource");
 }

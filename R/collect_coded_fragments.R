@@ -15,6 +15,11 @@
 #' @param codes The regular expression that matches the codes to include
 #' @param context How many utterances before and after the target
 #' utterances to include in the fragments.
+#' @param attributes To only select coded utterances matching one or more
+#' values for one or more attributes, pass a list where every element's
+#' name is a valid (i.e. occurring) attribute name, and every element is a
+#' character value with a regular expression specifying all values for that
+#' attribute to select.
 #' @param heading Optionally, a title to include in the output. The title
 #' will be prefixed with `headingLevel` hashes (`#`), and the codes with
 #' `headingLevel+1` hashes. If `NULL` (the default), a heading will be
@@ -27,9 +32,14 @@
 #' @param add_html_tags Whether to add HTML tags to the result.
 #' @param rawResult Whether to return the raw result, a list of the
 #' fragments, or one character value in markdown format.
+#' @param includeBootstrap Whether to include the default bootstrap CSS.
 #' @param output Here, a path and filename can be provided where the
 #' result will be written. If provided, the result will be returned
 #' invisibly.
+#' @param outputViewer If showing output, where to show the output: in
+#' the console (`outputViewer='console'`) or in the viewer
+#' (`outputViewer='viewer'`), e.g. the RStudio viewer. You'll usually want
+#' the latter when outputting HTML, and otherwise the former.
 #' @param template The template to load; either the name of one
 #' of the ROCK templates (currently, only 'default' is available), or
 #' the path and filename of a CSS file.
@@ -63,13 +73,16 @@
 collect_coded_fragments <- function(x,
                                     codes = ".*",
                                     context = 0,
+                                    attributes = NULL,
                                     heading = NULL,
-                                    headingLevel = 2,
+                                    headingLevel = 3,
                                     add_html_tags = TRUE,
                                     cleanUtterances = FALSE,
                                     output = NULL,
+                                    outputViewer = "viewer",
                                     template = "default",
                                     rawResult = FALSE,
+                                    includeBootstrap = rock::opts$get("includeBootstrap"),
                                     preventOverwriting = rock::opts$get(preventOverwriting),
                                     silent=rock::opts$get(silent)) {
 
@@ -78,15 +91,28 @@ collect_coded_fragments <- function(x,
   sourceFormatting <- rock::opts$get(sourceFormatting);
   codeHeadingFormatting <- rock::opts$get(codeHeadingFormatting);
 
-  if (!("rockParsedSource" %in% class(x)) &&
-      !("rockParsedSources" %in% class(x))) {
+  if (!("rock_parsedSource" %in% class(x)) &&
+      !("rock_parsedSources" %in% class(x))) {
     stop(glue::glue("The object you provided (as argument `x`) has class '{vecTxtQ(class(x))}', ",
                     "but I can only process objects obtained by parsing one or more sources (with ",
-                    "`rock::parse_source` or `rock::parse_sources`), which have class 'rockParsedSource' ",
-                    "or 'rockParsedSources'."));
+                    "`rock::parse_source` or `rock::parse_sources`), which have class 'rock_parsedSource' ",
+                    "or 'rock_parsedSources'."));
   }
 
-  if ("rockParsedSource" %in% class(x)) {
+  if (interactive() && ("viewer" %in% outputViewer)) {
+    if ((!requireNamespace("rstudioapi", quietly = TRUE)) &&
+        (rstudioapi::isAvailable())) {
+      viewer <- rstudioapi::viewer
+    }
+    else {
+      viewer <- getOption("viewer", utils::browseURL)
+    }
+    outputToViewer <- TRUE
+  } else {
+    outputToViewer <- FALSE
+  }
+
+  if ("rock_parsedSource" %in% class(x)) {
     singleSource <- TRUE;
   } else {
     singleSource <- FALSE;
@@ -106,11 +132,27 @@ collect_coded_fragments <- function(x,
               vecTxtQ(matchedCodes), ".\n\n");
   }
 
+  ### Select utterances matching the specified attributes
+  selectedUtterances <- rep(TRUE, nrow(dat));
+  if (!is.null(attributes)) {
+    if ((!is.list(attributes)) || (!all(names(attributes) %in% x$convenience$attributesVars))) {
+      stop("As `attributes` argument, you must pass a list where every element's ",
+           "name is a valis attribute, and every element is a character value ",
+           "with a regular expression specifying all values you want to select in that attribute.");
+    } else {
+      ### Cycle through specified attributes and values; set to FALSE where there's no match
+      for (attributeName in names(attributes)) {
+        selectedUtterances <-
+          selectedUtterances & grepl(attributes[attributeName], dat[, attributeName]);
+      }
+    }
+  }
+
   ### Get line numbers of the fragments to extract,
   ### get fragments, store them
   res <- lapply(matchedCodes,
                 function(i) {
-                  return(lapply(which(dat[, i] == 1),
+                  return(lapply(which(selectedUtterances & (dat[, i] == 1)),
                            function(center) {
                              indices <- seq(center - context,
                                             center + context);
@@ -141,23 +183,27 @@ collect_coded_fragments <- function(x,
                                res <- dat[indices, 'utterances_raw'];
                              }
 
-                             ### Add html tags, if requested
-                             if (add_html_tags) {
-                               res <- paste0(rock::add_html_tags(res));
+                             if (rawResult) {
+                               return(res);
+                             } else {
+                               ### Add html tags, if requested
+                               if (add_html_tags) {
+                                 res <- paste0(rock::add_html_tags(res));
+                               }
+
+                               ### Collapse all utterances into one character value
+                               res <- paste0(res,
+                                             collapse=utteranceGlue);
+
+                               ### Add the sources, if necessary
+                               if ((!identical(sourceFormatting, FALSE)) && !singleSource) {
+                                 res <- paste0(sprintf(sourceFormatting, dat[center, 'originalSource']),
+                                               res);
+                               }
+
+                               ### Return result
+                               return(res);
                              }
-
-                             ### Collapse all utterances into one character value
-                             res <- paste0(res,
-                                           collapse=utteranceGlue);
-
-                             ### Add the sources, if necessary
-                             if ((!identical(sourceFormatting, FALSE)) && !singleSource) {
-                               res <- paste0(sprintf(sourceFormatting, dat[center, 'originalSource']),
-                                             res);
-                             }
-
-                             ### Return result
-                             return(res);
                            }));
                 });
 
@@ -217,16 +263,75 @@ collect_coded_fragments <- function(x,
     }
   }
 
-  ### Add CSS for html tags, if requested
+  ### Add CSS for html tags if requested
   if (add_html_tags) {
-    res <- paste0(rock::css(template=template),
-                  "\n\n",
-                  res);
+    res_without_css <- res;
+    res <-
+      paste0(
+        rock::css(
+          template=template,
+          includeBootstrap = ifelse(is.character(includeBootstrap),
+                                    FALSE,
+                                    includeBootstrap)
+        ),
+        "\n\n",
+        res
+      );
+  } else {
+    res_without_css <- res;
   }
 
   if (is.null(output)) {
-    return(res);
+    if (isTRUE(getOption('knitr.in.progress'))) {
+      return(knitr::asis_output(c("\n\n",
+                                  res,
+                                  "\n\n")));
+    } else {
+      if (outputToViewer) {
+        viewerHTML <- markdown::markdownToHTML(text=res_without_css);
+        if (add_html_tags) {
+          viewerHTML <- htmltools::HTML(
+            rock::css(template=template,
+                      includeBootstrap = ifelse(is.character(includeBootstrap),
+                                                TRUE,
+                                                includeBootstrap)),
+            viewerHTML
+          );
+        } else {
+          viewerHTML <- htmltools::HTML(viewerHTML);
+        }
+        htmltools::html_print(htmltools::HTML(viewerHTML),
+                              background = "white",
+                              viewer = viewer)
+      }
+      if ("console" %in% outputViewer) {
+        cat(res)
+      }
+      return(invisible(res));
+    }
   } else {
+
+    if (outputToViewer) {
+      viewerHTML <- markdown::markdownToHTML(text=res_without_css);
+      if (add_html_tags) {
+        viewerHTML <- htmltools::HTML(
+          rock::css(template=template,
+                    includeBootstrap = ifelse(is.character(includeBootstrap),
+                                              TRUE,
+                                              includeBootstrap)),
+          viewerHTML
+        );
+      } else {
+        viewerHTML <- htmltools::HTML(viewerHTML);
+      }
+      htmltools::html_print(htmltools::HTML(viewerHTML),
+                            background = "white",
+                            viewer = viewer)
+    }
+    if ("console" %in% outputViewer) {
+      cat(res)
+    }
+
     if (dir.exists(dirname(output))) {
       if (file.exists(output) | preventOverwriting) {
         writeLines(res,

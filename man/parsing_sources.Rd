@@ -4,24 +4,40 @@
 \alias{parse_source}
 \alias{parsing_sources}
 \alias{parse_sources}
-\alias{print.rockParsedSource}
-\alias{print.rockParsedSources}
-\alias{plot.rockParsedSources}
+\alias{print.rock_parsedSource}
+\alias{print.rock_parsedSources}
+\alias{plot.rock_parsedSources}
 \title{Parsing sources}
 \usage{
-parse_source(text, file, ignoreOddDelimiters = FALSE,
+parse_source(
+  text,
+  file,
+  utteranceLabelRegexes = NULL,
+  ignoreOddDelimiters = FALSE,
+  checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
   postponeDeductiveTreeBuilding = FALSE,
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+  rlWarn = rock::opts$get(rlWarn),
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 
-\method{print}{rockParsedSource}(x, prefix = "### ", ...)
+\method{print}{rock_parsedSource}(x, prefix = "### ", ...)
 
-parse_sources(path, extension = "rock|dct", regex = NULL,
-  recursive = TRUE, ignoreOddDelimiters = FALSE,
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+parse_sources(
+  path,
+  extension = "rock|dct",
+  regex = NULL,
+  recursive = TRUE,
+  ignoreOddDelimiters = FALSE,
+  checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
+  mergeInductiveTrees = FALSE,
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 
-\method{print}{rockParsedSources}(x, prefix = "### ", ...)
+\method{print}{rock_parsedSources}(x, prefix = "### ", ...)
 
-\method{plot}{rockParsedSources}(x, ...)
+\method{plot}{rock_parsedSources}(x, ...)
 }
 \arguments{
 \item{text, file}{As \code{text} or \code{file}, you can specify a \code{file} to read with
@@ -32,19 +48,29 @@ does not point to an existing file, an error is produced (useful if calling
 from other functions). A \code{text} should be a character vector where every
 element is a line of the original source (like provided by \code{\link[base:readLines]{base::readLines()}});
 although if a character vector of one element \emph{and} including at least one
-newline character (\code{\\n}) is provided as \code{text}, it is split at the newline
+newline character (\verb{\\\\n}) is provided as \code{text}, it is split at the newline
 characters using \code{\link[base:strsplit]{base::strsplit()}}. Basically, this behavior means that the
 first argument can be either a character vector or the path to a file; and if
 you're specifying a file and you want to be certain that an error is thrown if
 it doesn't exist, make sure to name it \code{file}.}
 
+\item{utteranceLabelRegexes}{Optionally, a list with two-element vectors
+to preprocess utterances before they are stored as labels (these 'utterance
+perl regular expression!}
+
 \item{ignoreOddDelimiters}{If an odd number of YAML delimiters is encountered, whether this
 should result in an error (\code{FALSE}) or just be silently ignored (\code{TRUE}).}
+
+\item{checkClassInstanceIds}{Whether to check for the occurrence of class
+instance identifiers specified in the attributes.}
 
 \item{postponeDeductiveTreeBuilding}{Whether to imediately try to build the deductive
 tree(s) based on the information in this file (\code{FALSE}) or whether to skip that. Skipping
 this is useful if the full tree information is distributed over multiple files (in which case
 you should probably call \code{parse_sources} instead of \code{parse_source}).}
+
+\item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
+with a newline character.}
 
 \item{encoding}{The encoding of the file to read (in \code{file}).}
 
@@ -67,6 +93,9 @@ takes precedece over \code{extension},}
 
 \item{recursive}{Whether to also process subdirectories (\code{TRUE})
 or not (\code{FALSE}).}
+
+\item{mergeInductiveTrees}{Merge multiple inductive code trees into one; this
+functionality is currently not yet implemented.}
 }
 \description{
 These function parse one (\code{parse_source}) or more (\code{parse_sources}) sources and the

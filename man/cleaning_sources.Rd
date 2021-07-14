@@ -8,33 +8,61 @@
 \alias{search_and_replace_in_sources}
 \title{Cleaning & editing sources}
 \usage{
-clean_source(input, output = NULL,
+clean_source(
+  input,
+  output = NULL,
   replacementsPre = rock::opts$get(replacementsPre),
   replacementsPost = rock::opts$get(replacementsPost),
-  extraReplacementsPre = NULL, extraReplacementsPost = NULL,
+  extraReplacementsPre = NULL,
+  extraReplacementsPost = NULL,
+  removeNewlines = FALSE,
+  rlWarn = rock::opts$get(rlWarn),
+  utteranceSplits = rock::opts$get(utteranceSplits),
+  preventOverwriting = rock::opts$get(preventOverwriting),
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
+
+clean_sources(
+  input,
+  output,
+  outputPrefix = "",
+  outputSuffix = "_cleaned",
+  recursive = TRUE,
+  filenameRegex = ".*",
+  replacementsPre = rock::opts$get(replacementsPre),
+  replacementsPost = rock::opts$get(replacementsPost),
+  extraReplacementsPre = NULL,
+  extraReplacementsPost = NULL,
   removeNewlines = FALSE,
   utteranceSplits = rock::opts$get(utteranceSplits),
   preventOverwriting = rock::opts$get(preventOverwriting),
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+  encoding = rock::opts$get(encoding),
+  silent = rock::opts$get(silent)
+)
 
-clean_sources(input, output, filenamePrefix = "", filenameSuffix = "",
-  recursive = TRUE, filenameRegex = ".*",
-  replacementsPre = rock::opts$get(replacementsPre),
-  replacementsPost = rock::opts$get(replacementsPost),
-  extraReplacementsPre = NULL, extraReplacementsPost = NULL,
-  removeNewlines = FALSE,
-  utteranceSplits = rock::opts$get(utteranceSplits),
-  preventOverwriting = rock::opts$get(preventOverwriting),
-  encoding = rock::opts$get(encoding), silent = rock::opts$get(silent))
+search_and_replace_in_source(
+  input,
+  replacements = NULL,
+  output = NULL,
+  preventOverwriting = TRUE,
+  encoding = "UTF-8",
+  rlWarn = rock::opts$get(rlWarn),
+  silent = FALSE
+)
 
-search_and_replace_in_source(input, replacements = NULL, output = NULL,
-  preventOverwriting = TRUE, encoding = "UTF-8", silent = FALSE)
-
-search_and_replace_in_sources(input, output, replacements = NULL,
-  filenamePrefix = "", filenameSuffix = "_postReplacing",
-  preventOverwriting = rock::opts$get(preventOverwriting),
-  recursive = TRUE, filenameRegex = ".*",
-  encoding = rock::opts$get(encoding), silent = FALSE)
+search_and_replace_in_sources(
+  input,
+  output,
+  replacements = NULL,
+  outputPrefix = "",
+  outputSuffix = "_postReplacing",
+  preventOverwriting = rock::opts$get("preventOverwriting"),
+  recursive = TRUE,
+  filenameRegex = ".*",
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent")
+)
 }
 \arguments{
 \item{input}{For \code{clean_source} and \code{search_and_replace_in_source}, either a character
@@ -66,6 +94,9 @@ manually copypaste the list of defaults to retain it.}
 \item{removeNewlines}{Whether to remove all newline characters from the source before
 starting to clean them.}
 
+\item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
+with a newline character.}
+
 \item{utteranceSplits}{This is a vector of regular expressions that specify where to
 insert breaks between utterances in the source(s). Such breakes are specified using
 \code{utteranceMarker}.}
@@ -76,7 +107,7 @@ insert breaks between utterances in the source(s). Such breakes are specified us
 
 \item{silent}{Whether to suppress the warning about not editing the cleaned source.}
 
-\item{filenamePrefix, filenameSuffix}{The prefix and suffix to add to the
+\item{outputPrefix, outputSuffix}{The prefix and suffix to add to the
 filenames when writing the processed files to disk.}
 
 \item{recursive}{Whether to search all subdirectories (\code{TRUE}) as well or not.}
@@ -96,7 +127,7 @@ A character vector for \code{clean_source}, or a list of character vectors,
 for \code{clean_sources}.
 }
 \description{
-These function can be used to 'clean' one or more sources or perform search and
+These functions can be used to 'clean' one or more sources or perform search and
 replace taks. Cleaning consists of two operations: splitting the source at
 utterance markers, and conducting search and replaces using regular expressions.
 }
@@ -119,7 +150,7 @@ exampleSource <-
 "Do you like icecream?
 
 
-Well, that depends\\u2026 Sometimes, when it's..... Nice. Then I do,
+Well, that depends\u2026 Sometimes, when it's..... Nice. Then I do,
 but otherwise... not really, actually."
 
 ### Default settings:
@@ -133,12 +164,12 @@ exampleSource <-
 "Do you like icecream?
 
 
-Well, that depends\\u2026 Sometimes, when it's..... Nice. Then I do,
+Well, that depends\u2026 Sometimes, when it's..... Nice. Then I do,
 but otherwise... not really, actually."
 
 ### Simple text replacements:
 cat(search_and_replace_in_source(exampleSource,
-                                 replacements=list(c("\\u2026", "..."),
+                                 replacements=list(c("\u2026", "..."),
                                                    c("Nice", "Great"))));
 
 ### Using a regular expression to capitalize all words following

@@ -6,7 +6,7 @@ export_to_markdown <- function(input,
                                template = "default",
                                silent=rock::opts$get(silent)) {
 
-  if (!("rockParsedSources" %in% class(input))) {
+  if (!("rock_parsedSources" %in% class(input))) {
     stop("As argument 'input', only provide an object with parsed sources, ",
          "such as results from a call to `rock::parse_sources()`. You ",
          "provided an object of class(es) ", rock::vecTxtQ(class(input)), ".");

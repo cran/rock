@@ -1,4 +1,4 @@
-#' rock: A Reprocucible Open Coding Kit
+#' rock: A Reproducible Open Coding Kit
 #'
 #' This package implements an open standard for working with
 #' qualitative data, as such, it has two parts: a file format/convention

@@ -5,9 +5,16 @@
 \alias{vecTxtQ}
 \title{Easily parse a vector into a character value}
 \usage{
-vecTxt(vector, delimiter = ", ", useQuote = "",
-  firstDelimiter = NULL, lastDelimiter = " & ", firstElements = 0,
-  lastElements = 1, lastHasPrecedence = TRUE)
+vecTxt(
+  vector,
+  delimiter = ", ",
+  useQuote = "",
+  firstDelimiter = NULL,
+  lastDelimiter = " & ",
+  firstElements = 0,
+  lastElements = 1,
+  lastHasPrecedence = TRUE
+)
 
 vecTxtQ(vector, useQuote = "'", ...)
 }

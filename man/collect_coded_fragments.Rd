@@ -4,11 +4,23 @@
 \alias{collect_coded_fragments}
 \title{Create an overview of coded fragments}
 \usage{
-collect_coded_fragments(x, codes = ".*", context = 0, heading = NULL,
-  headingLevel = 2, add_html_tags = TRUE, cleanUtterances = FALSE,
-  output = NULL, template = "default", rawResult = FALSE,
+collect_coded_fragments(
+  x,
+  codes = ".*",
+  context = 0,
+  attributes = NULL,
+  heading = NULL,
+  headingLevel = 3,
+  add_html_tags = TRUE,
+  cleanUtterances = FALSE,
+  output = NULL,
+  outputViewer = "viewer",
+  template = "default",
+  rawResult = FALSE,
+  includeBootstrap = rock::opts$get("includeBootstrap"),
   preventOverwriting = rock::opts$get(preventOverwriting),
-  silent = rock::opts$get(silent))
+  silent = rock::opts$get(silent)
+)
 }
 \arguments{
 \item{x}{The parsed source(s) as provided by \code{rock::parse_source}
@@ -19,8 +31,14 @@ or \code{rock::parse_sources}.}
 \item{context}{How many utterances before and after the target
 utterances to include in the fragments.}
 
+\item{attributes}{To only select coded utterances matching one or more
+values for one or more attributes, pass a list where every element's
+name is a valid (i.e. occurring) attribute name, and every element is a
+character value with a regular expression specifying all values for that
+attribute to select.}
+
 \item{heading}{Optionally, a title to include in the output. The title
-will be prefixed with \code{headingLevel} hashes (\code{#}), and the codes with
+will be prefixed with \code{headingLevel} hashes (\verb{#}), and the codes with
 \code{headingLevel+1} hashes. If \code{NULL} (the default), a heading will be
 generated that includes the collected codes if those are five or less.
 If a character value is specified, that will be used. To omit a heading,
@@ -40,12 +58,19 @@ this should be set to \code{FALSE} to have \code{add_html_tags} be of the most u
 result will be written. If provided, the result will be returned
 invisibly.}
 
+\item{outputViewer}{If showing output, where to show the output: in
+the console (\code{outputViewer='console'}) or in the viewer
+(\code{outputViewer='viewer'}), e.g. the RStudio viewer. You'll usually want
+the latter when outputting HTML, and otherwise the former.}
+
 \item{template}{The template to load; either the name of one
 of the ROCK templates (currently, only 'default' is available), or
 the path and filename of a CSS file.}
 
 \item{rawResult}{Whether to return the raw result, a list of the
 fragments, or one character value in markdown format.}
+
+\item{includeBootstrap}{Whether to include the default bootstrap CSS.}
 
 \item{preventOverwriting}{Whether to prevent overwriting of output files.}
 

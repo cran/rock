@@ -16,9 +16,14 @@
 #' first argument can be either a character vector or the path to a file; and if
 #' you're specifying a file and you want to be certain that an error is thrown if
 #' it doesn't exist, make sure to name it `file`.
+#' @param utteranceLabelRegexes Optionally, a list with two-element vectors
+#' to preprocess utterances before they are stored as labels (these 'utterance
+#' perl regular expression!
 #' @param path The path containing the files to read.
 #' @param extension The extension of the files to read; files with other extensions will
 #' be ignored. Multiple extensions can be separated by a pipe (`|`).
+#' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
+#' with a newline character.
 #' @param regex Instead of specifing an extension, it's also possible to specify a regular
 #' expression; only files matching this regular expression are read. If specified, `regex`
 #' takes precedece over `extension`,
@@ -26,18 +31,22 @@
 #' or not (`FALSE`).
 #' @param ignoreOddDelimiters If an odd number of YAML delimiters is encountered, whether this
 #' should result in an error (`FALSE`) or just be silently ignored (`TRUE`).
+#' @param checkClassInstanceIds Whether to check for the occurrence of class
+#' instance identifiers specified in the attributes.
 #' @param encoding The encoding of the file to read (in `file`).
 #' @param postponeDeductiveTreeBuilding Whether to imediately try to build the deductive
 #' tree(s) based on the information in this file (`FALSE`) or whether to skip that. Skipping
 #' this is useful if the full tree information is distributed over multiple files (in which case
 #' you should probably call `parse_sources` instead of `parse_source`).
+#' @param mergeInductiveTrees Merge multiple inductive code trees into one; this
+#' functionality is currently not yet implemented.
 #' @param silent Whether to provide (`FALSE`) or suppress (`TRUE`) more detailed progress updates.
 #' @param x The object to print.
 #' @param prefix The prefix to use before the 'headings' of the printed result.
 #' @param ... Any additional arguments are passed on to the default print method.
 #'
 #' @rdname parsing_sources
-#' @aliases parsing_sources parse_source parse_sources print.rockParsedSource
+#' @aliases parsing_sources parse_source parse_sources print.rock_parsedSource
 #'
 #' @examples ### Get path to example source
 #' examplePath <-
@@ -70,13 +79,17 @@
 #' @export
 parse_source <- function(text,
                          file,
+                         utteranceLabelRegexes = NULL,
                          ignoreOddDelimiters=FALSE,
+                         checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
                          postponeDeductiveTreeBuilding = FALSE,
+                         rlWarn = rock::opts$get(rlWarn),
                          encoding=rock::opts$get(encoding),
                          silent=rock::opts$get(silent)) {
 
   codeRegexes <- rock::opts$get(codeRegexes);
   idRegexes <- rock::opts$get(idRegexes);
+  codeValueRegexes <- rock::opts$get(codeValueRegexes);
   sectionRegexes <- rock::opts$get(sectionRegexes);
   uidRegex <- rock::opts$get(uidRegex);
   autoGenerateIds <- rock::opts$get(autoGenerateIds);
@@ -85,8 +98,11 @@ parse_source <- function(text,
   inductiveCodingHierarchyMarker <- rock::opts$get(inductiveCodingHierarchyMarker);
   attributeContainers <- rock::opts$get(attributeContainers);
   codesContainers <- rock::opts$get(codesContainers);
+  sectionBreakContainers <- rock::opts$get(sectionBreakContainers);
   delimiterRegEx <- rock::opts$get(delimiterRegEx);
   ignoreRegex <- rock::opts$get(ignoreRegex);
+  nestingMarker <- rock::opts$get(nestingMarker);
+  diagrammerSanitizing <- rock::opts$get('diagrammerSanitizing');
 
   if (missing(file)) {
     if (missing(text)) {
@@ -95,7 +111,7 @@ parse_source <- function(text,
       if ((length(text) == 1) && file.exists(text)) {
         x <- readLines(text,
                        encoding=encoding,
-                       warn=FALSE);
+                       warn=rlWarn);
         if (!silent) {
           cat0("Read the contents of file '", text, "' (", length(x), " lines read).\n");
         }
@@ -115,7 +131,7 @@ parse_source <- function(text,
     if (file.exists(file)) {
       x <- readLines(file,
                      encoding=encoding,
-                     warn=FALSE);
+                     warn=rlWarn);
       if (!silent) {
         cat0("Read the contents of file '", file, "' (", length(x), " lines read).\n");
       }
@@ -130,7 +146,7 @@ parse_source <- function(text,
   ### Store results in the object to return
   res <-
     structure(list(arguments = as.list(environment())),
-              class="rockParsedSource");
+              class="rock_parsedSource");
 
   ### First process YAML fragments and remove them
   res$yamlFragments <-
@@ -142,17 +158,17 @@ parse_source <- function(text,
                                delimiterRegEx=delimiterRegEx,
                                ignoreOddDelimiters=ignoreOddDelimiters);
 
-  ### Process metadata and deductive code trees
+  ### Process attributes and deductive code trees
   if (!is.null(res$yamlFragments)) {
     if (!silent) {
-      cat0("Encountered YAML fragments. Parsing them for metadata.\n");
+      cat0("Encountered YAML fragments. Parsing them for attributes.\n");
     }
-    res$metadata <-
+    res$attributes <-
       yum::load_and_simplify(yamlFragments=res$yamlFragments,
                              select=paste0(attributeContainers, collapse="|"));
     if (!silent) {
-      cat0("Read ", length(unlist(res$metadata)),
-                " metadata specifications. Continuing with deductive code trees.\n");
+      cat0("Read ", length(unlist(res$attributes)),
+                " attributes specifications. Continuing with deductive code trees.\n");
     }
     res$rawDeductiveCodes <-
       yum::load_and_simplify(yamlFragments=res$yamlFragments,
@@ -180,33 +196,43 @@ parse_source <- function(text,
     } else {
       deductiveCodeTrees <- NA;
     }
+    res$sectionBreakRegexes <-
+      yum::load_and_simplify(yamlFragments=res$yamlFragments,
+                             select=paste0(sectionBreakContainers, collapse="|"));
+    if (!silent) {
+      cat0("Read ", length(unlist(res$sectionBreakRegexes)),
+           " section break codes.\n");
+    }
+
   } else {
+    res$attributes <- NA;
     res$deductiveCodes <- NA;
     res$deductiveCodeTrees <- NA;
+    res$sectionBreakRegexes <- NA;
   }
 
-  if (length(res$metadata) > 0) {
+  if ((length(res$attributes) > 0) && (!all(is.na(unlist(res$attributes))))) {
 
-    ### Simplify YAML metadata and convert into a data frame
-    res$metadataDf <-
+    ### Simplify YAML attributes and convert into a data frame
+    res$attributesDf <-
       do.call(rbind,
-              lapply(res$metadata,
+              lapply(res$attributes,
                      as.data.frame,
                      stringsAsFactors=FALSE));
 
-    ### Store metadata variables for convenient use later on
+    ### Store attributes variables for convenient use later on
     res$convenience <-
-      list(metadataVars =
-             setdiff(names(res$metadataDf),
+      list(attributesVars =
+             setdiff(names(res$attributesDf),
                      c(names(idRegexes),
                        names(attributeContainers))));
 
   } else {
 
-    res$metadataDf <- data.frame();
+    res$attributesDf <- data.frame();
 
     res$convenience <-
-      list(metadataVars = NULL);
+      list(attributesVars = NULL);
 
   }
 
@@ -227,6 +253,17 @@ parse_source <- function(text,
       ### Store whether each utterance matches
       sourceDf[, glue::glue("{sectionRegex}_match")] <-
         grepl(sectionRegexes[sectionRegex], x);
+      ### Store value of match
+      sourceDf[, glue::glue("{sectionRegex}_content")] <-
+        ifelse(
+          sourceDf[, glue::glue("{sectionRegex}_match")],
+          gsub(
+            paste0(".*(", sectionRegexes[sectionRegex], ").*"),
+            "\\1",
+            x
+          ),
+          ""
+        );
       ### Set incremental counter for each match
       if (glue::glue("{sectionRegex}_match") %in% names(sourceDf) &&
           (length(sourceDf[, glue::glue("{sectionRegex}_match")]) > 0)) {
@@ -422,7 +459,7 @@ parse_source <- function(text,
       } else {
         codeProcessing[[codeRegex]] <-
           list(splitCodings = lapply(codings[[codeRegex]],
-		                             function(x) return(x)),
+                                     function(x) return(x)),
                leafCodes = codings[[codeRegex]],
                inductiveCodes = codings[[codeRegex]][!(codings[[codeRegex]] %in% res$deductiveCodes)]);
       }
@@ -503,9 +540,74 @@ parse_source <- function(text,
     }
   }
 
+  ###---------------------------------------------------------------------------
+  ### Process codeValues
+
+  if (!is.null(codeValueRegexes) && length(codeValueRegexes) > 0) {
+
+    for (codeValueRegex in names(codeValueRegexes)) {
+
+      ### Find matches (the full substrings that match this code in each line)
+      matches <-
+        regmatches(x,
+                   gregexpr(codeValueRegexes[codeValueRegex], x));
+
+      ### Retain only the 'parenthesized' expression (i.e. the part of
+      ### this code's regex between the parentheses, i.e., the actual code itself)
+      cleanedCodeValueNames <-
+        lapply(matches, gsub, pattern=codeValueRegexes[codeValueRegex], replacement="\\1");
+
+      cleanedValues <-
+        lapply(matches, gsub, pattern=codeValueRegexes[codeValueRegex], replacement="\\2");
+
+      namedCodeValues <-
+        mapply(
+          stats::setNames,
+          cleanedValues,
+          cleanedCodeValueNames
+        );
+
+      allCodeValueNames <-
+        sort(unlist(unique(cleanedCodeValueNames)));
+
+      if (any(allCodeValueNames %in% names(sourceDf))) {
+        stop("At least one of the codeValue names also occurs as regular code identifier!");
+      }
+
+      for (currentCodeValueName in allCodeValueNames) {
+        sourceDf[[currentCodeValueName]] <-
+          unlist(
+            lapply(
+              namedCodeValues,
+              function(vector,
+                       elementToReturn) {
+                if (elementToReturn %in% names(vector)) {
+                  return(vector[elementToReturn]);
+                } else {
+                  return(NA);
+                }
+              },
+              elementToReturn = currentCodeValueName
+            )
+          );
+
+      }
+
+      ### Delete codes from utterances
+      x <-
+        gsub(codeValueRegexes[codeValueRegex],
+             "",
+             x);
+
+    }
+  }
+
   ### Trim spaces from front and back and store almost clean utterances
   sourceDf$utterances_clean_with_uids <-
     trimws(x);
+
+  ###---------------------------------------------------------------------------
+  ### Utterance identifiers
 
   ### Extract and store UIDs
   sourceDf$uids <-
@@ -517,11 +619,160 @@ parse_source <- function(text,
                        sourceDf$utterances_clean_with_uids),
            "");
 
-  ### Store really clear utterances
+  ### Store even cleaner utterances
   sourceDf$utterances_clean <-
     trimws(gsub(uidRegex,
                 "",
                 sourceDf$utterances_clean_with_uids));
+
+  ###---------------------------------------------------------------------------
+  ### Check for occurrences of the nestingMarker, which have to appear
+  ### at the beginning of the utterances (except for spaces maybe)
+
+  ### Only retain 'leading' nestingMarkers
+  nestingCharacters <-
+    sub(
+      paste0(
+        "^\\s*([",
+        nestingMarker,
+        " \\s]+).*$"
+      ),
+      "\\1",
+      sourceDf$utterances_clean
+    );
+
+  ### From this 'leading' bit, strip all characters
+  ### that are not the nestingMarker
+  nestingCharacters <-
+    gsub(
+      paste0(
+        "[^",
+        nestingMarker,
+        "]"
+      ),
+      "",
+      nestingCharacters
+    );
+
+  ### Store nesting levels that will be used later
+  ### to store utterance identifiers
+  sourceDf$nestingLevel <-
+    nchar(nestingCharacters);
+
+  ### Store parent utterance identifiers
+  sourceDf$parent_uid <-
+    get_parent_uid(
+      sourceDf$uids,
+      sourceDf$nestingLevel
+    );
+
+  ### Strip nesting markers from the beginning of the utterances to clean
+  ### them even more
+  sourceDf$utterances_clean <-
+    sub(
+      paste0(
+        "^\\s*[",
+        nestingMarker,
+        " \\s]+(.*)$"
+      ),
+      "\\1",
+      sourceDf$utterances_clean
+    );
+
+  ### Create 'label' version of utterances
+
+  sourceDf$utteranceLabel <- sourceDf$utterances_clean;
+
+  if (!is.null(utteranceLabelRegexes)) {
+    for (i in seq_along(utteranceLabelRegexes)) {
+      sourceDf$utteranceLabel <-
+        gsub(
+          utteranceLabelRegexes[[i]][1],
+          utteranceLabelRegexes[[i]][2],
+          sourceDf$utteranceLabel,
+          perl=TRUE
+        );
+    }
+  }
+
+  ###---------------------------------------------------------------------------
+  ### Create an utterance tree
+
+  ### Restructure
+  networkDf <-
+    sourceDf[,
+             c("uids", "parent_uid",
+               setdiff(names(sourceDf), c("uids", "parent_uid")))
+    ];
+
+  ### Remove lines without utterance identifier
+  networkDf <-
+    networkDf[
+      nchar(networkDf$uids) > 0,
+    ];
+
+  ### Convert to tree
+  if (any(nchar(networkDf$parent_uid) > 0)) {
+    utteranceTree <-
+      data.tree::FromDataFrameNetwork(
+        networkDf
+      );
+  } else {
+    utteranceTree <- NA;
+  }
+
+  ###---------------------------------------------------------------------------
+  ### Utterance diagram
+
+  if (any(nchar(networkDf$parent_uid) > 0)) {
+    utteranceTree$Do(
+      function(node) {
+        node$diagramLabel <-
+          node$utteranceLabel;
+        for (i in seq_along(diagrammerSanitizing)) {
+          node$diagramLabel <- gsub(
+            diagrammerSanitizing[[i]][1],
+            diagrammerSanitizing[[i]][2],
+            node$diagramLabel
+          );
+        }
+        node$diagramLabel <-
+          paste0(strwrap(node$diagramLabel, 40), collapse="\n");
+
+        return(node$diagramLabel);
+      }
+    );
+
+    data.tree::SetNodeStyle(
+      utteranceTree,
+      label = function(node) return(node$diagramLabel)
+    );
+
+    utteranceDiagram <-
+      data.tree::ToDiagrammeRGraph(
+        utteranceTree
+      );
+
+    utteranceDiagram <-
+      apply_graph_theme(utteranceDiagram,
+                        c("layout", "dot", "graph"),
+                        c("rankdir", "LR", "graph"),
+                        c("outputorder", "edgesfirst", "graph"),
+                        c("fixedsize", "false", "node"),
+                        c("shape", "box", "node"),
+                        c("style", "rounded,filled", "node"),
+                        c("color", "#000000", "node"),
+                        c("width", "4", "node"),
+                        c("color", "#888888", "edge"),
+                        c("dir", "none", "edge"),
+                        c("headclip", "false", "edge"),
+                        c("tailclip", "false", "edge"),
+                        c("fillcolor", "#FFFFFF", "node"));
+  } else {
+    utteranceDiagram <- NA;
+  }
+
+  ###---------------------------------------------------------------------------
 
   if (nrow(sourceDf) > 0) {
     sourceDf$originalSequenceNr <- 1:nrow(sourceDf);
@@ -542,25 +793,109 @@ parse_source <- function(text,
 
   ### Store results in the object to return
   res$sourceDf <- cleanSourceDf;
+  res$mergedSourceDf <- res$sourceDf;
+  res$utteranceTree <- utteranceTree;
   res$rawSourceDf <- sourceDf;
   res$codings <- codeProcessing[[codeRegex]]$leafCodes;
   res$rawCodings <- codings;
   res$codeProcessing <- codeProcessing;
   res$inductiveCodeTrees <- purrr::map(res$codeProcessing, "inductiveCodeTrees");
   res$inductiveDiagrammeRs <- purrr::map(res$codeProcessing, "inductiveDiagrammeR");
+  res$utteranceDiagram <- utteranceDiagram;
 
-  ### Merge metadata with source dataframe
-  if (length(res$metadata) > 0) {
+  ### Merge attributes with source dataframe
+  if (length(res$attributes) > 0) {
 
-    ### Merge metadata with source data
-    res$mergedSourceDf <-
-      merge(res$sourceDf,
-            res$metadataDf);
+    # ### Merge attributes with source data
+    # res$mergedSourceDf <-
+    #   merge(res$sourceDf,
+    #         res$attributesDf);
 
-  } else {
 
-    res$mergedSourceDf <-
-      res$sourceDf;
+    ###---------------------------------------------------------------------------
+    ###
+    ### START --- move this to a separate function for parse_source and parse_sources
+    ###
+    ###---------------------------------------------------------------------------
+
+    ### Add attributes to the utterances
+    for (i in seq_along(idRegexes)) {
+      ### Check whether attributes was provided for this identifier
+      if (names(idRegexes)[i] %in% names(res$attributesDf)) {
+        if (!silent) {
+          print(glue::glue("\n\nFor identifier class {names(idRegexes)[i]}, attributes were provided: proceeding to join to sources dataframe.\n"));
+        }
+        ### Convert to character to avoid errors and delete
+        ### empty columns from merged source dataframe
+        usedIdRegexes <-
+          names(idRegexes)[names(idRegexes) %in% names(res$attributesDf)];
+        for (j in usedIdRegexes) {
+          res$attributesDf[, j] <-
+            as.character(res$attributesDf[, j]);
+        }
+        for (j in intersect(names(res$mergedSourceDf),
+                            names(res$attributesDf))) {
+          if (all(is.na(res$mergedSourceDf[, j]))) {
+            res$mergedSourceDf[, j] <- NULL;
+          }
+        }
+
+        if (!(names(idRegexes)[i] %in% names(res$mergedSourceDf))) {
+          msg <-
+            paste0("When processing identifier regex '", idRegexes[i],
+                   "', I failed to find its name ('", names(idRegexes[i]),
+                   "') in the column names of the merged ",
+                   "sources data frame (",
+                   vecTxtQ(names(res$mergedSourceDf)), "), so not merging ",
+                   "the attributes data frame with the source data frame for ",
+                   "this class instance identifier.")
+          if (checkClassInstanceIds) {
+            warning(msg);
+          }
+          if (!silent) {
+            cat(msg);
+          }
+        } else if (!(names(idRegexes)[i] %in% setdiff(names(res$attributesDf), 'type'))) {
+          msg <-
+            paste0("When processing identifier regex '", idRegexes[i],
+                   "', I failed to find its name (", names(idRegexes)[i],
+                   ") in the column names of the merged ",
+                   "attributes data frame, so not merging ",
+                   "the attributes data frame with the source data frame for ",
+                   "this class instance identifier..");
+          if (checkClassInstanceIds) {
+            warning(msg);
+          }
+          if (!silent) {
+            cat(msg);
+          }
+        } else {
+          # attributesDf[, names(idRegexes)[i]] <-
+          #   as.character(attributesDf[, names(idRegexes)[i]]);
+          ### Join attributes based on identifier
+          res$mergedSourceDf <-
+            dplyr::left_join(res$mergedSourceDf,
+                             res$attributesDf[, setdiff(names(res$attributesDf), 'type')],
+                             by=names(idRegexes)[i]);
+        }
+
+      } else {
+        if (!silent) {
+          print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, no attributes was provided.\n"));
+        }
+      }
+    }
+
+    if (!silent) {
+      cat0("Finished merging attributes with source dataframe. Starting to collect deductive code trees.\n");
+    }
+
+    ###---------------------------------------------------------------------------
+    ###
+    ### END --- move this to a separate function for parse_source and parse_sources
+    ###
+    ###---------------------------------------------------------------------------
+
 
   }
 
@@ -576,20 +911,19 @@ parse_source <- function(text,
   }
 
   ### Add codings and leaves only to the convenience list
-  res$convenience$codings <- sort(unique(unlist(res$codings)));
+  res$convenience$codings <- sort(unique(unlist(res$rawCodings)));
+  res$codings <- res$convenience$codings;
   res$convenience$codingLeaves <-
-    sort(unique(unlist(get_leaf_codes(res$codings,
+    sort(unique(unlist(get_leaf_codes(res$convenience$codings,
                                       inductiveCodingHierarchyMarker=inductiveCodingHierarchyMarker))));
 
   res$convenience$codingPaths <-
-    stats::setNames(res$convenience$codings,
-                    res$convenience$codingLeaves);
+    codePaths_to_namedVector(res$convenience$codings);
 
   if (length(res$convenience$codings) > 0) {
     ### Count how often each code was used
     res$countedCodings <-
-      colSums(res$sourceDf[, res$convenience$codings]);
-
+      colSums(res$sourceDf[, res$convenience$codingLeaves, drop=FALSE]);
   } else {
     res$countedCodings <-
       NULL;
@@ -653,16 +987,16 @@ parse_source <- function(text,
 }
 
 #' @rdname parsing_sources
-#' @method print rockParsedSource
+#' @method print rock_parsedSource
 #' @export
-print.rockParsedSource <- function(x, prefix="### ",  ...) {
+print.rock_parsedSource <- function(x, prefix="### ",  ...) {
   totalSectionMatches <-
     sum(unlist(lapply(x$rawSourceDf[, grep('_match',
                                            names(x$rawSourceDf))],
                       as.numeric)));
 
   appliedCodes <-
-    sort(unique(unlist(x$codings)));
+    sort(unique(unlist(x$convenience$codingLeaves)));
 
   totalCodingMatches <-
     sum(unlist(x$sourceDf[, appliedCodes]));
@@ -727,17 +1061,17 @@ print.rockParsedSource <- function(x, prefix="### ",  ...) {
                    "The parsed source contained {length(x$arguments$x)} lines. ",
                    "After removing lines that matched '{x$arguments$ignoreRegex}', ",
                    "the regular expression specifying which lines to ignore, and did not ",
-                   "make up the {length(x$yamlFragments)} YAML fragments with metadata or ",
+                   "make up the {length(x$yamlFragments)} YAML fragments with attributes or ",
                    "deductive coding tree specifications, {nrow(x$rawSourceDf)} lines remained.",
                    " {totalSectionMatches} of these matched one of the section regular ",
                    "expressions ({vecTxtQ(x$arguments$sectionRegexes)}), and after ",
-                   " removing these lines and all lines that were empty after removing ",
-                   " characters that matched one or more identifier ",
-                   "({vecTxtQ(x$arguments$idRegexes)}) and coding ",
-                   "({vecTxtQ(x$arguments$codeRegexes)}) regular expressions, ",
+                   "removing these lines and all lines that were empty after removing ",
+                   "characters that matched one or more class instance identifier(s) ",
+                   "({vecTxtQ(x$arguments$idRegexes)}) and coding regular expressions",
+                   "regular expressions, ({vecTxtQ(x$arguments$codeRegexes)}), ",
                    "{nrow(x$sourceDf)} utterances remained.",
                    "\n\n",
-                   "{prefix}Identifiers\n\n",
+                   "{prefix}Class instance identifiers\n\n",
                    identifierInfo,
                    "\n\n",
                    "{prefix}Utterances and coding\n\n",
@@ -753,7 +1087,9 @@ print.rockParsedSource <- function(x, prefix="### ",  ...) {
     #for (i in names(x$inductiveCodeTrees)) {
     for (i in names(x$inductiveDiagrammeRs)) {
       #print(graphics::plot(x$inductiveCodeTrees[[i]]));
-      print(DiagrammeR::render_graph(x$inductiveDiagrammeRs[[i]]));
+      if (!is.null(x$inductiveDiagrammeRs[[i]])) {
+        print(DiagrammeR::render_graph(x$inductiveDiagrammeRs[[i]]));
+      }
     }
   }
   if (length(x$deductiveCodeTrees) > 0) {

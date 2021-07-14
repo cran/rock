@@ -2,7 +2,6 @@
 #'
 #' This function adds HTML tags to a source to allow pretty printing/viewing.
 #'
-#' @inheritParams parsing_sources
 #' @param x A character vector with the source
 #' @param codeClass,idClass,sectionClass,uidClass,utteranceClass The classes
 #' to use for, respectively, codes, identifiers (such as case identifiers or
@@ -13,7 +12,8 @@
 #' @return The character vector with the replacements made.
 #' @export
 #'
-#' @examples add_html_tags("[[cid=participant1]]
+#' @examples ### Add tags to a mini example source
+#' add_html_tags("[[cid=participant1]]
 #' This is something this participant may have said.
 #' Just like this. [[thisIsACode]]
 #' ---paragraph-break---

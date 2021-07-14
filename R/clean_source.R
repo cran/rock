@@ -1,6 +1,6 @@
 #' Cleaning & editing sources
 #'
-#' These function can be used to 'clean' one or more sources or perform search and
+#' These functions can be used to 'clean' one or more sources or perform search and
 #' replace taks. Cleaning consists of two operations: splitting the source at
 #' utterance markers, and conducting search and replaces using regular expressions.
 #'
@@ -38,6 +38,8 @@
 #' than the default set, these can be conveniently specified in `extraReplacementsPre`
 #'  and `extraReplacementsPost`. This prevents you from having to
 #' manually copypaste the list of defaults to retain it.
+#' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
+#' with a newline character.
 #' @param utteranceSplits This is a vector of regular expressions that specify where to
 #' insert breaks between utterances in the source(s). Such breakes are specified using
 #' `utteranceMarker`.
@@ -73,6 +75,7 @@ clean_source <- function(input,
                          extraReplacementsPre = NULL,
                          extraReplacementsPost = NULL,
                          removeNewlines = FALSE,
+                         rlWarn = rock::opts$get(rlWarn),
                          utteranceSplits = rock::opts$get(utteranceSplits),
                          preventOverwriting = rock::opts$get(preventOverwriting),
                          encoding = rock::opts$get(encoding),
@@ -82,7 +85,8 @@ clean_source <- function(input,
 
   if (file.exists(input)) {
     res <- readLines(input,
-                     encoding=encoding);
+                     encoding=encoding,
+                     warn=rlWarn);
 
     if (removeNewlines) {
       res <-

@@ -5,10 +5,30 @@
 \alias{code_sources}
 \title{Add one or more codes to one or more sources}
 \usage{
-code_source(input, codes, indices = NULL, codeDelimiters = c("[[",
-  "]]"), silent = TRUE)
+code_source(
+  input,
+  codes,
+  indices = NULL,
+  output = NULL,
+  preventOverwriting = rock::opts$get("preventOverwriting"),
+  rlWarn = rock::opts$get(rlWarn),
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent")
+)
 
-code_sources(input, codes, silent = FALSE)
+code_sources(
+  input,
+  codes,
+  output = NULL,
+  indices = NULL,
+  outputPrefix = "",
+  outputSuffix = "_coded",
+  recursive = TRUE,
+  filenameRegex = ".*",
+  preventOverwriting = rock::opts$get("preventOverwriting"),
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent")
+)
 }
 \arguments{
 \item{input}{The source, or list of sources, as
@@ -28,18 +48,31 @@ source. If specifying an utterance ID or code, make sure
 that the code delimiters are included (normally, two square
 brackets).}
 
-\item{indices}{A logical vector of the same length as \code{input}
+\item{indices}{If \code{input} is a source as loaded by
+\code{loading_sources}, \code{indices} can be used to pass a logical
+vector of the same length as \code{input}
 that indicates to which utterance the code in \code{codes} should be
 applied. Note that if \code{indices} is provided, only the first
 element of \code{codes} is used, and its name is ignored.}
 
-\item{codeDelimiters}{A character vector of two elements
-specifying the opening and closing delimiters of codes (conform
-the default ROCK convention, two square brackets). The square
-brackets will be escaped; other characters will not, but will
-be used as-is.}
+\item{output}{If specified, the coded source will be written here.}
+
+\item{preventOverwriting}{Whether to prevent overwriting existing files.}
+
+\item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
+with a newline character.}
+
+\item{encoding}{The encoding to use.}
 
 \item{silent}{Whether to be chatty or quiet.}
+
+\item{outputPrefix, outputSuffix}{A prefix and/or suffix to prepend and/or
+append to the filenames to distinguish them from the input filenames.}
+
+\item{recursive}{Whether to also read files from all subdirectories
+of the \code{input} directory}
+
+\item{filenameRegex}{Only input files matching this patterns will be read.}
 }
 \value{
 Invisibly, the coded source object.

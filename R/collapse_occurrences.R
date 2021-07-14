@@ -48,19 +48,24 @@ collapse_occurrences <- function(parsedSource,
                                  columns = NULL,
                                  logical = FALSE) {
 
-  if (!("rockParsedSource" %in% class(parsedSource))) {
+  if (!("rock_parsedSource" %in% class(parsedSource))) {
     stop("As argument `parsedSource`, you must specify a parsed source, ",
          "as provided by the `rock::parse_source` function!");
   }
 
   if (is.null(columns)) {
     columns <-
-      unlist(parsedSource$codings);
+      unlist(parsedSource$convenience$codingLeaves);
   }
 
   if (!(all(columns %in% names(parsedSource$sourceDf)))) {
+    missingCols <-
+      columns[which(!(columns %in% names(parsedSource$sourceDf)))];
     stop("Not all columns specified in the `columns` argument exist in ",
-         "the `sourceDf` in the `parsedSource` object you provided!");
+         "the `sourceDf` in the `parsedSource` object you provided.\n\n",
+         "Specifically, these columns were missing: ",
+         vecTxtQ(missingCols), "\n\nAll existing columns are ",
+         vecTxtQ(names(parsedSource$sourceDf)), ").");
   }
 
   if (!(collapseBy %in% names(parsedSource$sourceDf))) {
@@ -70,7 +75,8 @@ collapse_occurrences <- function(parsedSource,
 
   sourceDf <-
     parsedSource$sourceDf[, c(collapseBy,
-                              columns)];
+                              columns),
+                          drop=FALSE];
 
   if (logical) {
     res <-
