@@ -16,6 +16,7 @@ clean_source(
   extraReplacementsPre = NULL,
   extraReplacementsPost = NULL,
   removeNewlines = FALSE,
+  removeTrailingNewlines = TRUE,
   rlWarn = rock::opts$get(rlWarn),
   utteranceSplits = rock::opts$get(utteranceSplits),
   preventOverwriting = rock::opts$get(preventOverwriting),
@@ -92,7 +93,11 @@ and \code{extraReplacementsPost}. This prevents you from having to
 manually copypaste the list of defaults to retain it.}
 
 \item{removeNewlines}{Whether to remove all newline characters from the source before
-starting to clean them.}
+starting to clean them. \strong{Be careful}: if the source contains YAML fragments, these
+will also be affected by this, and will probably become invalid!}
+
+\item{removeTrailingNewlines}{Whether to remove trailing newline characters
+(i.e. at the end of a character value in a character vector);}
 
 \item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
 with a newline character.}
@@ -159,6 +164,30 @@ cat(clean_source(exampleSource));
 ### First remove existing newlines:
 cat(clean_source(exampleSource,
                  removeNewlines=TRUE));
+
+### Example with a YAML fragment
+exampleWithYAML <-
+c(
+  "Do you like icecream?",
+  "",
+  "",
+  "Well, that depends\u2026 Sometimes, when it's..... Nice.",
+  "Then I do,",
+  "but otherwise... not really, actually.",
+  "",
+  "---",
+  "This acts as some YAML. So this won't be split.",
+  "Not real YAML, mind... It just has the delimiters, really.",
+  "---",
+  "This is an utterance again."
+);
+
+cat(
+  rock::clean_source(
+    exampleWithYAML
+  ),
+  sep="\n"
+);
 
 exampleSource <-
 "Do you like icecream?

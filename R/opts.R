@@ -187,8 +187,10 @@ opts$defaults <-
        attributeContainers = c("ROCK_attributes"),
        codesContainers = c("codes", "dct"),
        sectionBreakContainers = c("section_breaks"),
+       delimiterString = "---",
        delimiterRegEx = "^---$",
        ignoreRegex = "^#",
+       ignoreOddDelimiters = FALSE,
 
        ### Used to merge sources
        coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
@@ -227,10 +229,12 @@ opts$defaults <-
 
        ### Used for generating html
        codeClass = "code",
+       codeValueClass = "codeValue",
        idClass = "identifier",
        sectionClass = "sectionBreak",
        uidClass = "uid",
        utteranceClass = "utterance",
+       contextClass = "context",
 
        ### When displaying code identifiers, whether to by default show the
        ### full path or just the code identifier itself
@@ -263,6 +267,9 @@ opts$defaults <-
                                "td{padding:3px;vertical-align:top;}",
                                "tr:nth-child(even){background-color:#f2f2f2}",
                                "</style>"),
+
+       ### default heading level
+       defaultHeadingLevel = 1,
 
        ### Used throughout for debugging,
        debug = FALSE,

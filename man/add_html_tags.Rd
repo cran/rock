@@ -6,25 +6,38 @@
 \usage{
 add_html_tags(
   x,
+  context = NULL,
   codeClass = rock::opts$get(codeClass),
+  codeValueClass = rock::opts$get(codeValueClass),
   idClass = rock::opts$get(idClass),
   sectionClass = rock::opts$get(sectionClass),
   uidClass = rock::opts$get(uidClass),
+  contextClass = rock::opts$get(contextClass),
   utteranceClass = rock::opts$get(utteranceClass)
 )
 }
 \arguments{
 \item{x}{A character vector with the source}
 
-\item{codeClass, idClass, sectionClass, uidClass, utteranceClass}{The classes
-to use for, respectively, codes, identifiers (such as case identifiers or
-coder identifiers), section breaks, utterance identifiers, and full
-utterances. All \verb{<span>} elements except for the full utterances, which
-are placed in \verb{<div>} elements.}
+\item{context}{Optionally, lines to pass the contextClass}
+
+\item{codeClass, codeValueClass, idClass, sectionClass, uidClass, contextClass, utteranceClass}{The classes to use for, respectively, codes, code values,
+class instance identifiers (such as case
+identifiers or coder identifiers), section breaks, utterance
+identifiers, context, and full utterances. All \verb{<span>} elements except
+for the full utterances, which are placed in \verb{<div>} elements.}
 }
 \value{
 The character vector with the replacements made.
 }
 \description{
 This function adds HTML tags to a source to allow pretty printing/viewing.
+}
+\examples{
+### Add tags to a mini example source
+add_html_tags("[[cid=participant1]]
+This is something this participant may have said.
+Just like this. [[thisIsACode]]
+---paragraph-break---
+And another utterance.");
 }

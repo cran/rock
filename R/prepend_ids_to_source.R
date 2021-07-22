@@ -22,7 +22,31 @@
 #' if specified) or visibly (if not).
 #' @aliases prepending_uids
 #' @rdname prepending_uids
-#' @examples prepend_ids_to_source(input = "brief\nexample\nsource");
+#' @examples ### Simple example
+#' rock::prepend_ids_to_source(
+#'   "brief\nexample\nsource"
+#' );
+#'
+#' ### Example including fake YAML fragments
+#' longerExampleText <-
+#'   c(
+#'     "---",
+#'     "First YAML fragment",
+#'     "---",
+#'     "So this is an utterance (i.e. outside of YAML)",
+#'     "This, too.",
+#'     "---",
+#'     "Second fragment",
+#'     "---",
+#'     "Another real utterance outside of YAML",
+#'     "Another one outside",
+#'     "Last 'real utterance'"
+#'   );
+#'
+#' rock::prepend_ids_to_source(
+#'   longerExampleText
+#' );
+#'
 #' @export
 prepend_ids_to_source <- function(input,
                                   output = NULL,
@@ -32,24 +56,41 @@ prepend_ids_to_source <- function(input,
                                   encoding=rock::opts$get(encoding),
                                   silent=rock::opts$get(silent)) {
 
-  if (file.exists(input)) {
-    res <- readLines(input,
-                     encoding=encoding,
-                     warn = rlWarn);
+  delimiterRegEx <- rock::opts$get(delimiterRegEx);
+  ignoreOddDelimiters <- rock::opts$get(ignoreOddDelimiters);
+
+  if ((length(input) == 1) && file.exists(input)) {
+    textToProcess <- readLines(
+      input,
+      encoding=encoding,
+      warn = rlWarn
+    );
   } else {
-    res <- input;
-    if ((length(res) == 1) && grepl('\n', res)) {
-      res <-
-        strsplit(res,
+    textToProcess <- input;
+    if ((length(textToProcess) == 1) && grepl('\n', textToProcess)) {
+      textToProcess <-
+        strsplit(textToProcess,
                  "\n")[[1]];
     }
   }
 
+  non_YAML_indices <-
+    unlist(
+      yum::find_yaml_fragment_indices(
+        text=textToProcess,
+        delimiterRegEx=delimiterRegEx,
+        ignoreOddDelimiters=ignoreOddDelimiters,
+        invert = TRUE
+      )
+    );
+
   uids <-
-    generate_uids(length(res),
+    generate_uids(length(non_YAML_indices),
                   origin=origin);
 
-  res <- paste0(uids, " ", res);
+  res <- textToProcess;
+
+  res[non_YAML_indices] <- paste0(uids, " ", res[non_YAML_indices]);
 
   if (is.null(output)) {
     return(res);

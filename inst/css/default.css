@@ -2,6 +2,10 @@
   background-color: #f4d142;
 }
 
+.codeValue {
+  background-color: #d2af20;
+}
+
 .identifier {
   background-color: #aaaaff;
 }
@@ -22,4 +26,8 @@
 
 .utterance + .utterance {
   margin-top: -1px;
+}
+
+.context {
+  color: #bbbbbb;
 }

@@ -32,6 +32,7 @@
 #' @param add_html_tags Whether to add HTML tags to the result.
 #' @param rawResult Whether to return the raw result, a list of the
 #' fragments, or one character value in markdown format.
+#' @param includeCSS Whether to include the ROCK CSS in the returned HTML.
 #' @param includeBootstrap Whether to include the default bootstrap CSS.
 #' @param output Here, a path and filename can be provided where the
 #' result will be written. If provided, the result will be returned
@@ -57,17 +58,30 @@
 #'
 #' ### Get a path to one example file
 #' exampleFile <-
-#'   file.path(examplePath, "example-1.rock");
+#'   file.path(
+#'     examplePath, "example-1.rock"
+#'   );
 #'
 #' ### Parse single example source
-#' parsedExample <- rock::parse_source(exampleFile);
+#' parsedExample <-
+#'   rock::parse_source(
+#'     exampleFile
+#'   );
 #'
 #' ### Show organised coded fragments in Markdown
-#' cat(collect_coded_fragments(parsedExample));
+#' cat(
+#'   rock::collect_coded_fragments(
+#'     parsedExample
+#'   )
+#' );
 #'
 #' ### Only for the codes containing 'Code2'
-#' cat(collect_coded_fragments(parsedExample,
-#'                             'Code2'));
+#' cat(
+#'   rock::collect_coded_fragments(
+#'     parsedExample,
+#'     'Code2'
+#'   )
+#' );
 #'
 #' @export
 collect_coded_fragments <- function(x,
@@ -82,6 +96,7 @@ collect_coded_fragments <- function(x,
                                     outputViewer = "viewer",
                                     template = "default",
                                     rawResult = FALSE,
+                                    includeCSS = TRUE,
                                     includeBootstrap = rock::opts$get("includeBootstrap"),
                                     preventOverwriting = rock::opts$get(preventOverwriting),
                                     silent=rock::opts$get(silent)) {
@@ -150,62 +165,81 @@ collect_coded_fragments <- function(x,
 
   ### Get line numbers of the fragments to extract,
   ### get fragments, store them
-  res <- lapply(matchedCodes,
-                function(i) {
-                  return(lapply(which(selectedUtterances & (dat[, i] == 1)),
-                           function(center) {
-                             indices <- seq(center - context,
-                                            center + context);
+  res <- lapply(
+    matchedCodes,
+    function(i) {
+      return(
+        lapply(
+          which(selectedUtterances & (dat[, i] == 1)),
+          function(center) {
 
-                             ### Store indices corresponding source of this utterance
-                             if (singleSource) {
-                               sourceIndices <- c(1, nrow(dat));
-                             } else {
-                               sourceIndices <-
-                                 which(dat[, 'originalSource'] == dat[center, 'originalSource']);
-                             }
+            indices <- seq(center - context,
+                           center + context);
 
-                             ### If this source is shorter than the number of lines requested,
-                             ### simply send the complete source
-                             if (length(sourceIndices) <= (1 + 2*context)) {
-                               indices <- sourceIndices;
-                             } else {
-                               ### Shift forwards or backwards to make sure early or late
-                               ### fragments don't exceed valid utterance (line) numbers
-                               indices <- indices - min(0, (min(indices) - min(sourceIndices)));
-                               indices <- indices - max(0, (max(indices) - max(sourceIndices)));
-                             }
+            ### Store indices corresponding source of this utterance
+            if (singleSource) {
+              sourceIndices <- c(1, nrow(dat));
+            } else {
+              sourceIndices <-
+                which(dat[, 'originalSource'] == dat[center, 'originalSource']);
+            }
 
-                             ### Get clean or raw utterances
-                             if (cleanUtterances) {
-                               res <- dat[indices, 'utterances_clean'];
-                             } else {
-                               res <- dat[indices, 'utterances_raw'];
-                             }
+            ### If this source is shorter than the number of lines requested,
+            ### simply send the complete source
+            if ((max(sourceIndices) - min(sourceIndices)) <= (1 + 2*context)) {
+              indices <- sourceIndices;
+            } else {
+              ### Shift forwards or backwards to make sure early or late
+              ### fragments don't exceed valid utterance (line) numbers
+              indices <- indices - min(0, (min(indices) - min(sourceIndices)));
+              indices <- indices - max(0, (max(indices) - max(sourceIndices)));
+            }
 
-                             if (rawResult) {
-                               return(res);
-                             } else {
-                               ### Add html tags, if requested
-                               if (add_html_tags) {
-                                 res <- paste0(rock::add_html_tags(res));
-                               }
+            ### Get clean or raw utterances
+            if (cleanUtterances) {
+              res <- dat[indices, 'utterances_clean'];
+            } else {
+              res <- dat[indices, 'utterances_raw'];
+            }
 
-                               ### Collapse all utterances into one character value
-                               res <- paste0(res,
-                                             collapse=utteranceGlue);
+            if (rawResult) {
+              return(res);
+            } else {
+              ### Add html tags, if requested
+              if (add_html_tags) {
+                res <- paste0(
+                  rock::add_html_tags(
+                    res,
+                    context = setdiff(
+                      seq_along(indices),
+                      which(indices == center)
+                    )
+                  )
+                );
+              }
 
-                               ### Add the sources, if necessary
-                               if ((!identical(sourceFormatting, FALSE)) && !singleSource) {
-                                 res <- paste0(sprintf(sourceFormatting, dat[center, 'originalSource']),
-                                               res);
-                               }
+              ### Collapse all utterances into one character value
+              res <- paste0(res,
+                            collapse=utteranceGlue);
 
-                               ### Return result
-                               return(res);
-                             }
-                           }));
-                });
+              ### Add the sources, if necessary
+              if ((!identical(sourceFormatting, FALSE)) && !singleSource) {
+                res <- paste0(
+                  sprintf(
+                    sourceFormatting,
+                    dat[center, 'originalSource']
+                  ),
+                  res);
+              }
+
+              ### Return result
+              return(res);
+            }
+          }
+        )
+      );
+    }
+  );
 
   if (rawResult) {
     names(res) <-
@@ -266,17 +300,19 @@ collect_coded_fragments <- function(x,
   ### Add CSS for html tags if requested
   if (add_html_tags) {
     res_without_css <- res;
-    res <-
-      paste0(
-        rock::css(
-          template=template,
-          includeBootstrap = ifelse(is.character(includeBootstrap),
-                                    FALSE,
-                                    includeBootstrap)
-        ),
-        "\n\n",
-        res
-      );
+    if (includeCSS) {
+      res <-
+        paste0(
+          rock::css(
+            template=template,
+            includeBootstrap = ifelse(is.character(includeBootstrap),
+                                      FALSE,
+                                      includeBootstrap)
+          ),
+          "\n\n",
+          res
+        );
+    }
   } else {
     res_without_css <- res;
   }

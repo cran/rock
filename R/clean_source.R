@@ -45,7 +45,10 @@
 #' `utteranceMarker`.
 #' @param preventOverwriting Whether to prevent overwriting of output files.
 #' @param removeNewlines Whether to remove all newline characters from the source before
-#' starting to clean them.
+#' starting to clean them. **Be careful**: if the source contains YAML fragments, these
+#' will also be affected by this, and will probably become invalid!
+#' @param removeTrailingNewlines Whether to remove trailing newline characters
+#' (i.e. at the end of a character value in a character vector);
 #' @param encoding The encoding of the source(s).
 #' @param silent Whether to suppress the warning about not editing the cleaned source.
 #'
@@ -67,6 +70,30 @@
 #' cat(clean_source(exampleSource,
 #'                  removeNewlines=TRUE));
 #'
+#' ### Example with a YAML fragment
+#' exampleWithYAML <-
+#' c(
+#'   "Do you like icecream?",
+#'   "",
+#'   "",
+#'   "Well, that depends\u2026 Sometimes, when it's..... Nice.",
+#'   "Then I do,",
+#'   "but otherwise... not really, actually.",
+#'   "",
+#'   "---",
+#'   "This acts as some YAML. So this won't be split.",
+#'   "Not real YAML, mind... It just has the delimiters, really.",
+#'   "---",
+#'   "This is an utterance again."
+#' );
+#'
+#' cat(
+#'   rock::clean_source(
+#'     exampleWithYAML
+#'   ),
+#'   sep="\n"
+#' );
+#'
 #' @export
 clean_source <- function(input,
                          output = NULL,
@@ -75,6 +102,7 @@ clean_source <- function(input,
                          extraReplacementsPre = NULL,
                          extraReplacementsPost = NULL,
                          removeNewlines = FALSE,
+                         removeTrailingNewlines = TRUE,
                          rlWarn = rock::opts$get(rlWarn),
                          utteranceSplits = rock::opts$get(utteranceSplits),
                          preventOverwriting = rock::opts$get(preventOverwriting),
@@ -83,7 +111,7 @@ clean_source <- function(input,
 
   utteranceMarker <- rock::opts$get(utteranceMarker);
 
-  if (file.exists(input)) {
+  if ((length(input) == 1) && file.exists(input)) {
     res <- readLines(input,
                      encoding=encoding,
                      warn=rlWarn);
@@ -92,12 +120,14 @@ clean_source <- function(input,
       res <-
         paste0(res, collapse="");
     } else {
-      res <-
-        paste0(res, collapse="\n");
+      # res <-
+      #   paste0(res, collapse="\n");
     }
   } else {
     res <- input;
     if (removeNewlines) {
+      res <-
+        paste0(res, collapse="");
       res <-
         gsub("\\n", "", res);
     }
@@ -112,6 +142,22 @@ clean_source <- function(input,
     replacementsPost <- c(replacementsPost,
                           extraReplacementsPost);
   }
+
+  non_YAML_indices <-
+    unlist(
+      yum::find_yaml_fragment_indices(
+        text=res,
+        delimiterRegEx=rock::opts$get('delimiterRegEx'),
+        ignoreOddDelimiters=rock::opts$get('ignoreOddDelimiters'),
+        invert = TRUE
+      )
+    );
+
+  ### Store full source and get only those lines we want to replace
+  fullSource <-
+    res;
+
+  res <- fullSource[non_YAML_indices];
 
   if (!is.null(replacementsPre)) {
     for (i in seq_along(replacementsPre)) {
@@ -138,6 +184,19 @@ clean_source <- function(input,
                   res,
                   perl=TRUE);
     }
+  }
+
+  ### Insert lines that were potentially cleaned back in
+  fullResult <- fullSource;
+  fullResult[non_YAML_indices] <- res;
+  res <- fullResult;
+
+  if (removeTrailingNewlines) {
+    res <- gsub(
+      "(.*)\\n",
+      "\\1",
+      res
+    );
   }
 
   if (is.null(output)) {

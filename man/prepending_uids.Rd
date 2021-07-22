@@ -62,5 +62,29 @@ utterance (line) in a source. Note that you'll probably want
 to clean the sources using \code{\link[=clean_sources]{clean_sources()}} first.
 }
 \examples{
-prepend_ids_to_source(input = "brief\nexample\nsource");
+### Simple example
+rock::prepend_ids_to_source(
+  "brief\nexample\nsource"
+);
+
+### Example including fake YAML fragments
+longerExampleText <-
+  c(
+    "---",
+    "First YAML fragment",
+    "---",
+    "So this is an utterance (i.e. outside of YAML)",
+    "This, too.",
+    "---",
+    "Second fragment",
+    "---",
+    "Another real utterance outside of YAML",
+    "Another one outside",
+    "Last 'real utterance'"
+  );
+
+rock::prepend_ids_to_source(
+  longerExampleText
+);
+
 }

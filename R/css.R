@@ -35,8 +35,8 @@ css <- function(template = "default",
 
   ### Merge stylesheets
   fullCSS <-
-    paste0("\n<style\n>",
-           ifelse(includeBootstrap,
+    paste0("\n<style>\n",
+           ifelse(isTRUE(includeBootstrap),
                   bootstrapCSS,
                   ""),
            "\n\n",

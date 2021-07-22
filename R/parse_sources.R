@@ -210,9 +210,16 @@ parse_sources <- function(path,
              }
            });
 
-  if ((!(is.null(res$inductiveCodeTrees))) &&
-      (length(res$inductiveCodeTrees) > 0) &&
-      (!(all(is.na(res$inductiveCodeTrees))))) {
+  res$convenience$valid_inductiveCodeTrees <-
+    which(unlist(lapply(res$inductiveCodeTrees, is.environment)));
+
+  res$convenience$original_inductiveCodeTreeNames <-
+    names(res$inductiveCodeTrees);
+
+  res$inductiveCodeTrees <-
+    res$inductiveCodeTrees[res$convenience$valid_inductiveCodeTrees];
+
+  if (length(res$convenience$valid_inductiveCodeTrees) > 0) {
 
     res$inductiveCodeTreeGraphs <-
       lapply(
@@ -239,6 +246,11 @@ parse_sources <- function(path,
           return(res);
         }
       );
+
+    class(res$inductiveCodeTreeGraphs) <- c(
+      "rock_graphList",
+      class(res$inductiveCodeTreeGraphs)
+    );
 
     if (!silent) {
       cat0("Successfully built the inductive code trees. Merging source dataframes.\n");

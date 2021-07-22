@@ -17,6 +17,7 @@ collect_coded_fragments(
   outputViewer = "viewer",
   template = "default",
   rawResult = FALSE,
+  includeCSS = TRUE,
   includeBootstrap = rock::opts$get("includeBootstrap"),
   preventOverwriting = rock::opts$get(preventOverwriting),
   silent = rock::opts$get(silent)
@@ -70,6 +71,8 @@ the path and filename of a CSS file.}
 \item{rawResult}{Whether to return the raw result, a list of the
 fragments, or one character value in markdown format.}
 
+\item{includeCSS}{Whether to include the ROCK CSS in the returned HTML.}
+
 \item{includeBootstrap}{Whether to include the default bootstrap CSS.}
 
 \item{preventOverwriting}{Whether to prevent overwriting of output files.}
@@ -98,16 +101,29 @@ examplePath <-
 
 ### Get a path to one example file
 exampleFile <-
-  file.path(examplePath, "example-1.rock");
+  file.path(
+    examplePath, "example-1.rock"
+  );
 
 ### Parse single example source
-parsedExample <- rock::parse_source(exampleFile);
+parsedExample <-
+  rock::parse_source(
+    exampleFile
+  );
 
 ### Show organised coded fragments in Markdown
-cat(collect_coded_fragments(parsedExample));
+cat(
+  rock::collect_coded_fragments(
+    parsedExample
+  )
+);
 
 ### Only for the codes containing 'Code2'
-cat(collect_coded_fragments(parsedExample,
-                            'Code2'));
+cat(
+  rock::collect_coded_fragments(
+    parsedExample,
+    'Code2'
+  )
+);
 
 }

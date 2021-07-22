@@ -3,11 +3,13 @@
 #' This function adds HTML tags to a source to allow pretty printing/viewing.
 #'
 #' @param x A character vector with the source
-#' @param codeClass,idClass,sectionClass,uidClass,utteranceClass The classes
-#' to use for, respectively, codes, identifiers (such as case identifiers or
-#' coder identifiers), section breaks, utterance identifiers, and full
-#' utterances. All `<span>` elements except for the full utterances, which
-#' are placed in `<div>` elements.
+#' @param context Optionally, lines to pass the contextClass
+#' @param codeClass,codeValueClass,idClass,sectionClass,uidClass,contextClass,utteranceClass
+#' The classes to use for, respectively, codes, code values,
+#' class instance identifiers (such as case
+#' identifiers or coder identifiers), section breaks, utterance
+#' identifiers, context, and full utterances. All `<span>` elements except
+#' for the full utterances, which are placed in `<div>` elements.
 #'
 #' @return The character vector with the replacements made.
 #' @export
@@ -19,13 +21,17 @@
 #' ---paragraph-break---
 #' And another utterance.");
 add_html_tags <- function(x,
+                          context = NULL,
                           codeClass = rock::opts$get(codeClass),
+                          codeValueClass = rock::opts$get(codeValueClass),
                           idClass = rock::opts$get(idClass),
                           sectionClass = rock::opts$get(sectionClass),
                           uidClass = rock::opts$get(uidClass),
+                          contextClass = rock::opts$get(contextClass),
                           utteranceClass = rock::opts$get(utteranceClass)) {
 
   codeRegexes <- rock::opts$get(codeRegexes);
+  codeValueRegexes <- rock::opts$get(codeValueRegexes);
   idRegexes <- rock::opts$get(idRegexes);
   sectionRegexes <- rock::opts$get(sectionRegexes);
   uidRegex <- rock::opts$get(uidRegex);
@@ -37,6 +43,10 @@ add_html_tags <- function(x,
   ### with the corresponding entities
   res <- gsub("<", "&lt;", res, fixed=TRUE);
   res <- gsub(">", "&gt;", res, fixed=TRUE);
+
+  ###---------------------------------------------------------------------------
+  ### Codes
+  ###---------------------------------------------------------------------------
 
   ### Also replace <> symbols in all codeRegexes
   codeRegexes <- gsub("<", "&lt;", codeRegexes, fixed=TRUE);
@@ -61,21 +71,52 @@ add_html_tags <- function(x,
       splitCodeContent <-
         paste0('<span class="', codeClass,
                ' ', currentCodeRegexName,
-               #' ', splitCodeContent,
                '">');
-      # splitCodeContent <-
-      #   ifelse(codeContentMatches,
-      #          splitCodeContent,
-      #          "");
-      # currentCodeRegexMatches <-
-      #   gregexpr(paste0("(", currentCodeRegex, ")"),
-      #            res);
       res <-
         gsub(paste0("(", currentCodeRegex, ")"),
              paste0(splitCodeContent, '\\1</span>'),
              res);
     }
   }
+
+  ###---------------------------------------------------------------------------
+  ### Codes values
+  ###---------------------------------------------------------------------------
+
+  ### Also replace <> symbols in all codeValueRegexes
+  codeValueRegexes <- gsub("<", "&lt;", codeValueRegexes, fixed=TRUE);
+  codeValueRegexes <- gsub(">", "&gt;", codeValueRegexes, fixed=TRUE);
+
+  ### Add html tags
+  for (currentCodeValueRegexName in names(codeValueRegexes)) {
+    currentCodeValueRegex <- codeValueRegexes[currentCodeValueRegexName];
+    codeValueContentMatches <- grepl(currentCodeValueRegex, res);
+    if (any(codeValueContentMatches)) {
+      codeValueContent <-
+        ifelse(codeValueContentMatches,
+               gsub(paste0(".*", currentCodeValueRegex, ".*"),
+                    "\\1",
+                    res),
+               "");
+      splitCodeValueContent <-
+        unlist(lapply(strsplit(codeValueContent,
+                               inductiveCodingHierarchyMarker),
+                      paste0,
+                      collapse=" "));
+      splitCodeValueContent <-
+        paste0('<span class="', codeValueClass,
+               ' ', currentCodeValueRegexName,
+               '">');
+      res <-
+        gsub(paste0("(", currentCodeValueRegex, ")"),
+             paste0(splitCodeValueContent, '\\1</span>'),
+             res);
+    }
+  }
+
+  ###---------------------------------------------------------------------------
+  ### Sections
+  ###---------------------------------------------------------------------------
 
   ### Also replace <> symbols in all sectionRegexes
   sectionRegexes <- gsub("<", "&lt;", sectionRegexes, fixed=TRUE);
@@ -108,6 +149,10 @@ add_html_tags <- function(x,
     }
   }
 
+  ###---------------------------------------------------------------------------
+  ### Class instance identifiers
+  ###---------------------------------------------------------------------------
+
   ### Also replace <> symbols in all idRegexes
   idRegexes <- gsub("<", "&lt;", idRegexes, fixed=TRUE);
   idRegexes <- gsub(">", "&gt;", idRegexes, fixed=TRUE);
@@ -126,6 +171,10 @@ add_html_tags <- function(x,
     }
   }
 
+  ###---------------------------------------------------------------------------
+  ### Utterance identifiers
+  ###---------------------------------------------------------------------------
+
   ### Add UID tags
   res <-
     gsub(paste0("(", uidRegex, ")"),
@@ -133,6 +182,21 @@ add_html_tags <- function(x,
                 '">\\1</span>'),
          res);
 
+  ###---------------------------------------------------------------------------
+  ### Context
+  ###---------------------------------------------------------------------------
+
+  ### Add context tags, if applicable
+  if (!is.null(context)) {
+    res[context] <-
+      paste0('<span class="', contextClass, '">', res[context], '</span>');
+  }
+
+  ###---------------------------------------------------------------------------
+  ### Utterances
+  ###---------------------------------------------------------------------------
+
+  ### Add utterance tags
   res <- paste0('<div class="', utteranceClass, '">', res, '</div>\n');
 
   return(res);
