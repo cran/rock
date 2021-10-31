@@ -250,9 +250,11 @@ parse_source <- function(text,
   ### Identify sections
   if (!is.null(sectionRegexes) && length(sectionRegexes) > 0) {
     for (sectionRegex in names(sectionRegexes)) {
+
       ### Store whether each utterance matches
       sourceDf[, glue::glue("{sectionRegex}_match")] <-
         grepl(sectionRegexes[sectionRegex], x);
+
       ### Store value of match
       sourceDf[, glue::glue("{sectionRegex}_content")] <-
         ifelse(
@@ -264,13 +266,60 @@ parse_source <- function(text,
           ),
           ""
         );
+
+      matched_sectionRegex_substrings <-
+        unique(
+          gsub(
+            sectionRegexes[sectionRegex],
+            "\\1",
+            sourceDf[, glue::glue("{sectionRegex}_content")])
+        );
+      matched_sectionRegex_substrings <-
+        matched_sectionRegex_substrings[
+          nchar(matched_sectionRegex_substrings) > 0
+        ];
+
       ### Set incremental counter for each match
-      if (glue::glue("{sectionRegex}_match") %in% names(sourceDf) &&
-          (length(sourceDf[, glue::glue("{sectionRegex}_match")]) > 0)) {
-        sourceDf[, glue::glue("{sectionRegex}_counter")] <-
-          purrr::accumulate(sourceDf[, glue::glue("{sectionRegex}_match")],
-                            `+`);
+
+      if (length(matched_sectionRegex_substrings) > 0) {
+
+        ### If we could extract a substring, we distinguish section breaks
+        ### based on this substring.
+
+        for (current_sectionRegex_substring in matched_sectionRegex_substrings) {
+
+          colNamePrefix <-
+            glue::glue(
+              "{sectionRegex}_{current_sectionRegex_substring}"
+            );
+
+          sourceDf[, glue::glue("{colNamePrefix}_match")] <-
+            grepl(
+              current_sectionRegex_substring,
+              sourceDf[, glue::glue("{sectionRegex}_content")]
+            );
+
+          if (glue::glue("{colNamePrefix}_match") %in% names(sourceDf) &&
+              (length(sourceDf[, glue::glue("{colNamePrefix}_match")]) > 0)) {
+            sourceDf[, glue::glue("{colNamePrefix}_counter")] <-
+              purrr::accumulate(sourceDf[, glue::glue("{colNamePrefix}_match")],
+                                `+`);
+          }
+
+        }
+
+      } else {
+
+        ### Otherwise, just use this regex only
+        if (glue::glue("{sectionRegex}_match") %in% names(sourceDf) &&
+            (length(sourceDf[, glue::glue("{sectionRegex}_match")]) > 0)) {
+          sourceDf[, glue::glue("{sectionRegex}_counter")] <-
+            purrr::accumulate(sourceDf[, glue::glue("{sectionRegex}_match")],
+                              `+`);
+        }
+
       }
+
     }
   }
 
@@ -776,6 +825,8 @@ parse_source <- function(text,
 
   ###---------------------------------------------------------------------------
 
+  ### Clean the source dataframe by removing section break rows.
+
   if (nrow(sourceDf) > 0) {
     sourceDf$originalSequenceNr <- 1:nrow(sourceDf);
 
@@ -979,6 +1030,7 @@ parse_source <- function(text,
     res$extendedDeductiveCodeTrees <- NA;
     res$fullyMergedCodeTrees <- NA;
   }
+
   if (!silent) {
     cat("\n\n");
   }

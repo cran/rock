@@ -8,21 +8,21 @@ metadata:
 
 [[cid=2]]
 
----paragraph-break---
----<>---
+---<<paragraph_break>>---
+---<<another_break>>---
 
 bla bla  [[bla>subbla]]
 some more bla  [[flups]]
 etc etc.  [[subbla>bla2]] [[flups]]
 
----paragraph-break---
+---<<paragraph_break>>---
 
 
 more [[cid=3]] [[subbla>bla3]]
 even more  [[bla>subbla2]]
 Cats bla bla cats [[cid=1]] [[pets>cats>siamese]] [[property>hairy]] [[relationships>love]]
 
----<>---
+---<<another_break>>---
 
 
 ---

@@ -5,7 +5,7 @@
 [![Pipeline
 status](https://gitlab.com/r-packages/rock/badges/prod/pipeline.svg)](https://gitlab.com/r-packages/rock/-/commits/prod)
 [![Coverage
-status](https://codecov.io/gl/r-packages/rock/branch/prod/graph/badge.svg)](https://codecov.io/gl/r-packages/rock?branch=prod)
+status](https://codecov.io/gl/r-packages/rock/branch/prod/graph/badge.svg)](https://app.codecov.io/gl/r-packages/rock?branch=prod)
 [![Version on
 CRAN](https://www.r-pkg.org/badges/version/rock?color=brightgreen)](https://cran.r-project.org/package=rock)
 [![Version on

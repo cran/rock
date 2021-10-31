@@ -51,6 +51,21 @@ testthat::test_that("a code tree is printed correctly", {
 
 ###-----------------------------------------------------------------------------
 
+testthat::test_that("an inductive code tree is read correctly using parse_sources()", {
+
+  examplePath <- file.path(system.file(package="rock"), 'extdata');
+
+  testres <- parse_sources(path = examplePath,
+                           regex = "longer-test.rock",
+                           silent=TRUE);
+
+  testthat::expect_equal(testres$inductiveCodeTrees$codes$inductFather$inducChild3$label,
+                         "inducChild3");
+
+});
+
+###-----------------------------------------------------------------------------
+
 testthat::test_that("a single deductive code tree is read correctly", {
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
@@ -226,7 +241,7 @@ testthat::test_that("merging two sources works properly", {
 
   testthat::expect_equal(
     testResult[9],
-    "---<some_section_break>--- ---<[a-zA-Z0-9_]+>---"
+    "---<<some_section_break>>--- ---<<([a-zA-Z][a-zA-Z0-9_]*)>>---"
   );
 
   ### readLines(file.path(examplePath, "merging-test-1-primary.rock"))[15]
