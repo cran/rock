@@ -26,6 +26,7 @@
 #' @param silent Whether to be chatty or quiet.
 #'
 #' @return Invisibly, the changed source(s) or source(s) object.
+#' @inheritParams generic_recoding
 #' @examples ### Get path to example source
 #' examplePath <-
 #'   system.file("extdata", package="rock");
@@ -51,6 +52,9 @@ recode_move <- function(input,
                         newAncestry,
                         filter = TRUE,
                         output = NULL,
+                        filenameRegex = ".*",
+                        outputPrefix = "",
+                        outputSuffix = "_rcMoved",
                         decisionLabel = NULL,
                         justification = NULL,
                         justificationFile = NULL,
@@ -65,6 +69,9 @@ recode_move <- function(input,
       filter = filter,
       func = changeSource_newAncestry,
       output = output,
+      filenameRegex = filenameRegex,
+      outputPrefix = outputPrefix,
+      outputSuffix = outputSuffix,
       decisionLabel = decisionLabel,
       justification = justification,
       justificationFile = justificationFile,

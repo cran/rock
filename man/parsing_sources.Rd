@@ -16,6 +16,7 @@ parse_source(
   ignoreOddDelimiters = FALSE,
   checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
   postponeDeductiveTreeBuilding = FALSE,
+  filesWithYAML = NULL,
   rlWarn = rock::opts$get(rlWarn),
   encoding = rock::opts$get(encoding),
   silent = rock::opts$get(silent)
@@ -68,6 +69,8 @@ instance identifiers specified in the attributes.}
 tree(s) based on the information in this file (\code{FALSE}) or whether to skip that. Skipping
 this is useful if the full tree information is distributed over multiple files (in which case
 you should probably call \code{parse_sources} instead of \code{parse_source}).}
+
+\item{filesWithYAML}{Any additional files to process to look for YAML fragments.}
 
 \item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
 with a newline character.}

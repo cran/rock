@@ -66,7 +66,7 @@ code_freq_hist <- function(x,
 
   }
 
-  if (!is.null(trimSourceIdentifiers)) {
+  if (('Source' %in% names(tmpDf)) && (!is.null(trimSourceIdentifiers))) {
     tmpDf$Source <-
       substr(
         tmpDf$Source,
@@ -103,20 +103,60 @@ code_freq_hist <- function(x,
 
   }
 
-  if ((!is.null(sortByFreq)) && (sortByFreq == "increasing")) {
-    sortOrder <- order(tmpDf$Frequency,
-                       decreasing = TRUE);
-  } else if ((!is.null(sortByFreq)) && (sortByFreq == "decreasing")) {
-    sortOrder <- order(tmpDf$Frequency,
-                       decreasing = FALSE);
+  if ("rock_parsedSource" %in% class(x)) {
+
+    if ((!is.null(sortByFreq)) && (sortByFreq == "increasing")) {
+      sortOrderInDf <- order(tmpDf$Frequency,
+                             decreasing = TRUE);
+    } else if ((!is.null(sortByFreq)) && (sortByFreq == "decreasing")) {
+      sortOrderInDf <- order(tmpDf$Frequency,
+                             decreasing = FALSE);
+    } else {
+      sortOrderInDf <- order(tmpDf$Code,
+                             decreasing = TRUE);
+    }
+
+    totalOccurrences <- tmpDf$Frequency[sortOrderInDf];
+    names(totalOccurrences) <- tmpDf$Code[sortOrderInDf];
+    totalOccurrencesSorted <- totalOccurrences;
+
   } else {
-    sortOrder <- order(tmpDf$Code,
-                       decreasing = TRUE);
+
+    totalOccurrences <-
+      unclass(by(tmpDf$Frequency, tmpDf$Code, sum));
+    attributes(totalOccurrences)$call <- NULL;
+
+    if ((!is.null(sortByFreq)) && (sortByFreq == "increasing")) {
+      ### We flip the order because of ggplot2's Y axis starts at the bottom
+      totalOccurrencesSorted <-
+        totalOccurrences[order(totalOccurrences,
+                               names(totalOccurrences),
+                               decreasing=c(TRUE, FALSE))];
+      sortOrderInDf <- order(tmpDf$Code[totalOccurrencesSorted],
+                             decreasing = TRUE);
+    } else if ((!is.null(sortByFreq)) && (sortByFreq == "decreasing")) {
+      ### We flip the order because of ggplot2's Y axis starts at the bottom
+      totalOccurrencesSorted <-
+        totalOccurrences[order(totalOccurrences,
+                               names(totalOccurrences),
+                               decreasing=c(FALSE, TRUE))];
+      sortOrderInDf <- order(tmpDf$Code[totalOccurrencesSorted],
+                             decreasing = TRUE);
+    } else {
+      totalOccurrencesSorted <-
+        totalOccurrences[
+          order(names(totalOccurrences),
+                decreasing = TRUE)
+        ];
+      sortOrderInDf <- order(tmpDf$Code[totalOccurrencesSorted],
+                             decreasing = FALSE);
+    }
   }
 
+  ### Create factor, apply order
   tmpDf$Code <- factor(tmpDf$Code,
-                       levels = tmpDf$Code[sortOrder],
-                       labels = tmpDf$Code[sortOrder],
+                       levels = names(totalOccurrencesSorted), #tmpDf$Code[sortOrder],
+                       labels = names(totalOccurrencesSorted), #tmpDf$Code[sortOrder],
                        ordered = TRUE);
 
   tmpDf$codeNr <- as.numeric(tmpDf$Code);
@@ -125,24 +165,21 @@ code_freq_hist <- function(x,
     res <- ggplot2::ggplot(data=tmpDf,
                            mapping=ggplot2::aes_string(x='codeNr',
                                                        y='Frequency'));
-    totalOccurrences <- tmpDf$Frequency[sortOrder];
   } else {
     res <- ggplot2::ggplot(data=tmpDf,
                            mapping=ggplot2::aes_string(x='codeNr',
                                                        y='Frequency',
                                                        fill = 'Source')) +
       ggplot2::scale_fill_viridis_d(end=.9);
-    totalOccurrences <-
-      by(tmpDf$Frequency, tmpDf$Code, sum)[levels(tmpDf$Code)]
   }
 
   res <- res +
     ggplot2::geom_bar(stat='identity') +
     ggplot2::scale_x_continuous(name = "Code",
-                                breaks=tmpDf$codeNr[sortOrder],
-                                labels=tmpDf$Code[sortOrder],
-                                sec.axis = ggplot2::dup_axis(labels = totalOccurrences,
-                                                             breaks = 1:length(totalOccurrences),
+                                breaks=tmpDf$codeNr[sortOrderInDf],
+                                labels=tmpDf$Code[sortOrderInDf],
+                                sec.axis = ggplot2::dup_axis(labels = totalOccurrencesSorted,
+                                                             breaks = 1:length(totalOccurrencesSorted),
                                                              name = "Number of code occurrences")) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),

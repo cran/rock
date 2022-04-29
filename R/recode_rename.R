@@ -14,6 +14,7 @@
 #' source(s) to process (see [get_source_filter()]).
 #' @param decisionLabel A description of the (recoding) decision that was taken.
 #' @param output If specified, the recoded source(s) will be written here.
+#'
 #' @param justification The justification for this action.
 #' @param justificationFile If specified, the justification is appended to
 #' this file. If not, it is saved to the `justifier::workspace()`. This can
@@ -26,6 +27,7 @@
 #'
 #' @return Invisibly, the changed source(s) or source(s) object.
 #' @rdname moving_codes
+#' @inheritParams generic_recoding
 #' @examples ### Get path to example source
 #' examplePath <-
 #'   system.file("extdata", package="rock");
@@ -50,6 +52,9 @@ recode_rename <- function(input,
                           codes,
                           filter = TRUE,
                           output = NULL,
+                          filenameRegex = ".*",
+                          outputPrefix = "",
+                          outputSuffix = "_rcRenamed",
                           decisionLabel = NULL,
                           justification = NULL,
                           justificationFile = NULL,
@@ -64,6 +69,9 @@ recode_rename <- function(input,
       filter = filter,
       func = changeSource_renameCodes,
       output = output,
+      filenameRegex = filenameRegex,
+      outputPrefix = outputPrefix,
+      outputSuffix = outputSuffix,
       decisionLabel = decisionLabel,
       justification = justification,
       justificationFile = justificationFile,

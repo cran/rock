@@ -147,11 +147,13 @@ convert_df_to_source <- function(data,
   }
 
   if (is.null(ciid_labels)) {
-    ciid_labels <-
-      stats::setNames(
-        names(cols_to_ciids),
-        nm = names(cols_to_ciids)
-      );
+    if (!is.null(cols_to_ciids)) {
+      ciid_labels <-
+        stats::setNames(
+          names(cols_to_ciids),
+          nm = names(cols_to_ciids)
+        );
+    }
   }
 
   sourceList <- list();
@@ -165,7 +167,7 @@ convert_df_to_source <- function(data,
         trimws(
           unlist(
             apply(
-              oldData[, cols_to_utterances],
+              oldData[, cols_to_utterances, drop=FALSE],
               1,
               paste0,
               collapse = "",
@@ -195,7 +197,7 @@ convert_df_to_source <- function(data,
   if (!is.null(cols_to_codes)) {
     codeVector <-
       apply(
-        data[, cols_to_codes],
+        data[, cols_to_codes, drop=FALSE],
         1,
         function(row) {
           return(
@@ -231,7 +233,7 @@ convert_df_to_source <- function(data,
               codeDelimiters[1],
               names(cols_to_ciids)[j],
               ciid_separator,
-              data[i, cols_to_ciids[j]],
+              data[i, cols_to_ciids[j], drop=FALSE],
               codeDelimiters[2]
             )
           );
@@ -249,24 +251,32 @@ convert_df_to_source <- function(data,
 
       ### Create an object with attributes
 
-      currentAttributes <-
-        stats::setNames(
-          c(list(as.character(data[i, cols_to_ciids])),
-            as.list(as.character(data[i, cols_to_attributes]))
-          ),
-          nm = c(ciid_labels[names(cols_to_ciids)],
-                 cols_to_attributes)
-        );
+      if (!is.null(cols_to_attributes)) {
 
-      attributeList[[i]] <-
-        currentAttributes;
+        currentAttributes <-
+          stats::setNames(
+            c(list(as.character(data[i, cols_to_ciids])),
+              as.list(as.character(data[i, cols_to_attributes]))
+            ),
+            nm = c(ciid_labels[names(cols_to_ciids)],
+                   cols_to_attributes)
+          );
 
-      attributesAsYamlList[[i]] <-
-        attributeList_to_yaml(
-          currentAttributes,
-          delimiterString = delimiterString,
-          attributeContainer = attributeContainer
-        );
+        attributeList[[i]] <-
+          currentAttributes;
+
+        attributesAsYamlList[[i]] <-
+          attributeList_to_yaml(
+            currentAttributes,
+            delimiterString = delimiterString,
+            attributeContainer = attributeContainer
+          );
+
+      } else {
+
+        attributeList <- c();
+
+      }
 
     }
 

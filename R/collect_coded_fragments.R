@@ -40,7 +40,8 @@
 #' @param outputViewer If showing output, where to show the output: in
 #' the console (`outputViewer='console'`) or in the viewer
 #' (`outputViewer='viewer'`), e.g. the RStudio viewer. You'll usually want
-#' the latter when outputting HTML, and otherwise the former.
+#' the latter when outputting HTML, and otherwise the former. Set to `FALSE`
+#' to not output anything to the console or the viewer.
 #' @param template The template to load; either the name of one
 #' of the ROCK templates (currently, only 'default' is available), or
 #' the path and filename of a CSS file.
@@ -250,16 +251,18 @@ collect_coded_fragments <- function(x,
     if (is.null(heading)) {
       if (length(matchedCodes) > 5) {
         heading <-
-          paste0(repStr("#", headingLevel), " ",
+          paste0("<h", headingLevel, ">",
                  "Collected coded fragments with ",
                  context, " lines of context",
+                 "</h", headingLevel, ">",
                  "\n\n");
       } else {
         heading <-
-          paste0(repStr("#", headingLevel), " ",
+          paste0("<h", headingLevel, ">",
                  "Collected coded fragments for codes ",
                  vecTxtQ(matchedCodes), " with ",
                  context, " lines of context",
+                 "</h", headingLevel, ">",
                  "\n\n");
       }
       codePrefix <-
@@ -319,6 +322,11 @@ collect_coded_fragments <- function(x,
 
   if (is.null(output)) {
     if (isTRUE(getOption('knitr.in.progress'))) {
+
+      ###-----------------------------------------------------------------------
+      ### Adding the CSS is missing, isn't that wrong?
+      ###-----------------------------------------------------------------------
+
       return(knitr::asis_output(c("\n\n",
                                   res,
                                   "\n\n")));

@@ -8,6 +8,7 @@ generic_recoding(
   input,
   codes,
   func,
+  filenameRegex = ".*",
   filter = TRUE,
   output = NULL,
   outputPrefix = "",
@@ -31,6 +32,8 @@ loaded sources as produced by a call to \code{\link[=load_sources]{load_sources(
 \item{codes}{The codes to process}
 
 \item{func}{The function to apply.}
+
+\item{filenameRegex}{Only process files matching this regular expression.}
 
 \item{filter}{Optionally, a filter to apply to specify a subset of the
 source(s) to process (see \code{\link[=get_source_filter]{get_source_filter()}}).}

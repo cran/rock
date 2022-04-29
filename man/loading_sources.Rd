@@ -3,6 +3,7 @@
 \name{load_source}
 \alias{load_source}
 \alias{load_sources}
+\alias{loading_sources}
 \title{Load a source from a file or a string}
 \usage{
 load_source(

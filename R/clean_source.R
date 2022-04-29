@@ -202,33 +202,27 @@ clean_source <- function(input,
   if (is.null(output)) {
     return(res);
   } else {
-    if (!dir.exists(dirname(output))) {
-      stop("The directory specified where the output file '",
-           basename(output), "' is supposed to be written ('",
-           dirname(output),
-           "') does not exist.");
-    }
-    if (file.exists(output) && preventOverwriting) {
-      if (!silent) {
-        message("File '",
-                output, "' exists, and `preventOverwriting` was `TRUE`, so I did not ",
-                "write the cleaned source to disk.");
-      }
+
+    writingResult <-
+      writeTxtFile(
+        x = res,
+        output = output,
+        preventOverwriting = preventOverwriting,
+        encoding = encoding,
+        silent = silent
+      );
+
+    if (writingResult) {
+      msg("I just wrote a cleaned source to file '",
+          output,
+          "'. Note that this file may be overwritten if this ",
+          "script is ran again (unless `preventOverwriting` is set to `TRUE`). ",
+          "Therefore, make sure to copy it to ",
+          "another directory, or rename it, before starting to code this source!",
+          silent = silent);
     } else {
-      con <- file(description=output,
-                  open="w",
-                  encoding=encoding);
-      writeLines(text=res,
-                 con=con);
-      close(con);
-    }
-    if (!silent) {
-      message("I just wrote a cleaned source to file '",
-              output,
-              "'. Note that this file may be overwritten if this ",
-              "script is ran again (unless `preventOverwriting` is set to `TRUE`). ",
-              "Therefore, make sure to copy it to ",
-              "another directory, or rename it, before starting to code this source!");
+      warning("Could not write output file to `",
+              output, "`.");
     }
     invisible(res);
   }

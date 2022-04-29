@@ -32,6 +32,7 @@
 #'
 #' @return Invisibly, the recoded source(s) or source(s) object.
 #' @rdname uncoding_sources
+#' @inheritParams generic_recoding
 #' @examples ### Get path to example source
 #' examplePath <-
 #'   system.file("extdata", package="rock");
@@ -64,6 +65,9 @@ recode_delete <- function(input,
                           codes,
                           filter = TRUE,
                           output = NULL,
+                          filenameRegex = ".*",
+                          outputPrefix = "",
+                          outputSuffix = "_rcDeleted",
                           childrenReplaceParents = TRUE,
                           recursiveDeletion = FALSE,
                           decisionLabel = NULL,
@@ -80,6 +84,9 @@ recode_delete <- function(input,
       filter = filter,
       func = changeSource_uncode,
       output = output,
+      filenameRegex = filenameRegex,
+      outputPrefix = outputPrefix,
+      outputSuffix = outputSuffix,
       decisionLabel = decisionLabel,
       justification = justification,
       justificationFile = justificationFile,

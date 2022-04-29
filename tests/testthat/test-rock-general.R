@@ -33,6 +33,30 @@ testthat::test_that("an inductive code tree is read correctly", {
 
 ###-----------------------------------------------------------------------------
 
+testthat::test_that("example 2 is read correctly", {
+
+  examplePath <- file.path(system.file(package="rock"), 'extdata');
+
+  testres <- rock::parse_source(file.path(examplePath,
+                                          "example-2.rock"),
+                                silent=TRUE);
+
+  testres_fragment <-
+    testres$mergedSourceDf[
+      ,
+      c('uids', 'utterances_clean',
+        'sectionBreak_paragraph_break_counter', 'caseId',
+        'childCode', 'grandChildCode', 'grandChildCode2', 'justAcode',
+        'region', 'age')
+    ];
+
+  testthat::expect_equal(nrow(testres_fragment),
+                         12);
+
+});
+
+###-----------------------------------------------------------------------------
+
 testthat::test_that("a code tree is printed correctly", {
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
@@ -124,6 +148,9 @@ testthat::test_that("A deductive code tree is read correctly from multiple DCT f
 ###-----------------------------------------------------------------------------
 
 testthat::test_that("Sources are exported to html properly", {
+
+  # devtools::load_all();
+  # rock::opts$set(debug = TRUE);
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
 

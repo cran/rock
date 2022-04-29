@@ -6,11 +6,16 @@
 \usage{
 ci_heatmap(
   x,
-  itemIdentifier = "uiid",
+  nrmSpec = NULL,
+  language = nrmSpec$defaultLanguage,
+  wrapLabels = 80,
+  itemOrder = NULL,
+  itemLabels = NULL,
+  itemIdentifier = "itemId",
   codingScheme = "peterson",
-  itemlab = "Item",
-  codelab = "Code",
-  freqlab = "Frequency",
+  itemlab = NULL,
+  codelab = NULL,
+  freqlab = "Count",
   plotTitle = "Cognitive Interview Heatmap",
   fillScale = ggplot2::scale_fill_viridis_c(),
   theme = ggplot2::theme_minimal()
@@ -20,6 +25,22 @@ ci_heatmap(
 \item{x}{The object with the parsed coded source(s) as resulting from a
 call to \code{\link[=parse_source]{parse_source()}} or \code{\link[=parse_sources]{parse_sources()}}.}
 
+\item{nrmSpec}{Optionally, an imported Narrative Response Model
+specification, as imported with \code{\link[=ci_import_nrm_spec]{ci_import_nrm_spec()}}, which will
+then be used to obtain the item labels.}
+
+\item{language}{If \code{nrmSpec} is specified, the language to use.}
+
+\item{wrapLabels}{Whether to wrap the labels; if not \code{NULL}, the
+number of character to wrap at.}
+
+\item{itemOrder, itemLabels}{Instead of specifying an NRM specification,
+you can also directly specify the item order and item labels. \code{itemOrder}
+is a character vector of item identifiers, and \code{itemLabels} is a named
+character vector of item labels, where each value's name is the
+corresponding item identifier. If \code{itemLabels} is provided but \code{itemOrder}
+is not, the order of the \code{itemLabel} is used.}
+
 \item{itemIdentifier}{The column identifying the items.}
 
 \item{codingScheme}{The coding scheme, either as a string if it represents
@@ -28,7 +49,7 @@ package, or as a coding scheme resulting from a call
 to \code{\link[=create_codingScheme]{create_codingScheme()}}.}
 
 \item{itemlab, codelab, freqlab}{Labels to use for the item and code axes
-and for the frequency color legend.}
+and for the frequency color legend (\code{NULL} to omit the label).}
 
 \item{plotTitle}{The title to use for the plot}
 
@@ -37,7 +58,7 @@ and for the frequency color legend.}
 \item{theme}{Convenient way to specify the \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} theme.}
 }
 \value{
-The heatmap
+The heatmap as a ggplot2 plot.
 }
 \description{
 When conducting cognitive interviews, it can be useful to quickly inspect

@@ -9,6 +9,9 @@ recode_delete(
   codes,
   filter = TRUE,
   output = NULL,
+  filenameRegex = ".*",
+  outputPrefix = "",
+  outputSuffix = "_rcDeleted",
   childrenReplaceParents = TRUE,
   recursiveDeletion = FALSE,
   decisionLabel = NULL,
@@ -32,6 +35,16 @@ sources as produced by a call to \code{\link[=load_sources]{load_sources()}}.}
 source(s) to process (see \code{\link[=get_source_filter]{get_source_filter()}}).}
 
 \item{output}{If specified, the recoded source(s) will be written here.}
+
+\item{filenameRegex}{Only process files matching this regular expression.}
+
+\item{outputPrefix}{The prefix and suffix to add to the
+filenames when writing the processed files to disk, in case multiple
+sources are passed as input.}
+
+\item{outputSuffix}{The prefix and suffix to add to the
+filenames when writing the processed files to disk, in case multiple
+sources are passed as input.}
 
 \item{childrenReplaceParents}{Whether children should be deleted (\code{FALSE})
 or take their parent code's place (\code{TRUE}). This is ignored if

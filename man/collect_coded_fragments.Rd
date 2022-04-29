@@ -62,7 +62,8 @@ invisibly.}
 \item{outputViewer}{If showing output, where to show the output: in
 the console (\code{outputViewer='console'}) or in the viewer
 (\code{outputViewer='viewer'}), e.g. the RStudio viewer. You'll usually want
-the latter when outputting HTML, and otherwise the former.}
+the latter when outputting HTML, and otherwise the former. Set to \code{FALSE}
+to not output anything to the console or the viewer.}
 
 \item{template}{The template to load; either the name of one
 of the ROCK templates (currently, only 'default' is available), or

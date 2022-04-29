@@ -8,6 +8,7 @@
 ci_import_nrm_spec(
   x,
   read_ss_args = list(exportGoogleSheet = TRUE),
+  defaultLanguage = NULL,
   silent = rock::opts$get("silent")
 )
 
@@ -19,6 +20,9 @@ to \code{\link[=read_spreadsheet]{read_spreadsheet()}}.}
 
 \item{read_ss_args}{A named list with arguments to pass to
 \code{\link[=read_spreadsheet]{read_spreadsheet()}}.}
+
+\item{defaultLanguage}{Language to set as default language (by default,
+i.e. if \code{NULL}, the first language is used).}
 
 \item{silent}{Whether to be silent or chatty.}
 

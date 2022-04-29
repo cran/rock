@@ -20,6 +20,7 @@
 #' @return Invisibly, an R character vector of
 #' classes `rock_source` and `character`.
 #' @rdname loading_sources
+#' @aliases load_source load_sources loading_sources
 #' @examples ### Get path to example source
 #' examplePath <-
 #'   system.file("extdata", package="rock");

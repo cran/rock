@@ -1,8 +1,9 @@
 #' Add child codes under a parent code
 #'
-#' This function conditionally splits a code into multiple codes. Note that you
-#' may want to use [rock::recode_addChildCodes()] instead to not lose the
-#' original coding.
+#' This function conditionally adds new child codes under a code. Where
+#' [rock::recode_split()] removes the original code (splitting
+#' it into the new codes), this function retains the original, adding the new
+#' codes as sub-codes.
 #'
 #' @param input One of 1) a character string specifying the path to a file
 #' with a source; 2) an object with a loaded source as produced by a call
@@ -40,6 +41,7 @@
 #' @param silent Whether to be chatty or quiet.
 #'
 #' @return Invisibly, the changed source(s) or source(s) object.
+#' @inheritParams generic_recoding
 #' @examples ### Get path to example source
 #' examplePath <-
 #'   system.file("extdata", package="rock");
@@ -70,6 +72,9 @@ recode_addChildCodes <- function(input,
                                  childCodes,
                                  filter = TRUE,
                                  output = NULL,
+                                 filenameRegex = ".*",
+                                 outputPrefix = "",
+                                 outputSuffix = "_rcAdded",
                                  decisionLabel = NULL,
                                  justification = NULL,
                                  justificationFile = NULL,
@@ -85,6 +90,9 @@ recode_addChildCodes <- function(input,
       filter = filter,
       func = changeSource_addChildCodes,
       output = output,
+      filenameRegex = filenameRegex,
+      outputPrefix = outputPrefix,
+      outputSuffix = outputSuffix,
       decisionLabel = decisionLabel,
       justification = justification,
       justificationFile = justificationFile,
@@ -174,6 +182,12 @@ changeSource_addChildCodes <- function(input,
   } else {
     ### `codes` has length 1
 
+    ### For counting number of changes later on
+    oldInput <- input;
+
+    ### Filter for utterances that haven't been changed yet
+    unprocessedUtterances <- rep(TRUE, length(input));
+
     ### Get clean code, removing any delimiters if they were added
     cleanOldCode <- cleanCode(codes);
     cleanNewCodes <-
@@ -226,36 +240,49 @@ changeSource_addChildCodes <- function(input,
       ### Select utterances to check (filter 'supercedes' the split filters
       ### so is always required)
       filteredUtterances <-
-        input[filter & childCodes[[currentChildCode]]];
+        #input[filter & unprocessedUtterances & childCodes[[currentChildCode]]];
+        filter & unprocessedUtterances & childCodes[[currentChildCode]];
 
       ### Check which utterances are coded with the code to split
+      utterancesMatchingRegex <-
+        grepl(regexToFindCode, input);
+
       utterancesWithMatches <-
-        grep(
-          regexToFindCode,
-          filteredUtterances
-        );
+        filteredUtterances & utterancesMatchingRegex;
 
       msg("\n\nOut of the ", length(input), " utterances in the provided source, ",
-          sum(filter & childCodes[[currentChildCode]]),
+          sum(filteredUtterances),
           " match both the general filter and the filter specified for child ",
           "code '",
-          currentChildCode, "'. Of those, ",
-          length(utterancesWithMatches), " have been coded with ",
-            "code '", cleanOldCode[currentChildCode],
+          currentChildCode, "' (and have not been processed in a previous step). ",
+          "Of those, ",
+          sum(utterancesWithMatches), " have been coded with ",
+            "code '", cleanOldCode,
           "', so to those utterances, child code '",
           fullNewCodes[currentChildCode], "' will now be appended.\n",
           silent=silent);
 
-      filteredUtterances[utterancesWithMatches] <-
+      input[utterancesWithMatches] <-
+      #filteredUtterances[utterancesWithMatches] <-
         paste0(
-          filteredUtterances[utterancesWithMatches],
+          input[utterancesWithMatches],
           " ",
           fullNewCodes[currentChildCode]
         );
 
+      ### Replace processed rows in the input source
+      # input[
+      #   filter &
+      #     unprocessedUtterances &
+      #     childCodes[[currentChildCode]]
+      # ] <- filteredUtterances;
+
+      ### Indicate that these were processed
+      unprocessedUtterances[utterancesWithMatches] <- FALSE;
+
       msg(
         paste0(
-          paste0("--PROCESSED: ", filteredUtterances[utterancesWithMatches]),
+          paste0("--PROCESSED: ", input[utterancesWithMatches]),
           collapse = "\n"
         ),
         silent=silent
@@ -263,13 +290,11 @@ changeSource_addChildCodes <- function(input,
 
     }
 
-    ### Replace processed rows in the input source
-    oldInput <- input;
-    input[filter] <- filteredUtterances;
+    ### Count nr of changes
     diffCount <- sum(input != oldInput);
 
-    msg("Added child codes ", vecTxtQ(codes), " to ", diffCount,
-        " utterances that were coded with code ", " into code '",
+    msg("\n\nAdded child codes ", vecTxtQ(fullNewCodes), " to ", diffCount,
+        " utterances that were coded with code '",
         cleanOldCode, "'.\n\n",
         silent=silent);
 

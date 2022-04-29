@@ -6,6 +6,7 @@ ci_create_interviewScheme <- function(nrm_spec,
          "as produced by a call to rock::ci_import_nrm_spec().");
   }
 
+  rpe_mq_idName <- rock::opts$get('rpe_mq_idName');
   nrm_wsNames <- rock::opts$get("nrm_wsNames");
   nrm_colNames <- rock::opts$get("nrm_colNames");
 
@@ -57,7 +58,7 @@ ci_create_interviewScheme <- function(nrm_spec,
           probeDf[[nrm_colNames$probes['probe_label']]][
             probeDf[[nrm_colNames$probes['item_id']]] == currentItem
           ],
-          "   [[prbid:",
+          "   [[", rpe_mq_idName, ":",
           probeDf[[nrm_colNames$probes['probe_id']]][
             probeDf[[nrm_colNames$probes['item_id']]] == currentItem
           ],

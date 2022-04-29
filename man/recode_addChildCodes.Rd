@@ -10,6 +10,9 @@ recode_addChildCodes(
   childCodes,
   filter = TRUE,
   output = NULL,
+  filenameRegex = ".*",
+  outputPrefix = "",
+  outputSuffix = "_rcAdded",
   decisionLabel = NULL,
   justification = NULL,
   justificationFile = NULL,
@@ -48,6 +51,16 @@ source(s) to process (see \code{\link[=get_source_filter]{get_source_filter()}})
 
 \item{output}{If specified, the recoded source(s) will be written here.}
 
+\item{filenameRegex}{Only process files matching this regular expression.}
+
+\item{outputPrefix}{The prefix and suffix to add to the
+filenames when writing the processed files to disk, in case multiple
+sources are passed as input.}
+
+\item{outputSuffix}{The prefix and suffix to add to the
+filenames when writing the processed files to disk, in case multiple
+sources are passed as input.}
+
 \item{decisionLabel}{A description of the (recoding) decision that was taken.}
 
 \item{justification}{The justification for this action.}
@@ -68,9 +81,10 @@ when writing the files to \code{output}.}
 Invisibly, the changed source(s) or source(s) object.
 }
 \description{
-This function conditionally splits a code into multiple codes. Note that you
-may want to use \code{\link[=recode_addChildCodes]{recode_addChildCodes()}} instead to not lose the
-original coding.
+This function conditionally adds new child codes under a code. Where
+\code{\link[=recode_split]{recode_split()}} removes the original code (splitting
+it into the new codes), this function retains the original, adding the new
+codes as sub-codes.
 }
 \examples{
 ### Get path to example source
