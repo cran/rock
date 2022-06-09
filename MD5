@@ -1,5 +1,5 @@
-4e747231f88e98be18df01aa75737788 *DESCRIPTION
-146a1a558702c020527bc234451bf84a *NAMESPACE
+b98a351cc16ba7b865681f8a974a3b07 *DESCRIPTION
+ecf2ede6b52e664b0769c2840222105b *NAMESPACE
 3b0c1f517045aaae72271cebacde1123 *R/add_html_tags.R
 cedb2de056ee5ff6d317f3d6aefb381a *R/apply_graph_theme.R
 ab7f58b0dc6ca7aebb7a09a5b3bdb86d *R/base30toNumeric.R
@@ -7,7 +7,7 @@ fab85987fc7eb61ca8a0b0572108776c *R/cat0.R
 d6349a3a5c7eb4ceff5a311cf8e59e81 *R/checkPkgs.R
 169afb8a1c28fbfeed082f30d57158e9 *R/ci_create_interviewScheme.R
 a96246806018b5f9320be9429056f71c *R/ci_get_item.R
-c1041b7b14403dc52b2e320c512d1148 *R/ci_heatmap.R
+e940acbac38d4fb1b192873e1409c45c *R/ci_heatmap.R
 2d7bb881c4aea2585218a1b0569efdcb *R/ci_import_nrm_spec.R
 f37ce4d69224622404b714f1498a1afd *R/ci_nrm_to_md.R
 f77b7032f2622c64883ce23c79169d89 *R/cleanCode.R
@@ -49,6 +49,7 @@ f03360f58ff02b8238f9c2e7ae6282c7 *R/get_leaf_codes.R
 6923c2960bf77f46232368e57fb99ef1 *R/get_parent_uid.R
 87460a99b1c8cd857c855f69367ca387 *R/get_source_filter.R
 9a988b77c43550df482d11028da9a82e *R/heading.R
+3f1b47cf6675435e25250b6e7fae309a *R/heatmap.R
 654969977dd5549b5cd1dc78fe27b0f8 *R/imported_justifier_functions.R
 10b53872bdccae9f3c9e77f529969bff *R/included_data_resources.R
 f28ca9058b519b18e69b102c27b88d07 *R/inductiveCodes_to_tree.R
@@ -65,7 +66,7 @@ be3dca139cb72c876ca01b48374206bb *R/mask_source.R
 e1bedad6a062f9ef542e15716d266adc *R/multigrepl.R
 e702f441f8217936dc716b756222b2f2 *R/number_as_xl_date.R
 fd5f20882538f69adec138fec7f3190c *R/numericToBase30.R
-876861e1e3edf34ac7f196e6e531635b *R/opts.R
+3c9d05ab920cdcbc08548924279f7b53 *R/opts.R
 75a69074de95f02f4c44f5dab352852e *R/parse_source.R
 747900c42bbfac991eac5d0fd4b96061 *R/parse_source_by_coderId.R
 58c84e463f3834cf84c144072b107009 *R/parse_sources.R
@@ -110,14 +111,14 @@ bf41d21606c1bbbc9dcbf8f4b2b366b5 *R/template_ci_heatmap_and_coded_fragments_to_p
 9f872b39aff936b15c782a3fafdddfb7 *R/xlsx_to_source.R
 d1fea231f2e0287fb84ea6a8d3df3251 *R/yaml_delimiter_indices.R
 4e91317c06615412ac0cfca3e0c715ab *README.md
-45fc7f61cbc9192c6bc93e654beb6a8d *build/vignette.rds
+be3228fea0e8f26c18326478b9091aca *build/vignette.rds
 4a35578d7f3247418314a4b6d254a2d5 *data/exampleCodebook_1.rda
 bb64b8dfd47819158d285d8103c02c63 *inst/css/basic.css
 d7bc39028fd0d81fb210be49ecb114ad *inst/css/bootstrap.min.css
 46ffc65fc444e1028d8526200dbbcc7b *inst/css/default.css
 ea8eab93de05207476b4c5f91642b478 *inst/doc/introduction_to_rock.R
 955755b5e75df7716af8349ca2180ef6 *inst/doc/introduction_to_rock.Rmd
-639014275e195f182372c689702d2df1 *inst/doc/introduction_to_rock.pdf
+9ee5953c7b4ea50b6756dc1779f9ea1b *inst/doc/introduction_to_rock.pdf
 a5ec8992415d2b6b12f259ce74ebbb37 *inst/extdata/attitude.dct
 ab691a044ba38fbdbebca02d695804f7 *inst/extdata/attributes.rock
 00887529d7c01e7e33624a34f5eade29 *inst/extdata/behavior.dct
@@ -157,7 +158,7 @@ d3a83fdebe8131e790603746e25bac27 *inst/templates/file48944401063.log
 6c1409dfc19e705084da1bf2671c2ae7 *man/cat0.Rd
 247fa8c7ec675dba69abd179c2a92a96 *man/checkPkgs.Rd
 a93d2cb6994eb49ebb9291cd9235894b *man/ci_get_item.Rd
-96570e0ca864bb0f6e0aa5f164212eb4 *man/ci_heatmap.Rd
+1770c08c8ff51ad22fdabe45e69ef5e2 *man/ci_heatmap.Rd
 ac00bf8f38e1f6e5a856d713af8a4468 *man/cleaned_source_to_utterance_vector.Rd
 2f825a877a80a930b5d3fa63761764cf *man/cleaning_sources.Rd
 5066e599f500198347aef8d99ae9360c *man/codeIds_to_codePaths.Rd
@@ -186,6 +187,7 @@ e54c9bb0b3d3d091a73873478d642678 *man/exporting_sources.Rd
 2a5cf936869a0581712fd432a5efd129 *man/get_childCodeIds.Rd
 a1b3130ef13d160970aca9731bdfa68d *man/get_source_filter.Rd
 10dd2171710baece093533b822bbf625 *man/heading.Rd
+0165c9e772e0badabdd5a8f5f182338f *man/heatmap.Rd
 164ef5f50c25450b40dd08cc48193d63 *man/inspect_coded_sources.Rd
 1a1107a9b33458b6bba713990b0cbe10 *man/loading_sources.Rd
 bac47798f1e102cb7fe14897cf492d21 *man/masking_sources.Rd
@@ -193,7 +195,7 @@ bac47798f1e102cb7fe14897cf492d21 *man/masking_sources.Rd
 e76a4d019bb65bce6141e8760af67e7a *man/merge_sources.Rd
 b3235c2d0ff3e0da775011cb32220388 *man/moving_codes.Rd
 61b2fa832f84dafcc81bc50627981963 *man/number_as_xl_date.Rd
-c2bd21f7d362dffad53ce2c610c4285c *man/opts.Rd
+ea74b192fa01cdbb1c52910e8c8d3d07 *man/opts.Rd
 ef00e8381697be776269b5ecc5ffdbbd *man/parsed_sources_to_ena_network.Rd
 6d69a2dd8fdedafbc96317bb0cdd8672 *man/parsing_sources.Rd
 0f22be5ee39e652e62476dd807e0d853 *man/parsing_sources_by_coderId.Rd
@@ -226,5 +228,5 @@ fa42d7af895eb3a080cd94959722055c *man/wrapVector.Rd
 d183fa27f9a51ea56ade28d49fd1188c *man/yaml_delimiter_indices.Rd
 8c2faf36336dc75bd73bf31f0cd8d85a *tests/testthat.R
 03fbb67baa766ff4644c36bf6134caec *tests/testthat/test-rock-general.R
-6d919ddeba92f2f4440834a8cc780ccb *tests/testthat/test-rpe.R
+ad51a6648aa9ff18ac4ba5e1b0b7b12b *tests/testthat/test-rpe.R
 955755b5e75df7716af8349ca2180ef6 *vignettes/introduction_to_rock.Rmd

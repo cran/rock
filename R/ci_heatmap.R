@@ -33,11 +33,13 @@
 #' @export
 #'
 #' @examples examplePath <- file.path(system.file(package="rock"), 'extdata');
-#' parsedCI <- parse_source(file.path(examplePath,
-#'                                    "ci_example_1.rock"));
+#' parsedCI <- rock::parse_source(
+#'   file.path(examplePath,
+#'             "ci_example_1.rock")
+#' );
 #'
-#' ci_heatmap(parsedCI,
-#'            codingScheme = "peterson");
+#' rock::ci_heatmap(parsedCI,
+#'                  codingScheme = "peterson");
 ci_heatmap <- function(x,
                        nrmSpec = NULL,
                        language = nrmSpec$defaultLanguage,
@@ -164,26 +166,16 @@ ci_heatmap <- function(x,
     newItemCol;
 
   heatMap <-
-    ggplot2::ggplot(data = tidyCodeFrequencies,
-                    mapping = ggplot2::aes_string(
-                      x = "code",
-                      y = itemIdentifier,
-                      fill = "frequency")
-    ) +
-    ggplot2::geom_tile() +
-    ggplot2::scale_x_discrete(position = "top") +
-    theme +
-    fillScale +
-    ggplot2::labs(x = codelab,
-                  y = itemlab,
-                  fill = freqlab,
-                  title = plotTitle) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 1),
-      plot.subtitle = ggplot2::element_text(hjust = 1),
-      axis.text.x = ggplot2::element_text(angle = 30,
-                                          hjust = 0)
-    );
+    rock::heatmap(data = tidyCodeFrequencies,
+                  x = "code",
+                  y = itemIdentifier,
+                  fill = "frequency",
+                  xLab = codelab,
+                  yLab = itemlab,
+                  fillLab = freqlab,
+                  plotTitle = plotTitle,
+                  fillScale = fillScale,
+                  theme =theme);
 
   return(heatMap);
 

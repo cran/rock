@@ -7,6 +7,7 @@ test_that("an RPE coding file can be prepared", {
                              package="rock");
   extdataPath <- system.file("extdata",
                              package="rock");
+  tmpDir <- tempdir(check=TRUE);
 
   lsDat <-
     limonaid::ls_import_data(sid = 795779,
@@ -75,13 +76,15 @@ test_that("an RPE coding file can be prepared", {
       metaquestionContents = mq_itemContents,
       coderId = "coder1",
       caseIds = lsDat$id,
-      outputFile = file.path(extdataPath, "simple-rpe-example.rock"),
+      #outputFile = file.path(extdataPath, "simple-rpe-example.rock"),
+      outputFile = file.path(tmpDir, "simple-rpe-example.rock"),
       preventOverwriting = FALSE
     );
 
   parsedItemSource <-
     rock::parse_source(
-      file = file.path(extdataPath, "simple-rpe-example.rock")
+      #file = file.path(extdataPath, "simple-rpe-example.rock")
+      file = file.path(tmpDir, "simple-rpe-example.rock")
     );
 
 });

@@ -38,7 +38,8 @@ option has not been manually specified.}
 
 }
 
-The following options can be set:
+Some of the options that can be set (see \code{rock::opts$defaults} for the
+full list):
 
 \describe{
 \item{codeRegexes}{A named character vector with one or more regular

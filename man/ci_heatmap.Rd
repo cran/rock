@@ -67,9 +67,11 @@ process.
 }
 \examples{
 examplePath <- file.path(system.file(package="rock"), 'extdata');
-parsedCI <- parse_source(file.path(examplePath,
-                                   "ci_example_1.rock"));
+parsedCI <- rock::parse_source(
+  file.path(examplePath,
+            "ci_example_1.rock")
+);
 
-ci_heatmap(parsedCI,
-           codingScheme = "peterson");
+rock::ci_heatmap(parsedCI,
+                 codingScheme = "peterson");
 }

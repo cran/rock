@@ -1,6 +1,6 @@
 Package: rock
 Title: Reproducible Open Coding Kit
-Version: 0.5.4
+Version: 0.5.5
 Authors@R: 
     c(person(given = "Gjalt-Jorn Ygram",
              family = "Peters",
@@ -38,9 +38,9 @@ Suggests: covr, googlesheets4, haven (>= 2.4), justifier (>= 0.2),
         writexl, XLConnect
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-04-29 21:22:12 UTC; gjalt
+Packaged: 2022-06-08 20:19:32 UTC; gjalt
 Author: Gjalt-Jorn Ygram Peters [aut, cre]
     (<https://orcid.org/0000-0002-0336-9589>),
   Szilvia Zorgo [ctb] (<https://orcid.org/0000-0002-6916-2097>)
 Repository: CRAN
-Date/Publication: 2022-04-29 21:40:02 UTC
+Date/Publication: 2022-06-09 09:50:02 UTC
