@@ -37,8 +37,12 @@ Create an ENA network out of one or more parsed sources
 examplePath <-
   system.file("extdata", package="rock");
 
-### Parse all example sources in that directory
-parsedExamples <- rock::parse_sources(examplePath);
+### Parse a selection of example sources in that directory
+parsedExamples <-
+  rock::parse_sources(
+    examplePath,
+    regex = "(test|example)(.txt|.rock)"
+  );
 
 ### Add something to indicate which units belong together; normally,
 ### these would probably be indicated using one of the identifier,

@@ -11,7 +11,7 @@ ci_heatmap(
   wrapLabels = 80,
   itemOrder = NULL,
   itemLabels = NULL,
-  itemIdentifier = "itemId",
+  itemIdentifier = "uiid",
   codingScheme = "peterson",
   itemlab = NULL,
   codelab = NULL,
@@ -41,7 +41,10 @@ character vector of item labels, where each value's name is the
 corresponding item identifier. If \code{itemLabels} is provided but \code{itemOrder}
 is not, the order of the \code{itemLabel} is used.}
 
-\item{itemIdentifier}{The column identifying the items.}
+\item{itemIdentifier}{The column identifying the items; the class instance
+identifier prefix, e.g. if item identifiers are specified as
+\verb{[[uiid:familySize_7djdy62d]]}, the \code{itemIdentifier} to pass here
+is \code{"uiid"}.}
 
 \item{codingScheme}{The coding scheme, either as a string if it represents
 one of the cognitive interviewig coding schemes provided with the \code{rock}

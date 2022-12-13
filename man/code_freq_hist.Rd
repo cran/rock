@@ -39,3 +39,18 @@ a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}}.
 \description{
 Create a frequency histogram for codes
 }
+\examples{
+### Get path to example source
+examplePath <-
+  system.file("extdata", package="rock");
+
+### Get a path to one example file
+exampleFile <-
+  file.path(examplePath, "example-1.rock");
+
+### Load example source
+loadedExample <- rock::parse_source(exampleFile);
+
+### Show code frequencies
+code_freq_hist(loadedExample);
+}

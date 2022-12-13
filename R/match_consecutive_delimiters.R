@@ -1,4 +1,7 @@
-#' Match the corresponding indices of (YAML) delimiters in a sequantial list
+#' Match the corresponding indices of (YAML) delimiters in a sequential list
+#'
+#' This is just a convenience function that takes a vector of deliminaters
+#' and returns a list of delimiter pairs.
 #'
 #' @param x The vector with delimiter indices
 #' @param errorOnInvalidX Whether to return `NA` (if `FALSE`) or throw an
@@ -9,8 +12,33 @@
 #' error is thrown, whether to ignore the first (`TRUE`) or the last (`FALSE`)
 #' delimiter.
 #'
+#' @return A list where each element is a two-element vector with the two
+#' consecutive delimiters
+#'
 #' @export
 #'
+#' @examples rock::match_consecutive_delimiters(
+#'   c(1, 3, 5, 10, 19, 25, 30, 70)
+#' );
+#'
+#' exampleText <- c(
+#'   "some text",
+#'   "delimiter",
+#'   "more text",
+#'   "delimiter",
+#'   "filler text",
+#'   "intentionally left blank",
+#'   "delimiter",
+#'   "final text",
+#'   "delimiter"
+#' );
+#'
+#' rock::match_consecutive_delimiters(
+#'   grep(
+#'     "delimiter",
+#'     exampleText
+#'   )
+#' );
 match_consecutive_delimiters <- function(x,
                                          errorOnInvalidX = FALSE,
                                          errorOnOdd = FALSE,

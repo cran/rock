@@ -35,12 +35,19 @@ show_inductive_code_tree <- function(x,
          "provided an object of class ", vecTxtQ(x), ".");
   }
 
-  trees <- names(x$inductiveCodeTreeGraphs);
+  trees <- names(x$inductiveDiagrammeRs);
+
+  if (is.null(x$inductiveDiagrammeRs)) {
+    return(invisible(NULL));
+  }
+
+  trees <-
+    trees[!unlist(lapply(x$inductiveDiagrammeRs, is.null))];
 
   res <- c();
 
   for (i in trees) {
-    if (grep("both|text", output)) {
+    if (grepl("both|text", output)) {
       if (isTRUE(getOption('knitr.in.progress'))) {
         res1 <-
           c("\n\n",
@@ -64,9 +71,9 @@ show_inductive_code_tree <- function(x,
         print(x$inductiveCodeTrees[[i]]);
       }
     }
-    if (grep("both|plot", output)) {
+    if (grepl("both|plot", output)) {
       if (isTRUE(getOption('knitr.in.progress'))) {
-        dot_code <- DiagrammeR::generate_dot(x$inductiveCodeTreeGraphs[[i]]);
+        dot_code <- DiagrammeR::generate_dot(x$inductiveDiagrammeRs[[i]]);
         graphSvg <- DiagrammeRsvg::export_svg(DiagrammeR::grViz(dot_code));
         graphSvg <- sub(".*\n<svg ", "<svg ", graphSvg);
         graphSvg <- gsub("<svg width=\"[0-9]+pt\" height=\"[0-9]+pt\"\n viewBox=",
@@ -76,7 +83,7 @@ show_inductive_code_tree <- function(x,
         res2 <- "";
         print(
           DiagrammeR::render_graph(
-            x$inductiveCodeTreeGraphs[[i]]
+            x$inductiveDiagrammeRs[[i]]
           )
         );
       }

@@ -63,22 +63,24 @@ recode_move <- function(input,
                         silent = rock::opts$get('silent')) {
 
   return(
-    generic_recoding(
-      input = input,
-      codes = codes,
-      filter = filter,
-      func = changeSource_newAncestry,
-      output = output,
-      filenameRegex = filenameRegex,
-      outputPrefix = outputPrefix,
-      outputSuffix = outputSuffix,
-      decisionLabel = decisionLabel,
-      justification = justification,
-      justificationFile = justificationFile,
-      preventOverwriting = preventOverwriting,
-      encoding = encoding,
-      silent = silent,
-      newAncestry = newAncestry
+    invisible(
+      generic_recoding(
+        input = input,
+        codes = codes,
+        filter = filter,
+        func = changeSource_newAncestry,
+        output = output,
+        filenameRegex = filenameRegex,
+        outputPrefix = outputPrefix,
+        outputSuffix = outputSuffix,
+        decisionLabel = decisionLabel,
+        justification = justification,
+        justificationFile = justificationFile,
+        preventOverwriting = preventOverwriting,
+        encoding = encoding,
+        silent = silent,
+        newAncestry = newAncestry
+      )
     )
   );
 
@@ -96,7 +98,7 @@ changeSource_newAncestry <- function(input,
 
   if (length(codes) > 1) {
 
-    ### Sequentially remove codes
+    ### Sequentially move codes
     if (!silent) {
       cat0("Multiple codes to move have been specified: starting ",
            "sequential moving of ", length(codes), " codes.\n");
@@ -164,7 +166,7 @@ changeSource_newAncestry <- function(input,
         "*",      ### End of current ancestry
         inductiveCodingHierarchyMarker,
         ")?",     ### Allow absence of ancestry
-        "(",     ### Start capturing code and descendency
+        "(",     ### Start capturing code and descendancy
         cleanCode,
         inductiveCodingHierarchyMarker,
         "?",

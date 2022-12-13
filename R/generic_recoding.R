@@ -29,7 +29,7 @@
 #' @param encoding The encoding to use.
 #' @param silent Whether to be chatty or quiet.
 #' @param ... Other arguments to pass to `fnc`.
-#' @inheritParams loading_sources
+# #' @inheritParams loading_sources
 #' @rdname generic_recoding
 #'
 #' @return Invisibly, the recoded source(s) or source(s) object.
@@ -97,8 +97,10 @@ generic_recoding <- function(input,
               codes = codes,
               func = func,
               filter = filter,
-              filenameRegex = filenameRegex,
               output = currentOutputFilename,
+              filenameRegex = filenameRegex,
+              outputPrefix = outputPrefix,
+              outputSuffix = outputSuffix,
               decisionLabel = decisionLabel,
               justification = justification,
               justificationFile = justificationFile,
@@ -126,10 +128,16 @@ generic_recoding <- function(input,
       }
     }
 
-    msg("The path to a directory was passed; loading all sources.\n\n",
+    msg("The path to a directory was passed; loading all sources ",
+        "matching regular expression '", filenameRegex, "'.\n\n",
         silent=silent);
 
-    sourceList <- load_sources(input, silent=silent, encoding=encoding);
+    sourceList <- load_sources(
+      input,
+      filenameRegex=filenameRegex,
+      silent=silent,
+      encoding=encoding
+    );
 
     if (!silent) {
       cat0("\n");
@@ -142,6 +150,9 @@ generic_recoding <- function(input,
         func = func,
         filter = filter,
         output = output,
+        filenameRegex = filenameRegex,
+        outputPrefix = outputPrefix,
+        outputSuffix = outputSuffix,
         decisionLabel = decisionLabel,
         justification = justification,
         justificationFile = justificationFile,
@@ -168,6 +179,7 @@ generic_recoding <- function(input,
     ### Load input; note that `load_source` checks whether the source was
     ### already loaded and if so, just return it without doing anything
     input <- load_source(input, silent=silent, encoding=encoding);
+
   }
 
   ### Look for YAML delimiters so the YAML can be preserved
@@ -316,19 +328,39 @@ generic_recoding <- function(input,
         "write the recoded source to disk.",
         silent=silent);
     } else {
-      con <- file(description=output,
-                  open="w",
-                  encoding=encoding);
-      writeLines(text=input,
-                 con=con);
-      close(con);
+
+      # con <- file(description=output,
+      #             open="w",
+      #             encoding=encoding);
+      # writeLines(text=input,
+      #            con=con);
+      # close(con);
+        writingResult <-
+          writeTxtFile(
+            x = input,
+            output = output,
+            preventOverwriting = preventOverwriting,
+            encoding = encoding,
+            silent = silent
+          );
+
+        if (writingResult) {
+          msg("I just wrote a recoded source to file '",
+              output,
+              "'.",
+              silent = silent);
+        } else {
+          warning("Could not write output file to `",
+                  output, "`.");
+        }
+
     }
-    msg(
-      "I just wrote a recoded source to file '",
-      output,
-      "'.",
-      silent=silent
-    );
+    # msg(
+    #   "I just wrote a recoded source to file '",
+    #   output,
+    #   "'.",
+    #   silent=silent
+    # );
   }
 
   return(invisible(input));

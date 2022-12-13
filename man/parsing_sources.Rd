@@ -100,6 +100,12 @@ or not (\code{FALSE}).}
 \item{mergeInductiveTrees}{Merge multiple inductive code trees into one; this
 functionality is currently not yet implemented.}
 }
+\value{
+For \code{rock::parse_source()}, an object of class \code{rock_parsedSource};
+for \code{rock::parse_sources()}, an object of class \code{rock_parsedSources}. These
+objects contain the original source(s) as well as the final data frame with
+utterances and codes, as well as the code structures.
+}
 \description{
 These function parse one (\code{parse_source}) or more (\code{parse_sources}) sources and the
 contained identifiers, sections, and codes.
@@ -125,8 +131,12 @@ parsedExample$inductiveCodeTrees$codes;
 parsedExample <- rock::parse_source(exampleFile,
                                     silent=FALSE);
 
-### Parse all example sources in that directory
-parsedExamples <- rock::parse_sources(examplePath);
+### Parse as selection of example sources in that directory
+parsedExamples <-
+  rock::parse_sources(
+    examplePath,
+    regex = "(test|example)(.txt|.rock)"
+  );
 
 ### Show combined inductive code tree for the codes
 ### extracted with the regular expression specified with

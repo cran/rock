@@ -51,7 +51,7 @@ testthat::test_that("example 2 is read correctly", {
     ];
 
   testthat::expect_equal(nrow(testres_fragment),
-                         12);
+                         16);
 
 });
 
@@ -172,11 +172,11 @@ testthat::test_that("Coded fragments are collected properly", {
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
 
-  testres <- parse_sources(examplePath,
-                           extension="rock",
-                           silent=TRUE);
+  testres_parsed <- parse_sources(examplePath,
+                                  extension="rock",
+                                  silent=TRUE);
 
-  testres <- collect_coded_fragments(testres);
+  testres <- collect_coded_fragments(testres_parsed);
 
   testthat::expect_true(grepl('\n#### Topic2 *(path: codes>Topic2)*\n\n-----\n\n\n\n**Source: `longer-test.rock`**\n\n<div class=\"utterance\">It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. <span class=\"code codes\">[[Topic2]]</span>',
                               testres,

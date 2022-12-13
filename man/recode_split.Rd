@@ -57,11 +57,7 @@ source(s) to process (see \code{\link[=get_source_filter]{get_source_filter()}})
 
 \item{filenameRegex}{Only process files matching this regular expression.}
 
-\item{outputPrefix}{The prefix and suffix to add to the
-filenames when writing the processed files to disk, in case multiple
-sources are passed as input.}
-
-\item{outputSuffix}{The prefix and suffix to add to the
+\item{outputPrefix, outputSuffix}{The prefix and suffix to add to the
 filenames when writing the processed files to disk, in case multiple
 sources are passed as input.}
 
@@ -101,16 +97,15 @@ exampleFile <-
 ### Load example source
 loadedExample <- rock::load_source(exampleFile);
 
-### Split a code into two codes, showing progress (the backticks are
-### used to be able to specify a name that starts with an underscore)
+### Split a code into two codes, showing progress
 recoded_source <-
   rock::recode_split(
     loadedExample,
     codes="childCode1",
     splitToCodes = list(
-      `_and_` = " and ",
-      `_book_` = "book",
-      `_else_` = TRUE
+      and_REPLACED = " and ",
+      book_REPLACED = "book",
+      else_REPLACED = TRUE
     ),
     silent=FALSE
   );

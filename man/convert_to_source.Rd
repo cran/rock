@@ -178,9 +178,7 @@ the element's name the identifier.}
 
 \item{ciid_separator}{The separator for the class instance identifier - by
 default, either an equals sign (\code{=}) or a colon (\code{:}) are supported, but
-an equals sign is less ambiguous, as a colon is also used for different
-types of codes (e.g. codes for cognitive interviews start with \verb{ci:}, and
-unique construct identifiers (UCIDs) from \code{psyverse} start with \verb{dct:}.}
+an equals sign is less ambiguous.}
 
 \item{attributesFile}{Optionally, a file to write the attributes to if you
 don't want them to be written to the source file(s).}

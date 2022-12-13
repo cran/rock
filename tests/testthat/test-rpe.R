@@ -1,7 +1,7 @@
 test_that("an RPE coding file can be prepared", {
 
-  # devtools::load_all("B:/Data/R/rock");
-  # devtools::load_all("B:/Data/R/limonaid");
+  # devtools::load_all("C:/pC/git/R/rock");
+  # devtools::load_all("C:/pC/git/R/limonaid");
 
   lsFilesPath <- system.file("limesurvey",
                              package="rock");
@@ -11,7 +11,9 @@ test_that("an RPE coding file can be prepared", {
 
   lsDat <-
     limonaid::ls_import_data(sid = 795779,
-                             path = lsFilesPath);
+                             path = lsFilesPath,
+                             ### To no longer need {sticky}
+                             setLabels = FALSE);
 
   ### Add empty labels for variables without labels in case we have
   ### an old {limonaid} version

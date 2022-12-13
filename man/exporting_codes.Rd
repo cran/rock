@@ -67,17 +67,23 @@ or to convert all sources to tabbed sections in Markdown.
 examplePath <-
   system.file("extdata", package="rock");
 
-### Parse all example sources in that directory
-parsedExamples <- rock::parse_sources(examplePath);
+### Parse a selection of example sources in that directory
+parsedExamples <-
+  rock::parse_sources(
+    examplePath,
+    regex = "(test|example)(.txt|.rock)"
+  );
 
 ### Show results of exporting the codes
-export_codes_to_txt(parsedExamples);
+rock::export_codes_to_txt(parsedExamples);
 
 ### Only show select a narrow set of codes
-export_codes_to_txt(parsedExamples,
-                    leavesOnly=TRUE,
-                    includePath=FALSE,
-                    onlyChildrenOf = "parentCode2",
-                    regex="5|6");
+rock::export_codes_to_txt(
+  parsedExamples,
+  leavesOnly=TRUE,
+  includePath=FALSE,
+  onlyChildrenOf = "inductFather",
+  regex="3|5"
+);
 
 }

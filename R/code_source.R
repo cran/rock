@@ -26,6 +26,12 @@
 #' applied. Note that if `indices` is provided, only the first
 #' element of `codes` is used, and its name is ignored.
 #' @param output If specified, the coded source will be written here.
+#' @param decisionLabel A description of the (coding) decision that was taken.
+#' @param justification The justification for this action.
+#' @param justificationFile If specified, the justification is appended to
+#' this file. If not, it is saved to the `justifier::workspace()`. This can
+#' then be saved or displayed at the end of the R Markdown file or R script
+#' using `justifier::save_workspace()`.
 #' @param preventOverwriting Whether to prevent overwriting existing files.
 #' @param encoding The encoding to use.
 #' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
@@ -82,6 +88,9 @@ code_source <- function(input,
                         codes,
                         indices = NULL,
                         output = NULL,
+                        decisionLabel = NULL,
+                        justification = NULL,
+                        justificationFile = NULL,
                         preventOverwriting = rock::opts$get('preventOverwriting'),
                         rlWarn = rock::opts$get(rlWarn),
                         encoding = rock::opts$get('encoding'),

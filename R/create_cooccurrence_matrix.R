@@ -15,8 +15,12 @@
 #' examplePath <-
 #'   system.file("extdata", package="rock");
 #'
-#' ### Parse all example sources in that directory
-#' parsedExamples <- rock::parse_sources(examplePath);
+#' ### Parse a selection of example sources in that directory
+#' parsedExamples <-
+#'   rock::parse_sources(
+#'     examplePath,
+#'     regex = "(test|example)(.txt|.rock)"
+#'   );
 #'
 #' ### Create cooccurrence matrix
 #' rock::create_cooccurrence_matrix(parsedExamples);
@@ -39,7 +43,22 @@ create_cooccurrence_matrix <- function(x,
   res <- crossprod(simpleMatrix);
 
   if (plotHeatmap) {
-    print(stats::heatmap(res));
+
+    df <- as.data.frame(as.table(res));
+
+    plot <-
+      rock::heatmap_basic(
+        data = df,
+        x = "Var1",
+        y = "Var2",
+        fill = "Freq",
+        xLab = NULL,
+        yLab = NULL,
+        fillLab = NULL
+      );
+
+    print(plot);
+
   }
 
   return(res);

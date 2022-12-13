@@ -63,9 +63,7 @@
 #' the element's name the identifier.
 #' @param ciid_separator The separator for the class instance identifier - by
 #' default, either an equals sign (`=`) or a colon (`:`) are supported, but
-#' an equals sign is less ambiguous, as a colon is also used for different
-#' types of codes (e.g. codes for cognitive interviews start with `ci:`, and
-#' unique construct identifiers (UCIDs) from `psyverse` start with `dct:`.
+#' an equals sign is less ambiguous.
 #' @param attributesFile Optionally, a file to write the attributes to if you
 #' don't want them to be written to the source file(s).
 #' @param preventOverwriting Whether to prevent overwriting of output files.

@@ -51,6 +51,13 @@ with a newline character.}
 \item{filenameRegex}{A regular expression to match against located files; only
 files matching this regular expression are processed.}
 }
+\value{
+For \code{rock::parse_source_by_coderId()}, an object of
+class \code{rock_parsedSource}; for \code{rock::parse_sources_by_coderId()}, an
+object of class \code{rock_parsedSources}. These objects contain the original
+source(s) as well as the final data frame with utterances and codes, as
+well as the code structures.
+}
 \description{
 Parsing sources separately for each coder
 }

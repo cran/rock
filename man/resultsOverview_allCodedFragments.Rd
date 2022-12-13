@@ -28,7 +28,9 @@ or \code{rock::parse_sources}.}
 \item{root}{The root code}
 
 \item{context}{How many utterances before and after the target
-utterances to include in the fragments.}
+utterances to include in the fragments. If two values, the first is the
+number of utterances before, and the second, the number of utterances
+after the target utterances.}
 
 \item{heading}{Optionally, a title to include in the output. The title
 will be prefixed with \code{headingLevel} hashes (\verb{#}), and the codes with

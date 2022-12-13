@@ -78,23 +78,25 @@ recode_delete <- function(input,
                           silent = rock::opts$get('silent')) {
 
   return(
-    generic_recoding(
-      input = input,
-      codes = codes,
-      filter = filter,
-      func = changeSource_uncode,
-      output = output,
-      filenameRegex = filenameRegex,
-      outputPrefix = outputPrefix,
-      outputSuffix = outputSuffix,
-      decisionLabel = decisionLabel,
-      justification = justification,
-      justificationFile = justificationFile,
-      preventOverwriting = preventOverwriting,
-      encoding = encoding,
-      silent = silent,
-      childrenReplaceParents = childrenReplaceParents,
-      recursiveDeletion = recursiveDeletion
+    invisible(
+      generic_recoding(
+        input = input,
+        codes = codes,
+        filter = filter,
+        func = changeSource_uncode,
+        output = output,
+        filenameRegex = filenameRegex,
+        outputPrefix = outputPrefix,
+        outputSuffix = outputSuffix,
+        decisionLabel = decisionLabel,
+        justification = justification,
+        justificationFile = justificationFile,
+        preventOverwriting = preventOverwriting,
+        encoding = encoding,
+        silent = silent,
+        childrenReplaceParents = childrenReplaceParents,
+        recursiveDeletion = recursiveDeletion
+      )
     )
   );
 

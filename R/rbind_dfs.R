@@ -46,9 +46,9 @@ rbind_dfs <- function(x,
                                return(rep(NA, nrow(x)));
                              }));
       names(xComplement) <- inY_not_inX;
-      fullX <- cbind(x, xComplement)[, resNames];
+      fullX <- cbind(x, xComplement)[, resNames, drop=FALSE];
     } else {
-      fullX <- x[, resNames];
+      fullX <- x[, resNames, drop=FALSE];
     }
 
     if (length(inX_not_inY) > 0) {
@@ -58,9 +58,9 @@ rbind_dfs <- function(x,
                                return(rep(NA, nrow(y)));
                              }));
       names(yComplement) <- inX_not_inY;
-      fullY <- cbind(y, yComplement)[, resNames];
+      fullY <- cbind(y, yComplement)[, resNames, drop=FALSE];
     } else {
-      fullY <- y[, resNames];
+      fullY <- y[, resNames, drop=FALSE];
     }
 
     res <-

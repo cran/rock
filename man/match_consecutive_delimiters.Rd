@@ -2,7 +2,7 @@
 % Please edit documentation in R/match_consecutive_delimiters.R
 \name{match_consecutive_delimiters}
 \alias{match_consecutive_delimiters}
-\title{Match the corresponding indices of (YAML) delimiters in a sequantial list}
+\title{Match the corresponding indices of (YAML) delimiters in a sequential list}
 \usage{
 match_consecutive_delimiters(
   x,
@@ -24,6 +24,35 @@ indices is odd.}
 error is thrown, whether to ignore the first (\code{TRUE}) or the last (\code{FALSE})
 delimiter.}
 }
+\value{
+A list where each element is a two-element vector with the two
+consecutive delimiters
+}
 \description{
-Match the corresponding indices of (YAML) delimiters in a sequantial list
+This is just a convenience function that takes a vector of deliminaters
+and returns a list of delimiter pairs.
+}
+\examples{
+rock::match_consecutive_delimiters(
+  c(1, 3, 5, 10, 19, 25, 30, 70)
+);
+
+exampleText <- c(
+  "some text",
+  "delimiter",
+  "more text",
+  "delimiter",
+  "filler text",
+  "intentionally left blank",
+  "delimiter",
+  "final text",
+  "delimiter"
+);
+
+rock::match_consecutive_delimiters(
+  grep(
+    "delimiter",
+    exampleText
+  )
+);
 }

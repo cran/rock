@@ -38,6 +38,12 @@ This function combines successive calls to \code{\link[=parse_sources]{parse_sou
 examplePath <-
   system.file("extdata", package="rock");
 
-### Inspect sources
-rock::inspect_coded_sources(examplePath);
+### Inspect a selection of example sources - this takes too long
+### to test, so hence the 'donttest' directive.
+\donttest{
+rock::inspect_coded_sources(
+  examplePath,
+  parse_args = list(regex = "test(.txt|.rock)")
+);
+}
 }

@@ -10,6 +10,12 @@
 #' @param encoding The encoding of the file to read (in `file`).
 #' @param silent Whether to provide (`FALSE`) or suppress (`TRUE`) more detailed progress updates.
 #'
+#' @return For `rock::parse_source_by_coderId()`, an object of
+#' class `rock_parsedSource`; for `rock::parse_sources_by_coderId()`, an
+#' object of class `rock_parsedSources`. These objects contain the original
+#' source(s) as well as the final data frame with utterances and codes, as
+#' well as the code structures.
+#'
 #' @rdname parsing_sources_by_coderId
 #' @export
 parse_sources_by_coderId <- function(input,
@@ -25,7 +31,8 @@ parse_sources_by_coderId <- function(input,
   sectionRegexes <- rock::opts$get(sectionRegexes);
   uidRegex <- rock::opts$get(uidRegex);
   autoGenerateIds <- rock::opts$get(autoGenerateIds);
-  persistentIds <- rock::opts$get(persistentIds);
+  ### Obsolete now all class instance identifiers are persistent
+  # persistentIds <- rock::opts$get(persistentIds);
   noCodes <- rock::opts$get(noCodes);
   inductiveCodingHierarchyMarker <- rock::opts$get(inductiveCodingHierarchyMarker);
   attributeContainers <- rock::opts$get(attributeContainers);

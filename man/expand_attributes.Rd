@@ -66,7 +66,9 @@ parsedExample <- rock::parse_source(exampleFile);
 
 ### Create a categorical attribute column
 parsedExample$mergedSourceDf$age_group <-
-  rep(c("<18", "18-30", "31-60", ">60"), each=13);
+  c(rep(c("<18", "18-30", "31-60", ">60"),
+        each=13),
+    c("<18", ">60"));
 
 ### Expand to four logical columns
 parsedExample$mergedSourceDf <-

@@ -56,16 +56,15 @@
 #' ### Load example source
 #' loadedExample <- rock::load_source(exampleFile);
 #'
-#' ### Split a code into two codes, showing progress (the backticks are
-#' ### used to be able to specify a name that starts with an underscore)
+#' ### Split a code into two codes, showing progress
 #' recoded_source <-
 #'   rock::recode_split(
 #'     loadedExample,
 #'     codes="childCode1",
 #'     splitToCodes = list(
-#'       `_and_` = " and ",
-#'       `_book_` = "book",
-#'       `_else_` = TRUE
+#'       and_REPLACED = " and ",
+#'       book_REPLACED = "book",
+#'       else_REPLACED = TRUE
 #'     ),
 #'     silent=FALSE
 #'   );
@@ -86,22 +85,24 @@ recode_split <- function(input,
                          silent = rock::opts$get('silent')) {
 
   return(
-    generic_recoding(
-      input = input,
-      codes = codes,
-      splitToCodes = splitToCodes,
-      filter = filter,
-      func = changeSource_splitCode,
-      output = output,
-      filenameRegex = filenameRegex,
-      outputPrefix = outputPrefix,
-      outputSuffix = outputSuffix,
-      decisionLabel = decisionLabel,
-      justification = justification,
-      justificationFile = justificationFile,
-      preventOverwriting = preventOverwriting,
-      encoding = encoding,
-      silent = silent
+    invisible(
+      generic_recoding(
+        input = input,
+        codes = codes,
+        splitToCodes = splitToCodes,
+        filter = filter,
+        func = changeSource_splitCode,
+        output = output,
+        filenameRegex = filenameRegex,
+        outputPrefix = outputPrefix,
+        outputSuffix = outputSuffix,
+        decisionLabel = decisionLabel,
+        justification = justification,
+        justificationFile = justificationFile,
+        preventOverwriting = preventOverwriting,
+        encoding = encoding,
+        silent = silent
+      )
     )
   );
 
@@ -297,6 +298,6 @@ changeSource_splitCode <- function(input,
 
   }
 
-  return(input);
+  return(invisible(input));
 
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/doc_to_txt.R
 \name{doc_to_txt}
 \alias{doc_to_txt}
-\title{Convert a document (.docx, .pdf, etc) to a plain text file}
+\title{Convert a document (.docx, .pdf, .odt, .rtf, or .html) to a plain text file}
 \usage{
 doc_to_txt(
   input,
@@ -10,14 +10,7 @@ doc_to_txt(
   encoding = rock::opts$get("encoding"),
   newExt = NULL,
   preventOverwriting = rock::opts$get("preventOverwriting"),
-  silent = rock::opts$get("silent"),
-  skip = 0,
-  remove.empty = TRUE,
-  trim = TRUE,
-  combine = FALSE,
-  format = FALSE,
-  ocr = TRUE,
-  ...
+  silent = rock::opts$get("silent")
 )
 }
 \arguments{
@@ -36,45 +29,28 @@ with the same name as \code{input} but with \code{newExt} as extension.}
 \item{preventOverwriting}{Whether to prevent overwriting existing files.}
 
 \item{silent}{Whether to the silent or chatty.}
-
-\item{skip}{The number of lines to skip (see \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
-
-\item{remove.empty}{If \code{TRUE} empty elements in the vector are
-removed (see \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
-
-\item{trim}{If \code{TRUE} the leading/training white space is
-removed (see \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
-
-\item{combine}{If \code{TRUE} the vector is concatenated into a single string
-\code{textshape::combine()}. (see \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
-
-\item{format}{For .doc files only. Logical. If \code{TRUE} the output will keep
-doc formatting (e.g., bold, italics, underlined). This corresponds to
-the \code{-f} flag in antiword (see \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
-
-\item{ocr}{If \code{TRUE} .pdf documents with a non-text pull using
-\code{pdftools::pdf_text()} will be re-run using OCR via the \code{tesseract::ocr()}
-function. This will create temporary .png files and will require a much
-larger compute time (see \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
-
-\item{...}{Other arguments passed to \code{\link[textreadr:read_pdf]{textreadr::read_pdf()}},
-\code{\link[textreadr:read_html]{textreadr::read_html()}}, \code{\link[textreadr:read_docx]{textreadr::read_docx()}}, \code{\link[textreadr:read_doc]{textreadr::read_doc()}},
-or \code{\link[base:readLines]{base::readLines()}} (by \code{\link[textreadr:read_document]{textreadr::read_document()}}).}
 }
 \value{
 The converted source, as a character vector.
 }
 \description{
-This is a thin wrapper around \code{\link[textreadr:read_document]{textreadr::read_document()}} that also
-writed the result to \code{output}, doing its best to correctly write UTF-8
-(based on the approach recommended in \href{https://tomizonor.wordpress.com/2013/04/17/file-utf8-windows/}{this blog post}).
+This used to be a thin wrapper around \code{textreadr::read_document()} that also
+writes the result to \code{output}, doing its best to correctly write UTF-8
+(based on the approach recommended in \href{https://tomizonor.wordpress.com/2013/04/17/file-utf8-windows/}{this blog post}). However,
+\code{textreadr} was archived from CRAN. It now directly wraps the functions
+that \code{textreadr} wraps: \code{pdftools::pdf_text()}, \code{striprtf::read_rtf}, and
+it uses \code{xml2} to import \code{.docx} and \code{.odt} files, and \code{rvest} to import
+\code{.html} files, using the code from the \code{textreadr} package.
 }
 \examples{
-print(
-  rock::doc_to_txt(
-    input = system.file(
-      "extdata/doc-to-test.docx", package="rock"
+### This example requires the {xml2} package
+if (requireNamespace("xml2", quietly = TRUE)) {
+  print(
+    rock::doc_to_txt(
+      input = system.file(
+        "extdata/doc-to-test.docx", package="rock"
+      )
     )
-  )
-);
+  );
+}
 }

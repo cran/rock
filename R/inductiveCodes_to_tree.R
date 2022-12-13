@@ -111,9 +111,11 @@ inductiveCodes_to_tree <- function(inductiveCodes,
 
         if (is.null(currentNode[[currentBranch]])) {
           if (!silent) {
-            cat0("\n      - This parent node does not yet have a child with the name '",
-                      currentBranch,
-                      "', so adding it to that parent node.");
+            cat0("\n      - This parent node ('",
+                 currentNode$label, "') does not yet have a child with the name '",
+                 currentBranch,
+                 "', so adding it to that parent node (and moving into the new parent node: '",
+                 currentNode$label, "').");
           }
           currentNode <-
             currentNode$AddChild(currentBranch);
@@ -122,13 +124,15 @@ inductiveCodes_to_tree <- function(inductiveCodes,
           currentNode$code <-
             currentBranch;
         } else {
-          if (!silent) {
-            cat0("\n      - This parent node already has a child with the name '",
-                      currentBranch,
-                      "', so not adding anything at this point.");
-          }
           currentNode <-
             currentNode[[currentBranch]];
+          if (!silent) {
+            cat0("\n      - This parent node ('",
+                 currentNode$label, "') already has a child with the name '",
+                 currentBranch,
+                 "', so not adding anything at this point (moving into new parent node: '",
+                 currentNode$label, "').");
+          }
         }
       }
     } else {
@@ -195,10 +199,15 @@ inductiveCodes_to_tree <- function(inductiveCodes,
           ### If it's found, loop through the children and progressively add them
           for (currentBranch in currentSubtree[2:length(currentSubtree)]) {
             if (currentBranch %in% data.tree::Get(currentNode$children, 'name')) {
+
+              currentNode <-
+                currentNode[[currentBranch]];
+
               if (!silent) {
                 cat0("\n      - This parent node already has a child with the name '",
                           currentBranch,
-                          "', so not adding anything at this point.");
+                          "', so not adding anything at this point (moving into new parent node: '",
+                     currentNode$label, "').");
               }
 
             } else {
@@ -206,7 +215,8 @@ inductiveCodes_to_tree <- function(inductiveCodes,
               if (!silent) {
                 cat0("\n      - This parent node does not yet have a child with the name '",
                           currentBranch,
-                          "', so adding it to that parent node.");
+                          "', so adding it to that parent node (and moving into the new parent node: '",
+                     currentNode$label, "').");
               }
 
               currentNode <-

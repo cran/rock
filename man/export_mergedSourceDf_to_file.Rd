@@ -26,7 +26,7 @@ export_mergedSourceDf_to_csv2(
 export_mergedSourceDf_to_xlsx(
   x,
   file,
-  exportArgs = list(overwrite = !preventOverwriting),
+  exportArgs = NULL,
   preventOverwriting = rock::opts$get("preventOverwriting"),
   silent = rock::opts$get("silent")
 )

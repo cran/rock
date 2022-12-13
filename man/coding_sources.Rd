@@ -10,6 +10,9 @@ code_source(
   codes,
   indices = NULL,
   output = NULL,
+  decisionLabel = NULL,
+  justification = NULL,
+  justificationFile = NULL,
   preventOverwriting = rock::opts$get("preventOverwriting"),
   rlWarn = rock::opts$get(rlWarn),
   encoding = rock::opts$get("encoding"),
@@ -23,6 +26,9 @@ code_sources(
   indices = NULL,
   outputPrefix = "",
   outputSuffix = "_coded",
+  decisionLabel = NULL,
+  justification = NULL,
+  justificationFile = NULL,
   recursive = TRUE,
   filenameRegex = ".*",
   preventOverwriting = rock::opts$get("preventOverwriting"),
@@ -56,6 +62,15 @@ applied. Note that if \code{indices} is provided, only the first
 element of \code{codes} is used, and its name is ignored.}
 
 \item{output}{If specified, the coded source will be written here.}
+
+\item{decisionLabel}{A description of the (coding) decision that was taken.}
+
+\item{justification}{The justification for this action.}
+
+\item{justificationFile}{If specified, the justification is appended to
+this file. If not, it is saved to the \code{justifier::workspace()}. This can
+then be saved or displayed at the end of the R Markdown file or R script
+using \code{justifier::save_workspace()}.}
 
 \item{preventOverwriting}{Whether to prevent overwriting existing files.}
 

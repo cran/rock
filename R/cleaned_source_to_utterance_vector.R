@@ -10,6 +10,8 @@
 #' @param perl If the `utteranceMarker` is a regular expression, whether it is
 #' a perl regular expression.
 #'
+#' @return A character vector with separate utterances, split
+#' by `utteranceMarker`.
 #' @export
 #'
 #' @examples cleaned_source_to_utterance_vector("first\nsecond\nthird");

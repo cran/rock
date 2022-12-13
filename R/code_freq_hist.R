@@ -14,6 +14,19 @@
 #'
 #' @return a [ggplot2::ggplot()].
 #' @export
+#' @examples ### Get path to example source
+#' examplePath <-
+#'   system.file("extdata", package="rock");
+#'
+#' ### Get a path to one example file
+#' exampleFile <-
+#'   file.path(examplePath, "example-1.rock");
+#'
+#' ### Load example source
+#' loadedExample <- rock::parse_source(exampleFile);
+#'
+#' ### Show code frequencies
+#' code_freq_hist(loadedExample);
 code_freq_hist <- function(x,
                            codes = ".*",
                            sortByFreq = "decreasing",
@@ -131,7 +144,8 @@ code_freq_hist <- function(x,
       totalOccurrencesSorted <-
         totalOccurrences[order(totalOccurrences,
                                names(totalOccurrences),
-                               decreasing=c(TRUE, FALSE))];
+                               decreasing=c(TRUE, FALSE),
+                               method = "radix")];
       sortOrderInDf <- order(tmpDf$Code[totalOccurrencesSorted],
                              decreasing = TRUE);
     } else if ((!is.null(sortByFreq)) && (sortByFreq == "decreasing")) {
@@ -139,7 +153,8 @@ code_freq_hist <- function(x,
       totalOccurrencesSorted <-
         totalOccurrences[order(totalOccurrences,
                                names(totalOccurrences),
-                               decreasing=c(FALSE, TRUE))];
+                               decreasing=c(FALSE, TRUE),
+                               method = "radix")];
       sortOrderInDf <- order(tmpDf$Code[totalOccurrencesSorted],
                              decreasing = TRUE);
     } else {

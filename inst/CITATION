@@ -1,0 +1,18 @@
+## R package reference generated from DESCRIPTION metadata
+citation(auto = meta)
+
+## ROCK book
+bibentry(bibtype = "Book",
+         title = "The Reproducible Open Coding Kit",
+         author =
+           c(person(given = "Gjalt-Jorn Ygram",
+                    family = "Peters",
+                    role = c("aut", "cre"),
+                    email = "gjalt-jorn@behaviorchange.eu",
+                    comment = c(ORCID = "0000-0002-0336-9589")),
+             person(given = "Szilvia",
+                    family = "Zorgo",
+                    role = c("ctb"),
+                    comment = c(ORCID = "0000-0002-6916-2097"))),
+         year = format(Sys.time(), "%Y"),
+         publisher = "Self-published, CC-BY-NC-SA")

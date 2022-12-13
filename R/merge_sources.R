@@ -70,7 +70,8 @@ merge_sources <- function(input,
   sectionRegexes <- rock::opts$get(sectionRegexes);
   uidRegex <- rock::opts$get(uidRegex);
   autoGenerateIds <- rock::opts$get(autoGenerateIds);
-  persistentIds <- rock::opts$get(persistentIds);
+  ### Obsolete now all class instance identifiers are persistent
+  # persistentIds <- rock::opts$get(persistentIds);
   utteranceMarker <- rock::opts$get(utteranceMarker);
   noCodes <- rock::opts$get(noCodes);
   inductiveCodingHierarchyMarker <- rock::opts$get(inductiveCodingHierarchyMarker);

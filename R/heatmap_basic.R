@@ -12,17 +12,17 @@
 #' @return The heatmap, as a ggplot2 object.
 #' @export
 #'
-#' @examples rock::heatmap(mtcars, 'am', 'cyl', 'mpg');
-heatmap <- function(data,
-                    x,
-                    y,
-                    fill,
-                    xLab = x,
-                    yLab = y,
-                    fillLab = fill,
-                    plotTitle = "Heatmap",
-                    fillScale = ggplot2::scale_fill_viridis_c(),
-                    theme = ggplot2::theme_minimal()) {
+#' @examples rock::heatmap_basic(mtcars, 'am', 'cyl', 'mpg');
+heatmap_basic <- function(data,
+                          x,
+                          y,
+                          fill,
+                          xLab = x,
+                          yLab = y,
+                          fillLab = fill,
+                          plotTitle = "Heatmap",
+                          fillScale = ggplot2::scale_fill_viridis_c(),
+                          theme = ggplot2::theme_minimal()) {
 
   if (!is.data.frame(data)) {
     stop("As argument `data`, you have to pass a data.frame!");

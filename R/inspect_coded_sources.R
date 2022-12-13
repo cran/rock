@@ -17,8 +17,14 @@
 #' examplePath <-
 #'   system.file("extdata", package="rock");
 #'
-#' ### Inspect sources
-#' rock::inspect_coded_sources(examplePath);
+#' ### Inspect a selection of example sources - this takes too long
+#' ### to test, so hence the 'donttest' directive.
+#' \donttest{
+#' rock::inspect_coded_sources(
+#'   examplePath,
+#'   parse_args = list(regex = "test(.txt|.rock)")
+#' );
+#' }
 inspect_coded_sources <- function(path,
                                   parse_args = list(extension = "rock|dct",
                                                     regex=NULL,

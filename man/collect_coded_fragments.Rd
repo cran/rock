@@ -8,6 +8,7 @@ collect_coded_fragments(
   x,
   codes = ".*",
   context = 0,
+  includeDescendents = FALSE,
   attributes = NULL,
   heading = NULL,
   headingLevel = 3,
@@ -18,19 +19,30 @@ collect_coded_fragments(
   template = "default",
   rawResult = FALSE,
   includeCSS = TRUE,
+  codeHeadingFormatting = rock::opts$get("codeHeadingFormatting"),
   includeBootstrap = rock::opts$get("includeBootstrap"),
-  preventOverwriting = rock::opts$get(preventOverwriting),
-  silent = rock::opts$get(silent)
+  preventOverwriting = rock::opts$get("preventOverwriting"),
+  silent = rock::opts$get("silent")
 )
 }
 \arguments{
 \item{x}{The parsed source(s) as provided by \code{rock::parse_source}
 or \code{rock::parse_sources}.}
 
-\item{codes}{The regular expression that matches the codes to include}
+\item{codes}{The regular expression that matches the codes to include,
+or a character vector with codes or regular expressions for codes (which
+will be prepended with "\code{^}" and appended with "\code{$}", and then
+concatenated using "\code{|}" as a separator, to create a regular expression
+matching all codes).}
 
 \item{context}{How many utterances before and after the target
-utterances to include in the fragments.}
+utterances to include in the fragments. If two values, the first is the
+number of utterances before, and the second, the number of utterances
+after the target utterances.}
+
+\item{includeDescendents}{Whether to also collect the fragments coded with
+descendent codes (i.e. child codes, 'grand child codes', etc; in other
+words, whether to collect the fragments recursively).}
 
 \item{attributes}{To only select coded utterances matching one or more
 values for one or more attributes, pass a list where every element's
@@ -74,6 +86,11 @@ fragments, or one character value in markdown format.}
 
 \item{includeCSS}{Whether to include the ROCK CSS in the returned HTML.}
 
+\item{codeHeadingFormatting}{A character value of the
+form \verb{\%s *(path: \%s)*} (the default) or \verb{\\n\\n### \%s\\n\\n*path:* ``\%s``\\n\\n}.
+The first \verb{\%s} is replaced by the code identifier; the second \verb{\%s} by the
+corresponding path in the code tree.}
+
 \item{includeBootstrap}{Whether to include the default bootstrap CSS.}
 
 \item{preventOverwriting}{Whether to prevent overwriting of output files.}
@@ -85,7 +102,7 @@ Either a list of character vectors, or a single character value.
 }
 \description{
 Collect all coded utterances and optionally add some context
-(utterances before and utterances after) to create ann overview
+(utterances before and utterances after) to create an overview
 of all coded fragments per code.
 }
 \details{
