@@ -109,3 +109,25 @@ codes:
     label: The parent code
 ---
 
+---
+ROCK_aesthetics:
+  graph:
+    fontname: Arial
+    fontcolor: Firebrick
+  nodes:
+    -
+      type: default
+      shape: box
+    -
+      type: grandchildCode2
+      fillcolor: Seashell
+    -
+      type: grandchildCode3
+      fillcolor: Blue
+  edges:
+    -
+      type: default
+      color: red
+      arrowhead: diamond
+---
+

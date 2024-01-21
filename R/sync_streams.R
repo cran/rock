@@ -62,7 +62,13 @@ sync_streams <- function(x,
                          colNameGlue = rock::opts$get('colNameGlue'),
                          silent = rock::opts$get('silent')) {
 
-  df <- x$mergedSourceDf;
+  df <- x$qdt;
+
+  ### Added 2023-08-20: removing lines with "no_id" for source and stream
+  df <-
+    df[!(df[, sourceId]=="no_id"), ];
+  df <-
+    df[!(df[, streamId]=="no_id"), ];
 
   if (is.null(columns)) {
     columns <- names(df);
@@ -123,7 +129,36 @@ sync_streams <- function(x,
           lapply(
             currentDfBySource,
             function(currentDfBySourceAndStream) {
-              return(currentDfBySourceAndStream[, anchorsCol]);
+
+              currentSourceId <-
+                unique(currentDfBySourceAndStream[, sourceId]);
+              currentStreamId <-
+                unique(currentDfBySourceAndStream[, streamId]);
+
+              res <- currentDfBySourceAndStream[, anchorsCol];
+
+              if (is.na(res[1]) || nchar(res[1]) == 0) {
+                msg(
+                  "Auto-inserting a start anchor at position 1 in ",
+                  "anchor column '", anchorsCol, "' in source with identifier '",
+                  currentSourceId, "' and stream with identifier '",
+                  currentStreamId, "'.\n",
+                  silent = silent
+                );
+                res[1] <- "ROCK_AUTO_INSERTED_START_ANCHOR";
+              }
+              if (is.na(res[length(res)]) || nchar(res[length(res)]) == 0) {
+                msg(
+                  "Auto-inserting an end anchor at position ",
+                  length(res), " in ",
+                  "anchor column '", anchorsCol, "' in source with identifier '",
+                  currentSourceId, "' and stream with identifier '",
+                  currentStreamId, "'.\n",
+                  silent = silent
+                );
+                res[length(res)] <- "ROCK_AUTO_INSERTED_END_ANCHOR";
+              }
+              return(res);
             }
           )
         );
@@ -140,11 +175,12 @@ sync_streams <- function(x,
             function(allAnchors) {
               ### Get and check anchors
               anchorsOnly <-
-                sort(
-                  allAnchors[!is.na(allAnchors) & nchar(allAnchors) > 0]
-                );
+                #sort(
+                  allAnchors[!is.na(allAnchors) & nchar(allAnchors) > 0];
+                #);
               if (any(duplicated(anchorsOnly))) {
-                stop("Found a duplicate anchor!");
+                stop("Found a duplicate anchor! Specifically: ",
+                     vecTxtQ(anchorsOnly[which(duplicated(anchorsOnly))]), ".");
               }
               return(anchorsOnly);
             }
@@ -159,6 +195,7 @@ sync_streams <- function(x,
   ### Note: if we ever want to make it possible to have fewer anchors in the
   ### non-primary streams, this bit below has to be updated.
   ###---------------------------------------------------------------------------
+
   lapply(
     anchorOnlyVectors,
     function(anchorVectorForCurrentSource) {
@@ -226,11 +263,19 @@ sync_streams <- function(x,
 
         if (anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$endIndex - 1 ==
             anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$startIndex) {
+
+          ### Update 2023-08-20: adjusting to retention of lines in the source that
+          ### only have identifiers, to allow encoding of state transitions to same state
+
+          # anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$indicesToExtract <-
+          #   c();
+
           anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$indicesToExtract <-
-            c();
+            anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$startIndex;
+
         } else {
           anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$indicesToExtract <-
-            (anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$startIndex+1):
+            (anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$startIndex):
             (anchorIndices[[currentSourceName]][[currentStream]][[currentStartAnchor]]$endIndex-1);
         }
 
@@ -248,7 +293,7 @@ sync_streams <- function(x,
   ### Create vectors with new indices for each non-primary stream
   ###---------------------------------------------------------------------------
 
-  msg("Starting stream synchronization. Primary stream: ", primaryStream, ".\n",
+  msg("\nStarting stream synchronization. Primary stream: ", primaryStream, ".\n",
       silent = silent);
 
   streamMapping <-
@@ -258,7 +303,7 @@ sync_streams <- function(x,
         currentSource <- anchorIndices[[currentSourceName]];
         otherStreams <- setdiff(names(currentSource), primaryStream);
 
-        msg(" - Processing source with identifier: ", currentSourceName, ".\n",
+        msg("\n - Processing source with identifier: ", currentSourceName, ".\n",
             silent = silent);
 
         res <-
@@ -283,7 +328,10 @@ sync_streams <- function(x,
                     currentStream[[anchorPair]]$length,
                     " indices to sync to length ",
                     currentSource[[primaryStream]][[anchorPair]]$length,
-                    ".\n",
+                    " (indices ",
+                    currentSource[[primaryStream]][[anchorPair]]$startIndex, ":",
+                    currentSource[[primaryStream]][[anchorPair]]$endIndex,
+                    ").\n",
                     silent = silent);
 
                 if (currentStream[[anchorPair]]$length == 0) {
@@ -349,6 +397,11 @@ sync_streams <- function(x,
                       silent = silent
                     );
 
+                  msg("     Done compressing: the resulting data frame has length ",
+                      nrow(res[[anchorPair]]),
+                      ".\n",
+                      silent = silent);
+
                 } else if (currentSource[[primaryStream]][[anchorPair]]$length >
                            currentStream[[anchorPair]]$length) {
 
@@ -369,8 +422,14 @@ sync_streams <- function(x,
                       ],
                       newLength = currentSource[[primaryStream]][[anchorPair]]$length,
                       fill = fill,
-                      expandFun = expandFun
+                      expandFun = expandFun,
+                      silent = silent
                     );
+
+                  msg("     Done expanding: the resulting data frame has length ",
+                      nrow(res[[anchorPair]]),
+                      ".\n",
+                      silent = silent);
 
                 }
               }
@@ -390,16 +449,37 @@ sync_streams <- function(x,
   ### Merge these dataframes into one dataframe per stream per source
   ###---------------------------------------------------------------------------
 
+  msg("\n\n- Proceeding to merge the data frames for each anchor pair into a data frame for each stream.\n",
+      silent = silent);
+
   mergedStreamDfs <-
     lapply(
       streamMapping,
       function(currentSource) {
+
+        msg(" - Processing source with identifier: ", currentSourceName, ".\n",
+            silent = silent);
+
         res <-
           lapply(
             names(currentSource),
             function(currentStreamName) {
+
+              msg("  - Processing stream with identifier: ", currentStreamName, ".\n",
+                  silent = silent);
+
+              msg("    Merging ", length(currentSource[[currentStreamName]]),
+                  " 'anchor pair data frames' with ",
+                  vecTxt(unlist(lapply(currentSource[[currentStreamName]], nrow))),
+                  " rows.\n",
+                  silent = silent);
+
+              ### Note: changed on 2023-08-26 in response to the QUEST changes
+              ### (i.e. no longer removing lines with only a code identifier)
+
               res <-
-                glue_df_list(
+                rbind_df_list(
+                #glue_df_list(
                   currentSource[[currentStreamName]]
                 );
               if (prependStreamIdToColName) {
@@ -412,6 +492,18 @@ sync_streams <- function(x,
                                      colNameGlue,
                                      currentStreamName);
               }
+
+              msg("    Resulting data frame has ", nrow(res), " rows.\n",
+                  silent = silent);
+
+              res <- rbind(
+                res,
+                rep(0, ncol(res))
+              );
+
+              msg("    Added one more row with just 0s to represent the row with the last anchor.\n",
+                  silent = silent);
+
               return(res);
             }
           );
@@ -424,10 +516,26 @@ sync_streams <- function(x,
   ### Merge dataframes for each source
   ###---------------------------------------------------------------------------
 
+  msg("\n- Proceeding to bind together the stream data frames.\n",
+      silent = silent);
+
   syncedStreamDfs <-
     lapply(
       names(dfBySourceAndStream),
       function(sourceDfName) {
+
+        msg(" - Processing the source with identifier '",
+            sourceDfName, "'. Proceeding to bind together the data frames ",
+            "from each stream. The primary stream ('", primaryStream,
+            "') has 'anchor pair data frames' with ",
+            vecTxt(unlist(lapply(anchorIndices[[sourceDfName]][[primaryStream]], `[[`, 'length'))),
+            " rows, and in total, its data frame has ",
+            nrow(dfBySourceAndStream[[sourceDfName]][[primaryStream]]),
+            " rows; the other streams' data frames have ",
+            vecTxt(unlist(lapply(mergedStreamDfs[[sourceDfName]], nrow))),
+            " rows, respectively (this should be the same number).\n",
+            silent = silent);
+
         return(
           do.call(
             cbind,
@@ -453,7 +561,7 @@ sync_streams <- function(x,
   names(syncedStreamDfs) <- names(dfBySourceAndStream);
 
   ###---------------------------------------------------------------------------
-  ### Merge the synced stream data framesinto one new 'mergedSourceDf'
+  ### Merge the synced stream data frames into one new 'mergedSourceDf'
   ###---------------------------------------------------------------------------
 
   mergedSourceDf <-
@@ -477,7 +585,8 @@ sync_streams <- function(x,
       streamMapping = streamMapping,
       mergedStreamDfs = mergedStreamDfs,
       syncedStreamDfs = syncedStreamDfs,
-      mergedSourceDf = mergedSourceDf
+      mergedSourceDf = mergedSourceDf,
+      qdt = mergedSourceDf
     );
 
   return(

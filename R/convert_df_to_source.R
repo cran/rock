@@ -27,24 +27,34 @@
 #' specified to convert to utterances are all empty (or contain only
 #' whitespace).
 #' @param cols_to_utterances The names of the columns to convert to utterances,
-#' as a character vectors.
+#' as a character vector.
 #' @param cols_to_ciids The names of the columns to convert to class instance
 #' identifiers (e.g. case identifiers), as a named character vector, with
-#' the values being the column names in the data frame, and
+#' the values being the column names in the data frame, and the names being the
+#' class instance identifiers (e.g. `"sourceId"`, `"fieldId"`, `"caseId"`, etc).
 #' @param cols_to_codes The names of the columns to convert to codes (i.e.
-#' codes appended to every utterance), as a character vectors.
+#' codes appended to every utterance), as a character vector. When writing codes,
+#' it is not possible to also write multiple utterance columns
+#' (i.e. `utterance_classId` must be `NULL`).
 #' @param cols_to_attributes The names of the columns to convert to attributes,
 #' as a named character vector, where each name is the name of the class
 #' instance identifier to attach the attribute to. If only one column is passed
-#' in `cols_to_ciids`, names can be omitted and a regular unnames character
+#' in `cols_to_ciids`, names can be omitted and a regular unnamed character
 #' vector can be passed.
+#' @param utterance_classId When specifying multiple columns with utterances,
+#' and `utterance_classId` is not `NULL`, the column names are considered to be
+#' class instance identifiers, and specified above each utterance using the
+#' class identifier specified here (e.g. "`utterance_classId="originalColName"`"
+#' yields something like "`[[originalColName=colName_1]]`" above all utterances
+#' from the column named `colName_1`). When writing multiple utterance columns,
+#' it is not possible to also write codes (i.e. `cols_to_codes` must be `NULL`).
 #' @param oneFile Whether to store everything in one source, or create one
 #' source for each row of the data (if this is set to `FALSE`, make sure that
 #' `cols_to_sourceFilename` specifies one or more columns that together
 #' uniquely identify each row; also, in that case, `output` must be an existing
 #' directory on your PC).
 #' @param cols_to_sourceFilename The columns to use as unique part of the
-#' filesname of each source. These will be concatenated using
+#' filename of each source. These will be concatenated using
 #' `cols_in_sourceFilename_sep` as a separator. Note that the final string
 #' *must* be unique for each row in the dataset, otherwise the filenames for
 #' multiple rows will be the same and will be overwritten! By default, the
@@ -112,6 +122,7 @@ convert_df_to_source <- function(data,
                                  cols_to_ciids = NULL,
                                  cols_to_codes = NULL,
                                  cols_to_attributes = NULL,
+                                 utterance_classId = NULL,
                                  oneFile = TRUE,
                                  cols_to_sourceFilename = cols_to_ciids,
                                  cols_in_sourceFilename_sep = "=",
@@ -130,6 +141,11 @@ convert_df_to_source <- function(data,
 
   if (!is.data.frame(data)) {
     stop("As `data`, you must pass a data frame!");
+  }
+
+  if (!is.null(cols_to_codes) && !is.null(utterance_classId)) {
+    stop("Either one or both of `cols_to_codes` and `utterance_classId` ",
+         "must always be `NULL`!");
   }
 
   allCols <-
@@ -239,12 +255,30 @@ convert_df_to_source <- function(data,
 
       ### Add the utterances and codes
 
-      for (j in cols_to_utterances) {
-        sourceList[[i]] <-
-          c(sourceList[[i]],
-            "",
-            paste0(data[i, j], codeVector[i])
-          );
+      if (is.null(utterance_classId)) {
+        for (j in cols_to_utterances) {
+          sourceList[[i]] <-
+            c(sourceList[[i]],
+              "",
+              paste0(data[i, j], codeVector[i])
+            );
+        }
+      } else {
+        for (j in cols_to_utterances) {
+          sourceList[[i]] <-
+            c(sourceList[[i]],
+              "",
+              paste0(
+                codeDelimiters[1],
+                utterance_classId,
+                ciid_separator,
+                j,
+                codeDelimiters[2]
+              ),
+              "",
+              paste0(data[i, j])
+            );
+        }
       }
 
       ### Create an object with attributes
@@ -622,7 +656,7 @@ convert_csv2_to_source <- function(file,
 #' @rdname convert_to_source
 #' @export
 convert_xlsx_to_source <- function(file,
-                                   importArgs = list(overwrite = !preventOverwriting),
+                                   importArgs = list(),
                                    omit_empty_rows = TRUE,
                                    output = NULL,
                                    cols_to_utterances = NULL,

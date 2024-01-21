@@ -8,11 +8,20 @@ syncing_df_expand <- function(x,
 
   res <-
     lapply(
-      x,
-      syncing_vector_expand,
-      newLength = newLength,
-      fill = fill,
-      silent = silent
+      names(x),
+      function(currentCol) {
+        msg("    - Processing column: '", currentCol, "'.\n",
+            silent = silent);
+        return(
+          syncing_vector_expand(
+            x[, currentCol],
+            newLength = newLength,
+            fill = fill,
+            expandFun = expandFun,
+            silent = silent
+          )
+        )
+      }
     );
 
   res <- as.data.frame(res);

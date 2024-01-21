@@ -42,7 +42,8 @@
 #' with a newline character.
 #' @param utteranceSplits This is a vector of regular expressions that specify where to
 #' insert breaks between utterances in the source(s). Such breakes are specified using
-#' the `utteranceMarker` ROCK setting.
+#' `utteranceMarker`.
+#' @param length At how many characters to word wrap.
 #' @param preventOverwriting Whether to prevent overwriting of output files.
 #' @param removeNewlines Whether to remove all newline characters from the source before
 #' starting to clean them. **Be careful**: if the source contains YAML fragments, these
@@ -50,6 +51,9 @@
 #' @param removeTrailingNewlines Whether to remove trailing newline characters
 #' (i.e. at the end of a character value in a character vector);
 #' @param encoding The encoding of the source(s).
+#' @param utteranceMarker The character(s) between utterances (i.e. marking where
+#' one utterance ends and the next one starts). By default, this is a line
+#' break, and only change this if you know what you are doing.
 #' @param silent Whether to suppress the warning about not editing the cleaned source.
 #'
 #' @return A character vector for `clean_source`, or a list of character vectors,
@@ -95,21 +99,16 @@
 #' );
 #'
 #' @export
-clean_source <- function(input,
-                         output = NULL,
-                         replacementsPre = rock::opts$get("replacementsPre"),
-                         replacementsPost = rock::opts$get("replacementsPost"),
-                         extraReplacementsPre = NULL,
-                         extraReplacementsPost = NULL,
-                         removeNewlines = FALSE,
-                         removeTrailingNewlines = TRUE,
-                         rlWarn = rock::opts$get(rlWarn),
-                         utteranceSplits = rock::opts$get("utteranceSplits"),
-                         preventOverwriting = rock::opts$get("preventOverwriting"),
-                         encoding = rock::opts$get("encoding"),
-                         silent = rock::opts$get("silent")) {
-
-  utteranceMarker <- rock::opts$get("utteranceMarker");
+wordwrap_source <- function(input,
+                            output = NULL,
+                            length = 60,
+                            removeNewlines = FALSE,
+                            removeTrailingNewlines = TRUE,
+                            rlWarn = rock::opts$get(rlWarn),
+                            preventOverwriting = rock::opts$get('preventOverwriting'),
+                            encoding = rock::opts$get(encoding),
+                            silent = rock::opts$get(silent),
+                            utteranceMarker = rock::opts$get('utteranceMarker')) {
 
   if ((length(input) == 1) && file.exists(input)) {
     res <- readLines(input,
@@ -133,16 +132,6 @@ clean_source <- function(input,
     }
   }
 
-  if (!is.null(extraReplacementsPre)) {
-    replacementsPre <- c(replacementsPre,
-                         extraReplacementsPre);
-  }
-
-  if (!is.null(extraReplacementsPost)) {
-    replacementsPost <- c(replacementsPost,
-                          extraReplacementsPost);
-  }
-
   non_YAML_indices <-
     unlist(
       yum::find_yaml_fragment_indices(
@@ -159,32 +148,11 @@ clean_source <- function(input,
 
   res <- fullSource[non_YAML_indices];
 
-  if (!is.null(replacementsPre)) {
-    for (i in seq_along(replacementsPre)) {
-      res <- gsub(replacementsPre[[i]][1],
-                  replacementsPre[[i]][2],
-                  res,
-                  perl=TRUE);
-    }
-  }
-
-  if (!is.null(utteranceSplits)) {
-    for (i in seq_along(utteranceSplits)) {
-      res <- gsub(utteranceSplits[i],
-                  paste0("\\1", utteranceMarker),
-                  res,
-                  perl=TRUE);
-    }
-  }
-
-  if (!is.null(replacementsPost)) {
-    for (i in seq_along(replacementsPost)) {
-      res <- gsub(replacementsPost[[i]][1],
-                  replacementsPost[[i]][2],
-                  res,
-                  perl=TRUE);
-    }
-  }
+  res <- rock::split_long_lines(
+    x = res,
+    length = length,
+    splitString = utteranceMarker
+  );
 
   ### Insert lines that were potentially cleaned back in
   fullResult <- fullSource;
@@ -213,7 +181,7 @@ clean_source <- function(input,
       );
 
     if (writingResult) {
-      msg("I just wrote a cleaned source to file '",
+      msg("I just wrote a word wrapped source to file '",
           output,
           "'. Note that this file may be overwritten if this ",
           "script is ran again (unless `preventOverwriting` is set to `TRUE`). ",

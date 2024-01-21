@@ -18,6 +18,10 @@
 #' @param primarySourcesIgnoreRegex A regular expression that specifies which
 #' files to ignore as primary files.
 #' @param primarySourcesPath The path containing the primary sources.
+#' @param primarySourcesFileList,sourcesFileList Alternatively to using regular
+#' expressions, lists of full paths and filenames to the primary sources and all
+#' sources to process can be specified using these arguments. If this is used,
+#' neither can be `NULL`.
 #' @param recursive,primarySourcesRecursive Whether to read files from
 #' sub-directories (`TRUE`) or not.
 #' @param filenameRegex Only files matching this regular expression are read.
@@ -37,6 +41,8 @@ merge_sources <- function(input,
                           recursive = TRUE,
                           primarySourcesRecursive = recursive,
                           filenameRegex = ".*",
+                          primarySourcesFileList = NULL,
+                          sourcesFileList = NULL,
                           postponeDeductiveTreeBuilding = TRUE,
                           ignoreOddDelimiters=FALSE,
                           preventOverwriting = rock::opts$get(preventOverwriting),
@@ -82,21 +88,34 @@ merge_sources <- function(input,
   coderId <- rock::opts$get(coderId);
   idForOmittedCoderIds <- rock::opts$get(idForOmittedCoderIds);
 
-  if (!silent) {
-    cat0("\n\nStarting to extract all codings from all sources in directory '",
-         input, "' that match regular expression '", filenameRegex, "'.");
-  }
+  if (!is.null(primarySourcesFileList) || !is.null(sourcesFileList)) {
+    if (is.null(primarySourcesFileList) || is.null(sourcesFileList)) {
+      stop("If passing paths and filenames directly using ",
+           "`primarySourcesFileList` and `sourcesFileList`, both must ",
+           "be provided!");
+    }
 
-  ### Then pass arguments along to extract_codings_by_coderId and store result
-  parsedSources <-
-    do.call(extract_codings_by_coderId,
-            list(input=input,
-                 recursive = recursive,
-                 filenameRegex = filenameRegex,
-                 ignoreOddDelimiters=ignoreOddDelimiters,
-                 postponeDeductiveTreeBuilding = postponeDeductiveTreeBuilding,
-                 encoding=encoding,
-                 silent=ifelse(inheritSilence, silent, TRUE)));
+    stop("This functionality has not bee implemented yet!");
+
+  } else {
+
+    if (!silent) {
+      cat0("\n\nStarting to extract all codings from all sources in directory '",
+           input, "' that match regular expression '", filenameRegex, "'.");
+    }
+
+    ### Then pass arguments along to extract_codings_by_coderId and store result
+    parsedSources <-
+      do.call(extract_codings_by_coderId,
+              list(input=input,
+                   recursive = recursive,
+                   filenameRegex = filenameRegex,
+                   ignoreOddDelimiters=ignoreOddDelimiters,
+                   postponeDeductiveTreeBuilding = postponeDeductiveTreeBuilding,
+                   encoding=encoding,
+                   silent=ifelse(inheritSilence, silent, TRUE)));
+
+  }
 
   if (!silent) {
     cat0("\n\nRead ", length(parsedSources$parsedSources), " sources.");

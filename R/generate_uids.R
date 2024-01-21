@@ -17,7 +17,25 @@
 #' @return A vector of UIDs.
 #' @export
 #'
-#' @examples generate_uids(5);
+#' @examples rock::generate_uids(5);
+#'
+#' ### Show how UIDs are the converted date/time
+#' x <- rock::generate_uids(1);
+#' x;
+#' x_UID <- gsub(
+#'   "\\[\\[uid=(.*)\\]\\]",
+#'   "\\1",
+#'   x
+#' );
+#' x_as_nr <- rock::base30toNumeric(x_UID);
+#' x_as_timestamp <- x_as_nr / 100;
+#' x_as_date <-
+#'   as.POSIXct(
+#'     x_as_timestamp,
+#'     origin = "1970-01-01",
+#'     tz = "UTC"
+#'   );
+#' x_as_date
 generate_uids <- function(x,
                           origin=Sys.time()) {
 

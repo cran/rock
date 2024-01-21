@@ -155,9 +155,8 @@ changeSource_mergeCodes <- function(input,
         ")"
       );
 
-    if (!silent) {
-      cat0("Using regular expression '", regexToMergeCode, "'.\n");
-    }
+    msg("Using regular expression '", regexToMergeCode, "'.\n",
+        silent = silent);
 
     for (i in seq_along(utterancesWithMatches)) {
 
@@ -171,13 +170,13 @@ changeSource_mergeCodes <- function(input,
           filteredUtterances[utterancesWithMatches[i]]
         );
 
-      if (!silent) {
-        if (identical(currentUtterance, filteredUtterances[utterancesWithMatches[i]])) {
-          cat0("--UNCHANGED: ", currentUtterance, "\n");
-        } else {
-          cat0("--------PRE: ", currentUtterance, "\n",
-               "       POST: ", filteredUtterances[utterancesWithMatches[i]], "\n");
-        }
+      if (identical(currentUtterance, filteredUtterances[utterancesWithMatches[i]])) {
+        msg("--UNCHANGED: ", currentUtterance, "\n",
+            silent = silent);
+      } else {
+        msg("--------PRE: ", currentUtterance, "\n",
+            "       POST: ", filteredUtterances[utterancesWithMatches[i]], "\n",
+            silent = silent);
       }
 
     }

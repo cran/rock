@@ -25,7 +25,11 @@ syncing_vector_expand <- function(x,
 
   oldLength <- length(x);
   oldIndices <- seq_along(x);
-  newIndices <- floor(1 + (oldIndices - .5) / (oldLength / newLength));
+  newIndices <- floor((oldIndices - .01) / (oldLength / newLength));
+
+  ### Correct for cases where the lowest newIndex is 2 or higher by shifting
+  ### the new indices 'down'
+  newIndices <- (newIndices - (min(newIndices) - 1));
 
   if (oldLength >= newLength) {
     stop("Currently, with length ", oldLength,
@@ -37,7 +41,7 @@ syncing_vector_expand <- function(x,
 
   if (is.null(expandFun)) {
 
-    if (length(x) == 1) {
+    if (oldLength == 1) {
       if (fill) {
         return(rep(x, newLength));
       } else {
@@ -46,6 +50,13 @@ syncing_vector_expand <- function(x,
     }
 
     newVector <- c();
+
+    # cat0(
+    #   "\noldLength: ", oldLength,
+    #   "\nnewLength: ", newLength,
+    #   "\noldIndices: ", vecTxt(oldIndices),
+    #   "\nnewIndices: ", vecTxt(newIndices)
+    # );
 
     for (newIndex in 1:newLength) {
       if (newIndex %in% newIndices) {

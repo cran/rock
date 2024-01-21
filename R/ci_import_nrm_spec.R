@@ -51,6 +51,56 @@ ci_import_nrm_spec <- function(x,
       );
   }
 
+  ###---------------------------------------------------------------------------
+  ### Clean worksheets
+  ###---------------------------------------------------------------------------
+
+  nrm_spec[[nrm_wsNames$instrument]] <-
+    nrm_spec[[nrm_wsNames$instrument]][
+      !is.na(
+        nrm_spec[[nrm_wsNames$instrument]][[nrm_colNames$instrument['item_id']]]
+      ),
+    ];
+
+  nrm_spec[[nrm_wsNames$stimuli]] <-
+    nrm_spec[[nrm_wsNames$stimuli]][
+      !is.na(
+        nrm_spec[[nrm_wsNames$stimuli]][[nrm_colNames$stimuli['item_id']]]
+      ),
+    ];
+
+  nrm_spec[[nrm_wsNames$operationalizations]] <-
+    nrm_spec[[nrm_wsNames$operationalizations]][
+      !is.na(
+        nrm_spec[[nrm_wsNames$operationalizations]][[nrm_colNames$operationalizations['item_id']]]
+      ),
+    ];
+
+  nrm_spec[[nrm_wsNames$responsemodel_prototype]] <-
+    nrm_spec[[nrm_wsNames$responsemodel_prototype]][
+      !is.na(
+        nrm_spec[[nrm_wsNames$responsemodel_prototype]][[nrm_colNames$responsemodel_prototype['responsemodel_id']]]
+      ),
+    ];
+
+  nrm_spec[[nrm_wsNames$responsemodels]] <-
+    nrm_spec[[nrm_wsNames$responsemodels]][
+      !is.na(
+        nrm_spec[[nrm_wsNames$responsemodels]][[nrm_colNames$responsemodels['item_id']]]
+      ),
+    ];
+
+  nrm_spec[[nrm_wsNames$probes]] <-
+    nrm_spec[[nrm_wsNames$probes]][
+      !is.na(
+        nrm_spec[[nrm_wsNames$probes]][[nrm_colNames$probes['item_id']]]
+      ),
+    ];
+
+  ###---------------------------------------------------------------------------
+  ### Prep for returning
+  ###---------------------------------------------------------------------------
+
   class(nrm_spec) <- "rock_nrm_spec";
 
   res <- list(nrm_spec = nrm_spec);

@@ -31,7 +31,7 @@ codebook_to_pdf <- function(x,
                             file,
                             author = NULL,
                             headingLevel = 1,
-                            silent = preregr::opts$get('silent')) {
+                            silent = rock::opts$get('silent')) {
 
   if (!inherits(x, "rock_codebook_spec")) {
     stop("As `x`, you must pass a code book as created with the {rock} ",

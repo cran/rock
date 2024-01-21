@@ -39,8 +39,9 @@ ci_nrm_to_md <- function(nrm_spec,
 
   if (is.null(nrm_spec$metadata) ||
       (!("instrument_name" %in% names(nrm_spec$metadata)))) {
-    res <- heading("Narrative Response Model",
-                   " {.tabset .tabset-pills}",
+    res <- heading("Narrative Response Model (",
+                   language,
+                   ") {.tabset .tabset-pills}",
                    headingLevel = headingLevel,
                    cat = FALSE);
   } else {
@@ -62,18 +63,21 @@ ci_nrm_to_md <- function(nrm_spec,
       nrm_spec[[nrm_wsNames$responsemodel_prototype]];
 
     prototype_id <-
-      prototype[,
+      prototype[
+        ,
         nrm_colNames$responsemodel_prototype['responsemodel_id']
       ];
 
     prototype_sequence<-
-      prototype[,
-                nrm_colNames$responsemodel_prototype['responsemodel_sequence']
+      prototype[
+        ,
+        nrm_colNames$responsemodel_prototype['responsemodel_sequence']
       ];
 
     prototype_label <-
-      prototype[,
-                nrm_colNames$responsemodel_prototype['responsemodel_label']
+      prototype[
+        ,
+        nrm_colNames$responsemodel_prototype['responsemodel_label']
       ];
 
     prototype_comments <-
@@ -82,7 +86,7 @@ ci_nrm_to_md <- function(nrm_spec,
       ];
 
     names(prototype_label) <- prototype_id;
-    names(prototype_comments) <- prototype_comments;
+    names(prototype_comments) <- prototype_id;
 
     res <- c(res,
              heading(
@@ -90,6 +94,7 @@ ci_nrm_to_md <- function(nrm_spec,
                headingLevel = headingLevel + 1,
                cat = FALSE
              ));
+
     res <- c(
       res,
       paste0(
@@ -152,14 +157,30 @@ ci_nrm_to_md <- function(nrm_spec,
                cat = FALSE
              ));
 
+    tmpItem <-
+      ci_get_item(
+        nrm_spec = nrm_spec,
+        language = language,
+        item_id = currentItemId
+      );
+
+    tmpItem <-
+      paste(
+        "> ",
+        tmpItem,
+        collapse = "\n"
+      );
+
+    tmpItem <- gsub(
+      "\n",
+      "\n> ",
+      tmpItem
+    );
+
     res <- c(res,
-             paste0("\n**",
-                    ci_get_item(
-                      nrm_spec = nrm_spec,
-                      language = language,
-                      item_id = currentItemId
-                    ),
-                    "**\n"));
+             paste0("\n",
+                    tmpItem,
+                    "\n"));
 
     if (includeProbes) {
 
@@ -232,7 +253,15 @@ ci_nrm_to_md <- function(nrm_spec,
               "    - ",
               probes[[
                 nrm_colNames$probes['probe_label']
+              ]], " (`",
+              probes[[
+                nrm_colNames$probes['probe_id']
               ]],
+              "`; *",
+              probes[[
+                nrm_colNames$probes['probe_ambiguity']
+              ]],
+              "*)",
               collapse="\n"
             )
           );

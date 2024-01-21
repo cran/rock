@@ -27,7 +27,8 @@ sources, but can be something else, as well).}
 metadata. By default, takes all read metadata.}
 }
 \value{
-The result of a call to \code{\link[rENA:ena.plot.network]{rENA::ena.plot.network()}}.
+The result of a call to \code{rENA::ena.plot.network()}, if that is
+installed.
 }
 \description{
 Create an ENA network out of one or more parsed sources

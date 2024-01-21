@@ -1,6 +1,6 @@
 #' Expand categorical attribute variables to a series of dichotomous variables
 #'
-#' @param data The data frame, normally the `$mergedSources` data frame that
+#' @param data The data frame, normally the `$qdt` data frame that
 #' exists in the object returned by a call to [parse_sources()].
 #' @param attributes The name of the attribute(s) to expand.
 #' @param valueLabels It's possible to use different names for the created
@@ -36,15 +36,16 @@
 #' parsedExample <- rock::parse_source(exampleFile);
 #'
 #' ### Create a categorical attribute column
-#' parsedExample$mergedSourceDf$age_group <-
+#' parsedExample$qdt$age_group <-
 #'   c(rep(c("<18", "18-30", "31-60", ">60"),
-#'         each=13),
-#'     c("<18", ">60"));
+#'         each=19),
+#'     rep(c("<18", ">60"),
+#'         time = c(3, 4)));
 #'
 #' ### Expand to four logical columns
-#' parsedExample$mergedSourceDf <-
+#' parsedExample$qdt <-
 #'   rock::expand_attributes(
-#'     parsedExample$mergedSourceDf,
+#'     parsedExample$qdt,
 #'     "age_group",
 #'     valueLabels =
 #'       c(
@@ -56,11 +57,11 @@
 #'     valueFirst = FALSE
 #' );
 #'
-#' ### Show result
-#' table(parsedExample$mergedSourceDf$age_group,
-#'       parsedExample$mergedSourceDf$age_group__youngest);
-#' table(parsedExample$mergedSourceDf$age_group,
-#'       parsedExample$mergedSourceDf$age_group__oldish);
+#' ### Show some of the result
+#' table(parsedExample$qdt$age_group,
+#'       parsedExample$qdt$age_group__youngest);
+#' table(parsedExample$qdt$age_group,
+#'       parsedExample$qdt$age_group__oldish);
 expand_attributes <- function(data,
                               attributes,
                               valueLabels = NULL,

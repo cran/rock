@@ -17,19 +17,19 @@ The empty (pre)registration specification.
 }
 \description{
 To initialize a (pre)registration, pass the URL to a Google Sheet holding
-the (pre)registration form specification (in {preregr} format), see the
+the (pre)registration form specification (in \{preregr\} format), see the
 "\href{https://r-packages.gitlab.io/preregr/articles/creating_form_from_spreadsheet.html}{Creating a form from a spreadsheet}"
 vignette), the path to a file with a spreadsheet holding such a
-specification, or a loaded or imported {preregr} (pre)registration form.
+specification, or a loaded or imported \{preregr\} (pre)registration form.
 }
 \details{
-For an introduction to working with {preregr} (pre)registrations,
+For an introduction to working with \{preregr\} (pre)registrations,
 see the
 "\href{https://r-packages.gitlab.io/preregr/articles/specifying_prereg_content.html}{Specifying preregistration content}"
 vignette.
 }
 \examples{
 rock::prereg_initialize(
-  "preregQE_v0_93"
+  "preregQE_v0_95"
 );
 }

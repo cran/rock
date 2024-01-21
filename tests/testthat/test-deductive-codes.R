@@ -12,4 +12,9 @@ test_that("deductive codes are read and applied properly", {
       file = file.path(extdataPath, sourceName)
     );
 
+  testthat::expect_equal(
+    parsedSource$qdt$loss[10],
+    1
+  );
+
 });

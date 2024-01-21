@@ -33,7 +33,8 @@ testthat::test_that("reading anchors works", {
     testres,
     primaryStream = "streamA",
     columns = c("Code1", "Code2", "Code3"),
-    prependStreamIdToColName = TRUE
+    prependStreamIdToColName = TRUE,
+    silent = TRUE
   );
 
   # devtools::load_all(); syncedres <- rock::sync_streams(
@@ -45,7 +46,7 @@ testthat::test_that("reading anchors works", {
 
   testthat::expect_equal(
     syncedres$syncResults$mergedSourceDf[
-      6,
+      7,
       "streamB_Code3"
     ],
     "1 1");

@@ -20,11 +20,17 @@ testthat::test_that("reading a source with no ROCK stuff works properly", {
 
 testthat::test_that("an inductive code tree is read correctly", {
 
+  ### devtools::load_all();
+
   examplePath <- file.path(system.file(package="rock"), 'extdata');
 
-  testres <- parse_source(file.path(examplePath,
-                                    "longer-test.rock"),
-                          silent=TRUE);
+  testres <- parse_source(
+    file.path(
+      examplePath, "longer-test.rock"
+      #examplePath, "streams", "Source2_StreamA.rock"
+    ),
+    silent=TRUE
+  );
 
   testthat::expect_equal(testres$inductiveCodeTrees$codes$inductFather$inducChild3$label,
                          "inducChild3");
@@ -42,7 +48,7 @@ testthat::test_that("example 2 is read correctly", {
                                 silent=TRUE);
 
   testres_fragment <-
-    testres$mergedSourceDf[
+    testres$qdt[
       ,
       c('uids', 'utterances_clean',
         'sectionBreak_paragraph_break_counter', 'caseId',
@@ -108,9 +114,13 @@ testthat::test_that("Multiple sources are read correctly", {
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
 
+  rock::opts$set(warnForMultipleAesthetics = FALSE);
+
   testres <- parse_sources(examplePath,
                            extension="rock",
                            silent=TRUE);
+
+  rock::opts$set(warnForMultipleAesthetics = TRUE);
 
   testthat::expect_equal(testres$deductiveCodeTrees$children$parentCode1$someParent$childCode2$label,
                          "childCode2");
@@ -154,6 +164,8 @@ testthat::test_that("Sources are exported to html properly", {
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
 
+  rock::opts$set(warnForMultipleAesthetics = FALSE);
+
   testres <- parse_sources(examplePath,
                            extension="rock",
                            silent=TRUE);
@@ -171,6 +183,8 @@ testthat::test_that("Sources are exported to html properly", {
 testthat::test_that("Coded fragments are collected properly", {
 
   examplePath <- file.path(system.file(package="rock"), 'extdata');
+
+  rock::opts$set(warnForMultipleAesthetics = FALSE);
 
   testres_parsed <- parse_sources(examplePath,
                                   extension="rock",
@@ -193,6 +207,8 @@ testthat::test_that("the example in export_codes_to_txt.Rd runs properly", {
     examplePath <-
       system.file("extdata", package="rock");
 
+    rock::opts$set(warnForMultipleAesthetics = FALSE);
+
     ### Parse all example sources in that directory
     parsedExamples <- rock::parse_sources(examplePath);
 
@@ -207,7 +223,9 @@ testthat::test_that("the example in export_codes_to_txt.Rd runs properly", {
                         regex="5|6");
 
     TRUE;
+
   });
+
 });
 
 ###-----------------------------------------------------------------------------
@@ -260,7 +278,7 @@ testthat::test_that("merging two sources works properly", {
     filenameRegex = "merging-test-1",
     primarySourcesRegex = "merging-test-1-primary",
     preventOverwriting = FALSE,
-    silent = FALSE
+    silent = TRUE
   );
 
   testResult <-
@@ -268,7 +286,7 @@ testthat::test_that("merging two sources works properly", {
 
   testthat::expect_equal(
     testResult[9],
-    "---<<some_section_break>>--- ---<<([a-zA-Z][a-zA-Z0-9_]*)>>---"
+    "---<<some_section_break>>--- ---<<\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*>>---"
   );
 
   ### readLines(file.path(examplePath, "merging-test-1-primary.rock"))[15]

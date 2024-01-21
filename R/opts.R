@@ -163,14 +163,14 @@ opts$reset <- function(...) {
 
 opts$defaults <-
   list(### Used throughout
-       codeRegexes = c(codes = "\\[\\[([a-zA-Z][a-zA-Z0-9_>]*)\\]\\]",
-                       ci = "\\[\\[ci--([a-zA-Z0-9_>]+)\\]\\]"),
-       idRegexes = c(caseId = "\\[\\[cid[=:]([a-zA-Z0-9_]+)\\]\\]",
-                     coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
-                     stanzaId = "\\[\\[sid[=:]([a-zA-Z0-9_]+)\\]\\]",
-                     itemId = "\\[\\[uiid[=:]([a-zA-Z0-9_]+)\\]\\]",
-                     probeId = "\\[\\[prbid[=:]([a-zA-Z0-9_]+)\\]\\]",
-                     metaqId = "\\[\\[mqid[=:]([a-zA-Z0-9_]+)\\]\\]"#,
+       codeRegexes = c(codes = "\\[\\[\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*\\]\\]",
+                       ci = "\\[\\[ci\\s*--\\s*([a-zA-Z0-9_>]+)\\s*\\]\\]"),
+       idRegexes = c(caseId = "\\[\\[cid\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]"#,,
+                     # coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     # stanzaId = "\\[\\[sid[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     # itemId = "\\[\\[uiid[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     # probeId = "\\[\\[prbid[=:]([a-zA-Z0-9_]+)\\]\\]",
+                     # metaqId = "\\[\\[mqid[=:]([a-zA-Z0-9_]+)\\]\\]"#,
                      #sourceId = "\\[\\[sourceId[=:]([a-zA-Z0-9_]+)\\]\\]",
                      #streamId = "\\[\\[streamId[=:]([a-zA-Z0-9_]+)\\]\\]"
                      ),
@@ -182,15 +182,15 @@ opts$defaults <-
                               uuid = 'itemId',
                               prbid = 'probeId',
                               mqid = 'metaqid'),
-       classInstanceRegex = "\\[\\[(?!uid)(?!UID)([a-zA-Z][a-zA-Z0-9_]*)[=:]([a-zA-Z0-9_]+)\\]\\]",
+       classInstanceRegex = "\\[\\[(?!uid)(?!UID)\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]",
        codeValueRegexes = c(codeValues = "\\[\\[([a-zA-Z0-9_>]+)\\|\\|([a-zA-Z0-9.,_: ?!-]+)\\]\\]"),
-       networkCodeRegexes = c(network = "\\[\\[([a-zA-Z][a-zA-Z0-9_>]*)->([a-zA-Z][a-zA-Z0-9_>]*)\\|\\|([a-zA-Z][a-zA-Z0-9_>]*)(\\|\\|[a-zA-Z0-9_>]*)?\\]\\]"),
+       networkCodeRegexes = c(network = "\\[\\[\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*->\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*\\|\\|\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*(\\|\\|[a-zA-Z0-9_>]*)?\\s*\\]\\]"),
        networkCodeRegexOrder = c("from", "to", "type", "weight"),
-       sectionRegexes = c(sectionBreak = "---<<([a-zA-Z][a-zA-Z0-9_]*)>>---"),
-       uidRegex = "\\[\\[uid[=:]([a-zA-Z0-9_]+)\\]\\]",
+       sectionRegexes = c(sectionBreak = "---<<\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*>>---"),
+       uidRegex = "\\[\\[\\s*[uU][iI][dD]\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]",
        inductiveCodingHierarchyMarker = ">",
        codeTreeMarker = ">",
-       anchorRegex = "--\\+-\\{([a-zA-Z0-9_:.,+@!#$%^&*)(\\/\\\\>< |~=-]+)\\}-\\+--",
+       anchorRegex = "--\\+-\\{\\s*([a-zA-Z0-9_:.,+@!#$%^&*)(\\/\\\\>< |~=-]+)\\s*\\}-\\+--",
 
        ### Regular expression describing the characters that can be used for
        ### code identifiers (has to include `inductiveCodingHierarchyMarker`
@@ -201,6 +201,10 @@ opts$defaults <-
        autoGenerateIds = c('stanzaId'),
        # persistentIds = c('caseId', 'coderId', 'stanzaId', 'itemId', 'probeId', 'metaqId'),
        persistentIds = c('caseId'),
+
+       removeSectionBreakRows = FALSE,
+       removeIdentifierRows = FALSE,
+       removeEmptyRows = FALSE,
 
        sourceId = "sourceId",
        streamId = "streamId",
@@ -228,7 +232,7 @@ opts$defaults <-
        networkCollapseEdges = TRUE,
 
        ### Used to merge sources
-       coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
+       coderId = "\\[\\[\\s*coderId\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]",
        idForOmittedCoderIds = "noCoderId",
 
        ### Whether to warn if a class instance identifier for specified
@@ -252,7 +256,7 @@ opts$defaults <-
                                 '"')),
        replacementsPost = list(c("([^\\,]),([^\\s])",
                                  "\\1, \\2")),
-       utteranceSplits = c("([\\?\\!]+\\s?|\u2026\\s?|[[:alnum:]'\"]\\s*\\.(?!\\.\\.)\\s?)"),
+       utteranceSplits = c("([\\?\\!]+\\s?|\u2026\\s?|[[:alnum:]')\"]\\s*\\.(?!\\.\\.)\\s?)"),
        nestingMarker = "~",
 
        ### Saniziting for DiagrammeR
@@ -328,14 +332,14 @@ opts$defaults <-
 
        ### For CI template replacements
        ci_template_replacementDelimiters = c("<<", ">>"),
-       rpe_mq_idName = "mqid",
+       rpe_mq_idName = "prbid",
        nrm_probe_idName = "prbid",
 
        uiid_idName = "uiid",
        rpe_iterId = "iterId",
        rpe_batchId = "batchId",
        rpe_popId = "popId",
-       rpe_mq_idName = "mqid",
+       rpe_mq_idName = "prbid",
        coderId_name = "coderId",
        caseId_name = "caseId",
 
@@ -447,6 +451,8 @@ opts$defaults <-
            c("color", "#000000", "edge"),
            c("fillcolor", "#FFFFFF", "node")
          ),
+
+       warnForMultipleAesthetics = TRUE,
 
        ### Used throughout for debugging
        debug = FALSE,

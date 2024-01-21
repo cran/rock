@@ -34,18 +34,21 @@ mask_utterances <- function(input,
   ### Get regular expressions used for codes, identifiers, section breaks and UIDs
   codeRegexes <- rock::opts$get(codeRegexes);
   idRegexes <- rock::opts$get(idRegexes);
+  ciiRegexes <- rock::opts$defaults$classInstanceRegex;
   sectionRegexes <- rock::opts$get(sectionRegexes);
   uidRegex <- rock::opts$get(uidRegex);
 
   ### Get objects with starting points and lengths of matches
   codeMatches <- gregexpr(paste(codeRegexes, collapse="|"), res, perl=perl);
-  idMatches <- gregexpr(paste(idRegexes, collapse="|"), res, perl=perl);
+  #idMatches <- gregexpr(paste(idRegexes, collapse="|"), res, perl=perl);
+  ciiMatches <- gregexpr(paste(ciiRegexes, collapse="|"), res, perl=perl);
   sectionMatches <- gregexpr(paste(sectionRegexes, collapse="|"), res, perl=perl);
   uidMatches <- gregexpr(paste(uidRegex, collapse="|"), res, perl=perl);
 
   ### Store the matching substrings
   codeSubStrings <- regmatches(res, codeMatches);
-  idSubStrings <- regmatches(res, idMatches);
+  #idSubStrings <- regmatches(res, idMatches);
+  ciiSubStrings <- regmatches(res, ciiMatches);
   sectionSubStrings <- regmatches(res, sectionMatches);
   uidSubStrings <- regmatches(res, uidMatches);
 
@@ -54,7 +57,8 @@ mask_utterances <- function(input,
 
   ### Replace the matches substrings again
   regmatches(res, codeMatches) <- codeSubStrings;
-  regmatches(res, idMatches) <- idSubStrings;
+  #regmatches(res, idMatches) <- idSubStrings;
+  regmatches(res, ciiMatches) <- ciiSubStrings;
   regmatches(res, sectionMatches) <- sectionSubStrings;
   regmatches(res, uidMatches) <- uidSubStrings;
 

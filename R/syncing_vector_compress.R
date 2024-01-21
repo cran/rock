@@ -42,7 +42,7 @@ syncing_vector_compress <- function(x,
 
   oldLength <- length(x);
   oldIndices <- seq_along(x);
-  newIndices <- floor(1 + (oldIndices - .5) / (oldLength / newLength));
+  newIndices <- 1 + floor((oldIndices - .01) / (oldLength / newLength));
 
   if (oldLength <= newLength) {
     stop("Currently, with length ", oldLength, ", `x` is shorter than ",

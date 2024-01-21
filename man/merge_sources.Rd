@@ -15,6 +15,8 @@ merge_sources(
   recursive = TRUE,
   primarySourcesRecursive = recursive,
   filenameRegex = ".*",
+  primarySourcesFileList = NULL,
+  sourcesFileList = NULL,
   postponeDeductiveTreeBuilding = TRUE,
   ignoreOddDelimiters = FALSE,
   preventOverwriting = rock::opts$get(preventOverwriting),
@@ -48,6 +50,11 @@ files to ignore as primary files.}
 sub-directories (\code{TRUE}) or not.}
 
 \item{filenameRegex}{Only files matching this regular expression are read.}
+
+\item{primarySourcesFileList, sourcesFileList}{Alternatively to using regular
+expressions, lists of full paths and filenames to the primary sources and all
+sources to process can be specified using these arguments. If this is used,
+neither can be \code{NULL}.}
 
 \item{postponeDeductiveTreeBuilding}{Whether to imediately try to build the deductive
 tree(s) based on the information in this file (\code{FALSE}) or whether to skip that. Skipping

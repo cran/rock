@@ -20,7 +20,8 @@ CRAN](https://cranlogs.r-pkg.org/badges/grand-total/rock?color=brightgreen)](htt
 ## Reproducible Open Coding Kit
 
 The pkgdown website for this project is located at
-<https://r-packages.gitlab.io/rock>.
+<https://rock.opens.science>. If there is a development version of the
+documentation, that is available at <https://r-packages.gitlab.io/rock>.
 
 <!--------------------------------------------->
 <!-- Start of a custom bit for every package -->
@@ -35,16 +36,8 @@ implements Epistemic Network Analysis (ENA), means to process notes from
 Cognitive Interviews (CIs), and means to work with a decentralized
 construct taxonomy (DCT).
 
-There is a FLOSS interface for the ROCK, iROCK, available at
-<https://i.rock.science> (the accompanying git repository is available
-at <https://gitlab.com/sci-ops/irock>).
-
-We are in the process of writing a textbook to support working with the
-ROCK standard, this `rock` R package, and the iROCK interface. This book
-is available at <https://rockbook.org>.
-
-Materials for a brief workshop are available through
-<https://rock.science/workshop-2-hour>
+More ROCK-related resources are available through
+<https://rock.science>.
 
 <!--------------------------------------------->
 <!--  End of a custom bit for every package  -->

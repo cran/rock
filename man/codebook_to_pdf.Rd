@@ -9,7 +9,7 @@ codebook_to_pdf(
   file,
   author = NULL,
   headingLevel = 1,
-  silent = preregr::opts$get("silent")
+  silent = rock::opts$get("silent")
 )
 }
 \arguments{

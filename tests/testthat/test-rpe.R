@@ -89,4 +89,9 @@ test_that("an RPE coding file can be prepared", {
       file = file.path(tmpDir, "simple-rpe-example.rock")
     );
 
+  testthat::expect_equal(
+    parsedItemSource$qdt$comment[26],
+    "none"
+  );
+
 });

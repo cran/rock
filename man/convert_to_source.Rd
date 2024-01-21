@@ -16,6 +16,7 @@ convert_df_to_source(
   cols_to_ciids = NULL,
   cols_to_codes = NULL,
   cols_to_attributes = NULL,
+  utterance_classId = NULL,
   oneFile = TRUE,
   cols_to_sourceFilename = cols_to_ciids,
   cols_in_sourceFilename_sep = "=",
@@ -75,7 +76,7 @@ convert_csv2_to_source(
 
 convert_xlsx_to_source(
   file,
-  importArgs = list(overwrite = !preventOverwriting),
+  importArgs = list(),
   omit_empty_rows = TRUE,
   output = NULL,
   cols_to_utterances = NULL,
@@ -133,20 +134,31 @@ specified to convert to utterances are all empty (or contain only
 whitespace).}
 
 \item{cols_to_utterances}{The names of the columns to convert to utterances,
-as a character vectors.}
+as a character vector.}
 
 \item{cols_to_ciids}{The names of the columns to convert to class instance
 identifiers (e.g. case identifiers), as a named character vector, with
-the values being the column names in the data frame, and}
+the values being the column names in the data frame, and the names being the
+class instance identifiers (e.g. \code{"sourceId"}, \code{"fieldId"}, \code{"caseId"}, etc).}
 
 \item{cols_to_codes}{The names of the columns to convert to codes (i.e.
-codes appended to every utterance), as a character vectors.}
+codes appended to every utterance), as a character vector. When writing codes,
+it is not possible to also write multiple utterance columns
+(i.e. \code{utterance_classId} must be \code{NULL}).}
 
 \item{cols_to_attributes}{The names of the columns to convert to attributes,
 as a named character vector, where each name is the name of the class
 instance identifier to attach the attribute to. If only one column is passed
-in \code{cols_to_ciids}, names can be omitted and a regular unnames character
+in \code{cols_to_ciids}, names can be omitted and a regular unnamed character
 vector can be passed.}
+
+\item{utterance_classId}{When specifying multiple columns with utterances,
+and \code{utterance_classId} is not \code{NULL}, the column names are considered to be
+class instance identifiers, and specified above each utterance using the
+class identifier specified here (e.g. "\code{utterance_classId="originalColName"}"
+yields something like "\verb{[[originalColName=colName_1]]}" above all utterances
+from the column named \code{colName_1}). When writing multiple utterance columns,
+it is not possible to also write codes (i.e. \code{cols_to_codes} must be \code{NULL}).}
 
 \item{oneFile}{Whether to store everything in one source, or create one
 source for each row of the data (if this is set to \code{FALSE}, make sure that
@@ -155,7 +167,7 @@ uniquely identify each row; also, in that case, \code{output} must be an existin
 directory on your PC).}
 
 \item{cols_to_sourceFilename}{The columns to use as unique part of the
-filesname of each source. These will be concatenated using
+filename of each source. These will be concatenated using
 \code{cols_in_sourceFilename_sep} as a separator. Note that the final string
 \emph{must} be unique for each row in the dataset, otherwise the filenames for
 multiple rows will be the same and will be overwritten! By default, the

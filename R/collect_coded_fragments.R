@@ -226,7 +226,7 @@ collect_coded_fragments <- function(x,
   }
 
   ### For convenience
-  dat <- x$mergedSourceDf;
+  dat <- x$qdt;
 
   ### Remove codes that were not used on any utterances
   allCodes <- matchedCodes;
@@ -245,12 +245,16 @@ collect_coded_fragments <- function(x,
     x$convenience$codingPaths[usedCodes];
 
   ### Select utterances matching the specified attributes
+
   selectedUtterances <- rep(TRUE, nrow(dat));
   if (!is.null(attributes)) {
     if ((!is.list(attributes)) || (!all(names(attributes) %in% x$convenience$attributesVars))) {
       stop("As `attributes` argument, you must pass a list where every element's ",
-           "name is a valis attribute, and every element is a character value ",
-           "with a regular expression specifying all values you want to select in that attribute.");
+           "name is a valid attribute, and every element is a character value ",
+           "with a regular expression specifying all values you want to select in that attribute. ",
+           "The attribute(s) in the {rock} object you passed are ",
+           vecTxtQ(x$convenience$attributesVars), ", but you passed attribute(s) ",
+           vecTxtQ(names(attributes)), ".");
     } else {
       ### Cycle through specified attributes and values; set to FALSE where there's no match
       for (attributeName in names(attributes)) {

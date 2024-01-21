@@ -18,7 +18,7 @@ expand_attributes(
 )
 }
 \arguments{
-\item{data}{The data frame, normally the \verb{$mergedSources} data frame that
+\item{data}{The data frame, normally the \verb{$qdt} data frame that
 exists in the object returned by a call to \code{\link[=parse_sources]{parse_sources()}}.}
 
 \item{attributes}{The name of the attribute(s) to expand.}
@@ -65,15 +65,16 @@ exampleFile <-
 parsedExample <- rock::parse_source(exampleFile);
 
 ### Create a categorical attribute column
-parsedExample$mergedSourceDf$age_group <-
+parsedExample$qdt$age_group <-
   c(rep(c("<18", "18-30", "31-60", ">60"),
-        each=13),
-    c("<18", ">60"));
+        each=19),
+    rep(c("<18", ">60"),
+        time = c(3, 4)));
 
 ### Expand to four logical columns
-parsedExample$mergedSourceDf <-
+parsedExample$qdt <-
   rock::expand_attributes(
-    parsedExample$mergedSourceDf,
+    parsedExample$qdt,
     "age_group",
     valueLabels =
       c(
@@ -85,9 +86,9 @@ parsedExample$mergedSourceDf <-
     valueFirst = FALSE
 );
 
-### Show result
-table(parsedExample$mergedSourceDf$age_group,
-      parsedExample$mergedSourceDf$age_group__youngest);
-table(parsedExample$mergedSourceDf$age_group,
-      parsedExample$mergedSourceDf$age_group__oldish);
+### Show some of the result
+table(parsedExample$qdt$age_group,
+      parsedExample$qdt$age_group__youngest);
+table(parsedExample$qdt$age_group,
+      parsedExample$qdt$age_group__oldish);
 }

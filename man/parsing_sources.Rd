@@ -17,9 +17,12 @@ parse_source(
   checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
   postponeDeductiveTreeBuilding = FALSE,
   filesWithYAML = NULL,
-  rlWarn = rock::opts$get(rlWarn),
-  encoding = rock::opts$get(encoding),
-  silent = rock::opts$get(silent)
+  removeSectionBreakRows = rock::opts$get("removeSectionBreakRows"),
+  removeIdentifierRows = rock::opts$get("removeIdentifierRows"),
+  removeEmptyRows = rock::opts$get("removeEmptyRows"),
+  rlWarn = rock::opts$get("rlWarn"),
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent")
 )
 
 \method{print}{rock_parsedSource}(x, prefix = "### ", ...)
@@ -29,6 +32,9 @@ parse_sources(
   extension = "rock|dct",
   regex = NULL,
   recursive = TRUE,
+  removeSectionBreakRows = rock::opts$get("removeSectionBreakRows"),
+  removeIdentifierRows = rock::opts$get("removeIdentifierRows"),
+  removeEmptyRows = rock::opts$get("removeEmptyRows"),
   ignoreOddDelimiters = FALSE,
   checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
   mergeInductiveTrees = FALSE,
@@ -71,6 +77,10 @@ this is useful if the full tree information is distributed over multiple files (
 you should probably call \code{parse_sources} instead of \code{parse_source}).}
 
 \item{filesWithYAML}{Any additional files to process to look for YAML fragments.}
+
+\item{removeSectionBreakRows, removeIdentifierRows, removeEmptyRows}{Whether to
+remove from the QDT, respectively: rows containing section breaks; rows
+containing only (class instance) identifiers; and empty rows.}
 
 \item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
 with a newline character.}
@@ -142,5 +152,14 @@ parsedExamples <-
 ### extracted with the regular expression specified with
 ### the name 'codes':
 parsedExamples$inductiveCodeTrees$codes;
+
+### Show a souce coded with the Qualitative Network Approach
+qnaExample <-
+  rock::parse_source(
+    file.path(
+      examplePath,
+      "network-example-1.rock"
+    )
+  );
 
 }

@@ -40,6 +40,9 @@
 #' you should probably call `parse_sources` instead of `parse_source`).
 #' @param mergeInductiveTrees Merge multiple inductive code trees into one; this
 #' functionality is currently not yet implemented.
+#' @param removeSectionBreakRows,removeIdentifierRows,removeEmptyRows Whether to
+#' remove from the QDT, respectively: rows containing section breaks; rows
+#' containing only (class instance) identifiers; and empty rows.
 #' @param filesWithYAML Any additional files to process to look for YAML fragments.
 #' @param silent Whether to provide (`FALSE`) or suppress (`TRUE`) more detailed progress updates.
 #' @param x The object to print.
@@ -86,6 +89,15 @@
 #' ### the name 'codes':
 #' parsedExamples$inductiveCodeTrees$codes;
 #'
+#' ### Show a souce coded with the Qualitative Network Approach
+#' qnaExample <-
+#'   rock::parse_source(
+#'     file.path(
+#'       examplePath,
+#'       "network-example-1.rock"
+#'     )
+#'   );
+#'
 #' @export
 parse_source <- function(text,
                          file,
@@ -94,9 +106,12 @@ parse_source <- function(text,
                          checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
                          postponeDeductiveTreeBuilding = FALSE,
                          filesWithYAML = NULL,
-                         rlWarn = rock::opts$get(rlWarn),
-                         encoding=rock::opts$get(encoding),
-                         silent=rock::opts$get(silent)) {
+                         removeSectionBreakRows = rock::opts$get('removeSectionBreakRows'),
+                         removeIdentifierRows = rock::opts$get('removeIdentifierRows'),
+                         removeEmptyRows = rock::opts$get('removeEmptyRows'),
+                         rlWarn = rock::opts$get('rlWarn'),
+                         encoding=rock::opts$get('encoding'),
+                         silent=rock::opts$get('silent')) {
 
   codeRegexes <- rock::opts$get('codeRegexes');
   idRegexes <- rock::opts$get('idRegexes');
@@ -285,6 +300,12 @@ parse_source <- function(text,
       " aesthetic specifications.\n",
       silent = silent
     );
+
+    res$aestheticsTheme <-
+      aesthetics_to_graph_theme(res$aestheticConfig);
+
+    res$aestheticRegexes <-
+      aesthetics_to_regexIndexed_list(res$aestheticConfig);
 
     msg(
       "Done parsing YAML fragments.\n",
@@ -531,12 +552,18 @@ parse_source <- function(text,
       silent = silent
     );
 
+    unspecifiedClasses <- NULL;
+    specifiedClasses <- NULL;
+    allClasses <- NULL;
+
   } else {
 
     msg(
       "Found UIDS or class instance identifiers: commencing to process.\n",
       silent = silent
     );
+
+    ### Get matches with the class instance identifier pattern
 
     classIdMatches <-
       lapply(
@@ -548,6 +575,8 @@ parse_source <- function(text,
           ));
         }
       );
+
+    ### Convert the object for each line into a vector
 
     namedClassIdMatches <-
       lapply(
@@ -561,6 +590,8 @@ parse_source <- function(text,
           );
         }
       );
+
+    ### Get a list of all classes we have
 
     unspecifiedClasses <-
       unique(
@@ -580,43 +611,71 @@ parse_source <- function(text,
 
     unspecifiedClasses <- setdiff(unspecifiedClasses, c("uid"));
 
-    # if (grepl("example-2.rock", text)) {
-    #   browser();
-    # }
-
     if (length(unspecifiedClasses) == 0) {
 
       msg(
-        "No unspecified class instance identifiers found.\n",
+        "No generic class instance identifiers found.\n",
         silent = silent
       );
 
     } else {
 
       msg(
-        "Found class instance identifiers: commencing to process.\n",
+        "Found class instance identifiers (for classes with identifiers ",
+        vecTxtQ(unspecifiedClasses), "): commencing to process.\n",
         silent = silent
       );
 
-      unspecifiedClassInstanceIdentifierDf_raw <-
-        rbind_df_list(
-          lapply(
-            namedClassIdMatches,
-            function(x) {
-              if ((length(x) == 0) || (all(tolower(names(x)) == "uid"))) {
-                return(
-                  stats::setNames(
-                    data.frame(t(rep(NA, length(unspecifiedClasses)))),
-                    unspecifiedClasses
-                  )
-                );
-              } else {
-                cols <- names(x)[names(x) %in% unspecifiedClasses];
-                return(as.data.frame(as.list(x))[, cols, drop=FALSE]);
-              }
+      ### Convert all the vectors into single-row data frames
+
+      unspecifiedClassInstanceIdentifierList_raw <-
+        lapply(
+          namedClassIdMatches,
+          function(x) {
+            if ((length(x) == 0) || (all(tolower(names(x)) == "uid"))) {
+              return(
+                stats::setNames(
+                  data.frame(t(rep(NA, length(unspecifiedClasses)))),
+                  unspecifiedClasses
+                )
+              );
+            } else {
+              cols <- names(x)[names(x) %in% unspecifiedClasses];
+              return(as.data.frame(as.list(x))[, cols, drop=FALSE]);
             }
-          )
+          }
         );
+
+      ### rbind() all these single rows into one data frame
+
+      unspecifiedClassInstanceIdentifierDf_raw <-
+        tryCatch(
+          rbind_df_list(
+            unspecifiedClassInstanceIdentifierList_raw
+          )
+        , error = function(e) {
+
+          ### Sometimes there's a C stack error that apparently has to
+          ### do with recursion. If there are many lines, rbind_df_list()
+          ### calls itself lots of times, so then in this case we can
+          ### simplify matters since we know the columns we'll need
+          ### (those are stored in unspecifiedClasses).
+
+          res <-
+            lapply(
+              unspecifiedClassInstanceIdentifierList_raw,
+              function(x) {
+                colsToAdd <-
+                  unspecifiedClasses[!(unspecifiedClasses %in% names(x))];
+                x[, colsToAdd] <- NA;
+                return(x[, unspecifiedClasses]);
+              }
+            );
+
+          return(do.call(rbind, res));
+
+        }
+      );
 
       unspecifiedClassInstanceIdentifierDf <-
         lapply(
@@ -643,7 +702,7 @@ parse_source <- function(text,
       }
 
       sourceDf[, unspecifiedClasses] <-
-        unspecifiedClassInstanceIdentifierDf
+        unspecifiedClassInstanceIdentifierDf;
       sourceDf[, paste0(unspecifiedClasses, "_raw")] <-
         unspecifiedClassInstanceIdentifierDf_raw;
 
@@ -653,7 +712,19 @@ parse_source <- function(text,
         colsToCopy <- ciid_columnsToCopy[colsToCopy];
         sourceDf[, colsToCopy] <-
           sourceDf[, names(colsToCopy)];
+        specifiedClasses <-
+          res$convenience$specifiedClasses <- colsToCopy;
+      } else {
+        specifiedClasses <-
+          res$convenience$specifiedClasses <- NULL;
       }
+
+      res$convenience$unspecifiedClasses <-
+        unspecifiedClasses;
+
+      allClasses <-
+        res$convenience$allClasses <-
+        c(specifiedClasses, unspecifiedClasses);
 
       msg(
         "Processed ", length(unspecifiedClasses),
@@ -1243,6 +1314,11 @@ parse_source <- function(text,
               )
             );
 
+          res$networkCodes[[networkCodeRegex]]$dot <-
+            DiagrammeR::generate_dot(
+              res$networkCodes[[networkCodeRegex]]$graph
+            );
+
         }
 
       } else {
@@ -1446,17 +1522,30 @@ parse_source <- function(text,
     ### Changed on 2022-09-13 because rows holding only a code were
     ### also deleted (but shouldn't be)
 
-    cleanSourceDf <-
-      cleanSourceDf[!cleanSourceDf$sectionBreak_match, ];
-    cleanSourceDf <-
-      cleanSourceDf[nchar(cleanSourceDf$utterances_without_identifiers)>0, ];
-    cleanSourceDf <-
-      cleanSourceDf[nchar(cleanSourceDf$utterances_raw)>0, ];
-
     ### Original, before 2022-09-13
     # cleanSourceDf <-
     #   cleanSourceDf[nchar(cleanSourceDf$utterances_clean)>0, ];
     ###-------------------------------------------------------------------------
+
+    ### Commented out on 2023-04-12 as it assumes there is only one section
+    ### break and it's called "sectionBreak". Didn't need replacement because
+    ### the previous command actually already deletes all lines matching one
+    ### or more section breaks.
+    # cleanSourceDf <-
+    #   cleanSourceDf[!cleanSourceDf$sectionBreak_match, ];
+
+    if (removeSectionBreakRows) {
+      cleanSourceDf <-
+        cleanSourceDf[!cleanSourceDf$sectionBreak_match, ];
+    }
+    if (removeIdentifierRows) {
+      cleanSourceDf <-
+        cleanSourceDf[nchar(cleanSourceDf$utterances_without_identifiers)>0, ];
+    }
+    if (removeEmptyRows) {
+      cleanSourceDf <-
+        cleanSourceDf[nchar(cleanSourceDf$utterances_raw)>0, ];
+    }
 
   } else {
     cleanSourceDf <- data.frame();
@@ -1467,8 +1556,8 @@ parse_source <- function(text,
   }
 
   ### Store results in the object to return
+  res$qdt <- cleanSourceDf;
   res$sourceDf <- cleanSourceDf;
-  res$mergedSourceDf <- res$sourceDf;
   res$utteranceTree <- utteranceTree;
   res$rawSourceDf <- sourceDf;
   res$codings <- codeProcessing[[codeRegex]]$leafCodes;
@@ -1477,6 +1566,7 @@ parse_source <- function(text,
   res$inductiveCodeTrees <- purrr::map(res$codeProcessing, "inductiveCodeTrees");
   res$inductiveDiagrammeRs <- purrr::map(res$codeProcessing, "inductiveDiagrammeR");
   res$utteranceDiagram <- utteranceDiagram;
+  res$mergedSourceDf <- res$qdt;
 
   ### Merge attributes with source dataframe
   if (length(res$attributes) > 0) {
@@ -1486,6 +1576,20 @@ parse_source <- function(text,
     #   merge(res$sourceDf,
     #         res$attributesDf);
 
+    qdtNew <-
+      merge_utterances_and_attributes(
+        qdt = res$qdt,
+        classes = allClasses,
+        attributesDf = res$attributesDf,
+        checkClassInstanceIds = checkClassInstanceIds,
+        silent = silent
+      );
+
+    res$convenience$attributesVars <-
+      unique(c(res$convenience$attributesVars,
+               setdiff(names(qdtNew), names(res$qdt))));
+
+    res$qdt <- qdtNew;
 
     ###---------------------------------------------------------------------------
     ###
@@ -1493,73 +1597,73 @@ parse_source <- function(text,
     ###
     ###---------------------------------------------------------------------------
 
-    ### Add attributes to the utterances
-    for (i in seq_along(idRegexes)) {
-      ### Check whether attributes was provided for this identifier
-      if (names(idRegexes)[i] %in% names(res$attributesDf)) {
-        if (!silent) {
-          print(glue::glue("\n\nFor identifier class {names(idRegexes)[i]}, attributes were provided: proceeding to join to sources dataframe.\n"));
-        }
-        ### Convert to character to avoid errors and delete
-        ### empty columns from merged source dataframe
-        usedIdRegexes <-
-          names(idRegexes)[names(idRegexes) %in% names(res$attributesDf)];
-        for (j in usedIdRegexes) {
-          res$attributesDf[, j] <-
-            as.character(res$attributesDf[, j]);
-        }
-        for (j in intersect(names(res$mergedSourceDf),
-                            names(res$attributesDf))) {
-          if (all(is.na(res$mergedSourceDf[, j]))) {
-            res$mergedSourceDf[, j] <- NULL;
-          }
-        }
-
-        if (!(names(idRegexes)[i] %in% names(res$mergedSourceDf))) {
-          msg <-
-            paste0("When processing identifier regex '", idRegexes[i],
-                   "', I failed to find its name ('", names(idRegexes[i]),
-                   "') in the column names of the merged ",
-                   "sources data frame (",
-                   vecTxtQ(names(res$mergedSourceDf)), "), so not merging ",
-                   "the attributes data frame with the source data frame for ",
-                   "this class instance identifier.")
-          if (checkClassInstanceIds) {
-            warning(msg);
-          }
-          if (!silent) {
-            cat(msg);
-          }
-        } else if (!(names(idRegexes)[i] %in% setdiff(names(res$attributesDf), 'type'))) {
-          msg <-
-            paste0("When processing identifier regex '", idRegexes[i],
-                   "', I failed to find its name (", names(idRegexes)[i],
-                   ") in the column names of the merged ",
-                   "attributes data frame, so not merging ",
-                   "the attributes data frame with the source data frame for ",
-                   "this class instance identifier..");
-          if (checkClassInstanceIds) {
-            warning(msg);
-          }
-          if (!silent) {
-            cat(msg);
-          }
-        } else {
-          # attributesDf[, names(idRegexes)[i]] <-
-          #   as.character(attributesDf[, names(idRegexes)[i]]);
-          ### Join attributes based on identifier
-          res$mergedSourceDf <-
-            dplyr::left_join(res$mergedSourceDf,
-                             res$attributesDf[, setdiff(names(res$attributesDf), 'type')],
-                             by=names(idRegexes)[i]);
-        }
-
-      } else {
-        if (!silent) {
-          print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, no attributes was provided.\n"));
-        }
-      }
-    }
+    # ### Add attributes to the utterances
+    # for (i in seq_along(idRegexes)) {
+    #   ### Check whether attributes was provided for this identifier
+    #   if (names(idRegexes)[i] %in% names(res$attributesDf)) {
+    #     if (!silent) {
+    #       print(glue::glue("\n\nFor identifier class {names(idRegexes)[i]}, attributes were provided: proceeding to join to sources dataframe.\n"));
+    #     }
+    #     ### Convert to character to avoid errors and delete
+    #     ### empty columns from merged source dataframe
+    #     usedIdRegexes <-
+    #       names(idRegexes)[names(idRegexes) %in% names(res$attributesDf)];
+    #     for (j in usedIdRegexes) {
+    #       res$attributesDf[, j] <-
+    #         as.character(res$attributesDf[, j]);
+    #     }
+    #     for (j in intersect(names(res$mergedSourceDf),
+    #                         names(res$attributesDf))) {
+    #       if (all(is.na(res$mergedSourceDf[, j]))) {
+    #         res$mergedSourceDf[, j] <- NULL;
+    #       }
+    #     }
+    #
+    #     if (!(names(idRegexes)[i] %in% names(res$mergedSourceDf))) {
+    #       msg <-
+    #         paste0("When processing identifier regex '", idRegexes[i],
+    #                "', I failed to find its name ('", names(idRegexes[i]),
+    #                "') in the column names of the merged ",
+    #                "sources data frame (",
+    #                vecTxtQ(names(res$mergedSourceDf)), "), so not merging ",
+    #                "the attributes data frame with the source data frame for ",
+    #                "this class instance identifier.")
+    #       if (checkClassInstanceIds) {
+    #         warning(msg);
+    #       }
+    #       if (!silent) {
+    #         cat(msg);
+    #       }
+    #     } else if (!(names(idRegexes)[i] %in% setdiff(names(res$attributesDf), 'type'))) {
+    #       msg <-
+    #         paste0("When processing identifier regex '", idRegexes[i],
+    #                "', I failed to find its name (", names(idRegexes)[i],
+    #                ") in the column names of the merged ",
+    #                "attributes data frame, so not merging ",
+    #                "the attributes data frame with the source data frame for ",
+    #                "this class instance identifier..");
+    #       if (checkClassInstanceIds) {
+    #         warning(msg);
+    #       }
+    #       if (!silent) {
+    #         cat(msg);
+    #       }
+    #     } else {
+    #       # attributesDf[, names(idRegexes)[i]] <-
+    #       #   as.character(attributesDf[, names(idRegexes)[i]]);
+    #       ### Join attributes based on identifier
+    #       res$mergedSourceDf <-
+    #         dplyr::left_join(res$mergedSourceDf,
+    #                          res$attributesDf[, setdiff(names(res$attributesDf), 'type')],
+    #                          by=names(idRegexes)[i]);
+    #     }
+    #
+    #   } else {
+    #     if (!silent) {
+    #       print(glue::glue("\nFor identifier class {names(idRegexes)[i]}, no attributes was provided.\n"));
+    #     }
+    #   }
+    # }
 
     if (!silent) {
       cat0("Finished merging attributes with source dataframe. Starting to collect deductive code trees.\n");
@@ -1587,6 +1691,13 @@ parse_source <- function(text,
 
   ### Add codings and leaves only to the convenience list
   res$convenience$codings <- sort(unique(unlist(res$rawCodings)));
+
+  # if (exists('unspecifiedClasses') && !is.null(unspecifiedClasses)) {
+  #   res$convenience$unspecifiedClasses <- unspecifiedClasses;
+  # } else {
+  #   res$convenience$unspecifiedClasses <- NULL;
+  # }
+
   res$codings <- res$convenience$codings;
   res$convenience$codingLeaves <-
     sort(unique(unlist(get_leaf_codes(res$convenience$codings,
