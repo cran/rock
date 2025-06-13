@@ -40,11 +40,15 @@
 #' @export
 #' @rdname rmd_templates
 #'
-#' @examples preregr::form_create(
-#'   title = "Example form",
-#'   version = "0.1.0"
-#' ) |>
-#'   preregr::form_to_rmd_template();
+#' @examples newForm <-
+#'   preregr::form_create(
+#'     title = "Example form",
+#'     version = "0.1.0"
+#'   );
+#'
+#' preregr::form_to_rmd_template(
+#'   newForm
+#' );
 form_to_rmd_template <- function(x,
                                  file = NULL,
                                  title = NULL,

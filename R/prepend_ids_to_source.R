@@ -5,12 +5,18 @@
 #' to clean the sources using [clean_sources()] first.
 #'
 #' @param input The filename or contents of the source
-#' for `prepend_ids_to_source` and the directory containing the
-#' sources for `prepend_ids_to_sources`.
+#' for `prepend_ids_to_source`; and the directory containing the
+#' sources, or a list of character vectors, for `prepend_ids_to_sources`.
 #' @param output The filename where to write the resulting file for
 #' `prepend_ids_to_source` and the directory where to write the
 #' resulting files for `prepend_ids_to_sources`
 #' @param origin The time to use for the first identifier.
+#' @param follow A vector of one or more UIDs (or a list; lists are
+#' recursively `unlist()`ed); the highest UID will be taken, converted
+#' to a timestamp, and used as `origin` (well, 0.01 second later), so that the
+#' new SQUIDs will follow that sequence (see [squids::squids()]).
+#' @param followBy When following a vector of UIDs, this can be used to
+#' specify the distance between the two vectors (see [squids::squids()]).
 #' @param preventOverwriting Whether to overwrite existing files (`FALSE`)
 #' or prevent that from happening (`TRUE`).
 #' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
@@ -51,6 +57,8 @@
 prepend_ids_to_source <- function(input,
                                   output = NULL,
                                   origin=Sys.time(),
+                                  follow = NULL,
+                                  followBy = NULL,
                                   rlWarn = rock::opts$get(rlWarn),
                                   preventOverwriting=rock::opts$get(preventOverwriting),
                                   encoding=rock::opts$get(encoding),
@@ -59,7 +67,7 @@ prepend_ids_to_source <- function(input,
   delimiterRegEx <- rock::opts$get(delimiterRegEx);
   ignoreOddDelimiters <- rock::opts$get(ignoreOddDelimiters);
 
-  if ((length(input) == 1) && file.exists(input)) {
+  if ((length(input) == 1) && file.exists(input) && (!dir.exists(input))) {
     textToProcess <- readLines(
       input,
       encoding=encoding,
@@ -86,7 +94,9 @@ prepend_ids_to_source <- function(input,
 
   uids <-
     generate_uids(length(non_YAML_indices),
-                  origin=origin);
+                  origin=origin,
+                  follow=follow,
+                  followBy = followBy);
 
   res <- textToProcess;
 

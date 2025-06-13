@@ -51,14 +51,23 @@ Currently reads spreadsheets from Google Sheets or from \code{xlsx}, \code{csv},
 or \code{sav} files.
 }
 \examples{
-### This requires an internet connection!
-\dontrun{
-read_spreadsheet(
-  paste0(
-    "https://docs.google.com/",
-    "spreadsheets/d/",
-    "1bHDzpCu4CwEa5_3_q_9vH2691XPhCS3e4Aj_HLhw_U8"
-  )
-);
+### Note that this will require an active
+### internet connection! This if statement
+### checks for that.
+\donttest{
+if (tryCatch({readLines("https://google.com",n=1); TRUE}, error=function(x) FALSE)) {
+
+  ### Read the example ROCK codebook
+  ROCK_codebook <-
+    read_spreadsheet(
+      paste0(
+        "https://docs.google.com/spreadsheets/d/",
+        "1gVx5uhYzqcTH6Jq7AYmsLvHSBaYaT-23c7ZhZF4jmps"
+      )
+    );
+
+  ### Show a bit
+  ROCK_codebook$metadata[1:3, ];
+}
 }
 }

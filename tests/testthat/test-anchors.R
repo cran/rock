@@ -42,12 +42,12 @@ testthat::test_that("reading anchors works", {
   #   columns = c("Code1", "Code2", "Code3"),
   #   prependStreamIdToColName = TRUE, compressFunPart = betterSum);
 
-  syncedres$syncResults$mergedSourceDf[, c("streamB_Code3", "streamC_Code1")];
+  syncedres$syncResults$qdt[, c("streamB_Code3_streamB", "streamC_Code1_streamC")];
 
   testthat::expect_equal(
     syncedres$syncResults$mergedSourceDf[
       7,
-      "streamB_Code3"
+      "streamB_Code3_streamB"
     ],
     "1 1");
 

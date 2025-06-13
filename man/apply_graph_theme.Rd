@@ -20,6 +20,7 @@ The \link[DiagrammeR:DiagrammeR]{DiagrammeR::DiagrammeR} graph.
 Apply multiple DiagrammeR global graph attributes
 }
 \examples{
+### Create an example source
 exampleSource <- '
 ---
 codes:
@@ -38,16 +39,43 @@ codes:
     children: [grandChild1, grandChild2]
 ---
 ';
+
+### Parse it
 parsedSource <-
-  parse_source(text=exampleSource);
+  rock::parse_source(
+    text = exampleSource
+  );
+
+### Extract the deductive code tree from
+### the parsed source
+deductiveCodeTree <-
+  parsedSource$deductiveCodeTrees;
+
+### Convert it to a DiagrammeR graph
 miniGraph <-
-  apply_graph_theme(data.tree::ToDiagrammeRGraph(parsedSource$deductiveCodeTrees),
-                    c("color", "#0000AA", "node"),
-                    c("shape", "triangle", "node"),
-                    c("fontcolor", "#FF0000", "node"));
-### This line should be run when executing this example as test, because
-### rendering a DiagrammeR graph takes quite long
-\dontrun{
-DiagrammeR::render_graph(miniGraph);
-}
+  data.tree::ToDiagrammeRGraph(
+    deductiveCodeTree
+  );
+
+### Show the graph
+\donttest{DiagrammeR::render_graph(
+  miniGraph
+);}
+
+### Apply a "theme" (three attributes)
+miniGraph_themed <-
+  rock::apply_graph_theme(
+    miniGraph,
+    c("rankdir", "TB", "graph"),
+    c("shape", "square", "node"),
+    c("style", "solid", "node"),
+    c("fontname", "Arial", "node"),
+    c("fontcolor", "#0000BB", "node"),
+    c("color", "#BB0000", "node")
+  );
+
+### Show the updated graph
+\donttest{DiagrammeR::render_graph(
+  miniGraph_themed
+);}
 }

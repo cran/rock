@@ -76,9 +76,13 @@ vignette), the path to a file with a spreadsheet holding such a
 specification, or a loaded or imported \{preregr\} (pre)registration form.
 }
 \examples{
-preregr::form_create(
-  title = "Example form",
-  version = "0.1.0"
-) |>
-  preregr::form_to_rmd_template();
+newForm <-
+  preregr::form_create(
+    title = "Example form",
+    version = "0.1.0"
+  );
+
+preregr::form_to_rmd_template(
+  newForm
+);
 }

@@ -2,6 +2,7 @@ test_that("an RPE coding file can be prepared", {
 
   # devtools::load_all("C:/pC/git/R/rock");
   # devtools::load_all("C:/pC/git/R/limonaid");
+  # remotes::install_git("https://codeberg.org/R-packages/limonaid");
 
   lsFilesPath <- system.file("limesurvey",
                              package="rock");
@@ -13,7 +14,8 @@ test_that("an RPE coding file can be prepared", {
     limonaid::ls_import_data(sid = 795779,
                              path = lsFilesPath,
                              ### To no longer need {sticky}
-                             setLabels = FALSE);
+                             setLabels = FALSE,
+                             sticky = FALSE);
 
   ### Add empty labels for variables without labels in case we have
   ### an old {limonaid} version
@@ -66,7 +68,7 @@ test_that("an RPE coding file can be prepared", {
     );
 
   itemSource <-
-    rpe_create_source_with_items(
+    rock::rpe_create_source_with_items(
       data = lsDat,
       iterationId = "iterationId",
       batchId = "batchId",

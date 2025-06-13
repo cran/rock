@@ -24,15 +24,24 @@
 #' `flattenSingleDf` is `TRUE`, a data frame.
 #' @export
 #'
-#' @examples ### This requires an internet connection!
-#' \dontrun{
-#' read_spreadsheet(
-#'   paste0(
-#'     "https://docs.google.com/",
-#'     "spreadsheets/d/",
-#'     "1bHDzpCu4CwEa5_3_q_9vH2691XPhCS3e4Aj_HLhw_U8"
-#'   )
-#' );
+#' @examples ### Note that this will require an active
+#' ### internet connection! This if statement
+#' ### checks for that.
+#' \donttest{
+#' if (tryCatch({readLines("https://google.com",n=1); TRUE}, error=function(x) FALSE)) {
+#'
+#'   ### Read the example ROCK codebook
+#'   ROCK_codebook <-
+#'     read_spreadsheet(
+#'       paste0(
+#'         "https://docs.google.com/spreadsheets/d/",
+#'         "1gVx5uhYzqcTH6Jq7AYmsLvHSBaYaT-23c7ZhZF4jmps"
+#'       )
+#'     );
+#'
+#'   ### Show a bit
+#'   ROCK_codebook$metadata[1:3, ];
+#' }
 #' }
 read_spreadsheet <- function(x,
                              sheet = NULL,
@@ -385,7 +394,7 @@ read_spreadsheet <- function(x,
         "), so attempting to save a local backup.\n",
         silent = silent);
 
-    if (!is.null(downloadResult) && (downloadResult == 0)) {
+    if (exists("downloadResult") && !is.null(downloadResult) && (downloadResult == 0)) {
 
       msg("A file was downloaded, so just copying that file as local backup.\n",
           silent = silent);

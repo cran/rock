@@ -17,9 +17,11 @@ parse_source(
   checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
   postponeDeductiveTreeBuilding = FALSE,
   filesWithYAML = NULL,
+  mergeAttributes = TRUE,
   removeSectionBreakRows = rock::opts$get("removeSectionBreakRows"),
   removeIdentifierRows = rock::opts$get("removeIdentifierRows"),
   removeEmptyRows = rock::opts$get("removeEmptyRows"),
+  suppressDuplicateInstanceWarnings = rock::opts$get("suppressDuplicateInstanceWarnings"),
   rlWarn = rock::opts$get("rlWarn"),
   encoding = rock::opts$get("encoding"),
   silent = rock::opts$get("silent")
@@ -35,11 +37,13 @@ parse_sources(
   removeSectionBreakRows = rock::opts$get("removeSectionBreakRows"),
   removeIdentifierRows = rock::opts$get("removeIdentifierRows"),
   removeEmptyRows = rock::opts$get("removeEmptyRows"),
+  suppressDuplicateInstanceWarnings = rock::opts$get("suppressDuplicateInstanceWarnings"),
+  filesWithYAML = NULL,
   ignoreOddDelimiters = FALSE,
-  checkClassInstanceIds = rock::opts$get(checkClassInstanceIds),
+  checkClassInstanceIds = rock::opts$get("checkClassInstanceIds"),
   mergeInductiveTrees = FALSE,
-  encoding = rock::opts$get(encoding),
-  silent = rock::opts$get(silent)
+  encoding = rock::opts$get("encoding"),
+  silent = rock::opts$get("silent")
 )
 
 \method{print}{rock_parsedSources}(x, prefix = "### ", ...)
@@ -78,9 +82,17 @@ you should probably call \code{parse_sources} instead of \code{parse_source}).}
 
 \item{filesWithYAML}{Any additional files to process to look for YAML fragments.}
 
+\item{mergeAttributes}{Whether to merge the data frame with the attributes
+into the qualitative data table (i.e., the data frame with the data
+fragments and codes).}
+
 \item{removeSectionBreakRows, removeIdentifierRows, removeEmptyRows}{Whether to
 remove from the QDT, respectively: rows containing section breaks; rows
 containing only (class instance) identifiers; and empty rows.}
+
+\item{suppressDuplicateInstanceWarnings}{Whether to suppress warnings about
+duplicate instances (as resulting from inconsistent specifications of
+attributes for class instances).}
 
 \item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
 with a newline character.}

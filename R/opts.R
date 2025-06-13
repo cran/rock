@@ -163,8 +163,8 @@ opts$reset <- function(...) {
 
 opts$defaults <-
   list(### Used throughout
-       codeRegexes = c(codes = "\\[\\[\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*\\]\\]",
-                       ci = "\\[\\[ci\\s*--\\s*([a-zA-Z0-9_>]+)\\s*\\]\\]"),
+       codeRegexes = c(codes = "\\[\\[\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*([0-9]*\\s*-\\s*[0-9]*)?\\s*\\]\\]",
+                       ci = "\\[\\[ci\\s*--\\s*([a-zA-Z0-9_>]+)\\s*([0-9]*\\s*-\\s*[0-9]*)?\\s*\\]\\]"),
        idRegexes = c(caseId = "\\[\\[cid\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]"#,,
                      # coderId = "\\[\\[coderId[=:]([a-zA-Z0-9_]+)\\]\\]",
                      # stanzaId = "\\[\\[sid[=:]([a-zA-Z0-9_]+)\\]\\]",
@@ -182,9 +182,9 @@ opts$defaults <-
                               uuid = 'itemId',
                               prbid = 'probeId',
                               mqid = 'metaqid'),
-       classInstanceRegex = "\\[\\[(?!uid)(?!UID)\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]",
-       codeValueRegexes = c(codeValues = "\\[\\[([a-zA-Z0-9_>]+)\\|\\|([a-zA-Z0-9.,_: ?!-]+)\\]\\]"),
-       networkCodeRegexes = c(network = "\\[\\[\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*->\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*\\|\\|\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*(\\|\\|[a-zA-Z0-9_>]*)?\\s*\\]\\]"),
+       classInstanceRegex = c(ciid = "\\[\\[(?!uid)(?!UID)\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]"),
+       codeValueRegexes = c(codeValues = "\\[\\[\\s*([a-zA-Z0-9_>]+)\\s*\\|\\|\\s*([^\\]]*)\\s*([0-9]*\\s*-\\s*[0-9]*)?\\s*\\]\\]"),
+       networkCodeRegexes = c(network = "\\[\\[\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*->\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*\\|\\|\\s*([a-zA-Z][a-zA-Z0-9_>]*)\\s*(\\|\\|[a-zA-Z0-9_>]*)?\\s*([0-9]*\\s*-\\s*[0-9]*)?\\s*\\]\\]"),
        networkCodeRegexOrder = c("from", "to", "type", "weight"),
        sectionRegexes = c(sectionBreak = "---<<\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*>>---"),
        uidRegex = "\\[\\[\\s*[uU][iI][dD]\\s*[=:]\\s*([a-zA-Z0-9_]+)\\s*\\]\\]",
@@ -222,7 +222,7 @@ opts$defaults <-
        sectionBreakContainers = c("ROCK_sectionBreaks", "section_breaks"),
        delimiterString = "---",
        delimiterRegEx = "^---$",
-       ignoreRegex = "^#",
+       ignoreRegex = "^\\s*#",
        ignoreOddDelimiters = FALSE,
 
        ### Network settings
@@ -244,6 +244,9 @@ opts$defaults <-
        uidPrefix = "uid=",
        utteranceMarker = "\n",
        fragmentDelimiter = "\n\n-----\n\n",
+       fragmentDelimiter_html = "\n\n<hr class='rock-fragment-delimiter rock-fragment-delimiter-within' />\n\n",
+       fragmentDelimiter_above_html = "\n\n<hr class='rock-fragment-delimiter rock-fragment-delimiter-above' />\n\n",
+       fragmentDelimiter_below_html = "\n\n<hr class='rock-fragment-delimiter rock-fragment-delimiter-below' />\n\n",
        replacementsPre = list(c("([^\\.])(\\.\\.)([^\\.])",
                                 "\\1.\\3"),
                               c("([^\\.])(\\.\\.\\.\\.+)([^\\.])",
@@ -267,8 +270,10 @@ opts$defaults <-
 
        ### Used for collecting sources
        utteranceGlue = "\n\n",
-       sourceFormatting = "\n\n**Source: `%s`**\n\n",
+       sourceFormatting = "**Source: `%s`**\n\n",
+       sourceFormatting_html = "\n\n<div class='rock-source-filename'><strong>Source: <pre>%s</pre></strong></div>\n\n",
        codeHeadingFormatting = "%s *(path: %s)*",
+       codeHeadingFormatting_html = "<div class='rock rock-code-heading'>%s <em>(path: %s)</em></div>",
 
        ### Cognitive Interview: Narrative Response Models
        nrm_wsNames = list(
@@ -351,13 +356,18 @@ opts$defaults <-
 ",
 
        ### Used for generating html
-       codeClass = "code",
-       codeValueClass = "codeValue",
-       idClass = "identifier",
+       codingClass = "rock-coding",
+       codeClass = "rock-treeCode code",
+       codeValueClass = "rock-codeValue codeValue",
+       networkCodeClass = "rock-networkCode networkCode",
+       idClass = "rock-ciid identifier",
        sectionClass = "sectionBreak",
-       uidClass = "uid",
-       utteranceClass = "utterance",
+       uidClass = "rock-uid uid",
+       rockLineClass = "rock-line",
+       utteranceClass = "rock-utterance utterance",
        contextClass = "context",
+       commentClass = "rock-comment",
+       yamlClass = "rock-yaml-chunk",
 
        ### Regular expressions for Google Sheets
        gSheetId_extractionRegex =
@@ -365,6 +375,12 @@ opts$defaults <-
 
        gSheetId_to_exportLink =
          "https://docs.google.com/spreadsheets/d/%s/export?format=xlsx",
+
+       gDocsId_extractionRegex =
+         "^https://docs\\.google\\.com/document/d/([a-zA-Z0-9_-]*)(/.*)?$",
+
+       gDocsId_to_exportLink =
+         "https://docs.google.com/document/d/%s/export?format=txt",
 
        ### When displaying code identifiers, whether to by default show the
        ### full path or just the code identifier itself
@@ -415,7 +431,7 @@ opts$defaults <-
            #c("width", "4", "node"),
            c("color", "#888888", "edge"),
            c("dir", "none", "edge"),
-           c("headclip", "false", "edge"),
+           c("headclip", "true", "edge"),
            c("tailclip", "false", "edge"),
            c("fillcolor", "#FFFFFF", "node")
          ),
@@ -434,14 +450,14 @@ opts$defaults <-
            c("width", "4", "node"),
            c("color", "#888888", "edge"),
            c("dir", "none", "edge"),
-           c("headclip", "false", "edge"),
+           c("headclip", "true", "edge"),
            c("tailclip", "false", "edge"),
            c("fillcolor", "#FFFFFF", "node")
          ),
 
        theme_networkDiagram =
          list(
-           c("outputorder", "nodesfirst", "graph"),
+           c("outputorder", "edgesfirst", "graph"),
            c("fixedsize", "false", "node"),
            c("fontname", "arial", "node"),
            c("fontname", "arial", "edge"),
@@ -449,10 +465,14 @@ opts$defaults <-
            c("style", "rounded,filled", "node"),
            c("color", "#000000", "node"),
            c("color", "#000000", "edge"),
+           c("headclip", "true", "edge"),
+           c("tailclip", "false", "edge"),
            c("fillcolor", "#FFFFFF", "node")
          ),
 
        warnForMultipleAesthetics = TRUE,
+
+       suppressDuplicateInstanceWarnings = FALSE,
 
        ### Used throughout for debugging
        debug = FALSE,

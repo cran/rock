@@ -12,12 +12,15 @@ sync_streams(
   sourceId = rock::opts$get("sourceId"),
   streamId = rock::opts$get("streamId"),
   prependStreamIdToColName = FALSE,
-  appendStreamIdToColName = FALSE,
+  appendStreamIdToColName = TRUE,
   sep = " ",
   fill = TRUE,
+  paddingValue = NA,
+  neverFill = grep("_raw$", names(x$qdt), value = TRUE),
   compressFun = NULL,
   compressFunPart = NULL,
   expandFun = NULL,
+  carryOverAnchors = FALSE,
   colNameGlue = rock::opts$get("colNameGlue"),
   silent = rock::opts$get("silent")
 )
@@ -45,6 +48,16 @@ passed to \code{paste} as separator.}
 \item{fill}{When expanding streams, whether to duplicate elements to fill
 the resulting vector. Ignored if \code{fillFun} is specified.}
 
+\item{paddingValue}{The value to insert for rows when not filling (by
+default, filling carries over the value from the last preceding row that
+had a value specified).}
+
+\item{neverFill}{Columns to never fill regardless of whether fill
+is \code{TRUE}. Set to \code{NULL} to always respect the setting of \code{fill}. By default,
+the raw versions of the class instance identification columns are never
+duplicated (found with regular expression \code{"_raw$"}), since those are used
+for state transition computations.}
+
 \item{compressFun}{If specified, when compressing streams, instead of pasting
 elements together using separator \code{sep}, the vectors are passed to function
 \code{compressFun}, which must accept a vector (to compress) and a single integer
@@ -58,6 +71,8 @@ filling the new larger vector with elements (if \code{fill} is \code{TRUE}), the
 vectors are passed to function \code{expandFun}, which must accept a vector (to
 compress) and a single integer (with the desired resulting length of
 the vector).}
+
+\item{carryOverAnchors}{Whether to carry over anchors for each source}
 
 \item{colNameGlue}{When appending or prepending stream identifiers, the
 character(s) to use as "glue" or separator.}
@@ -94,8 +109,8 @@ parsedSources <- rock::sync_streams(
 );
 
 ### Look at two examples
-parsedSources$syncResults$mergedSourceDf[
+parsedSources$syncResults$qdt[
   ,
-  c("streamB_Code3", "streamC_Code1")
+  c("streamB_Code3_streamB", "streamC_Code1_streamC")
 ];
 }

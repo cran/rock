@@ -18,15 +18,24 @@ character for \code{base30toNumeric}).}
 The converted vector (numeric for \code{base30toNumeric}, character for \code{numericToBase30}).
 }
 \description{
-The conversion functions from base10 to base30 and vice versa are
-used by the \code{\link[=generate_uids]{generate_uids()}} functions.
+\strong{Note: this function is deprecated; use this function in the \code{{squids}}
+package!}
 }
 \details{
+The conversion functions from base10 to base30 and vice versa are
+used by the \code{\link[=generate_uids]{generate_uids()}} functions.
+
 The symbols to represent the 'base 30' system are the 0-9
-followed by the alphabet without vowels but including the y. This
-vector is available as \code{base30}.
+followed by the alphabet without vowels but including the y (see
+\code{\link[squids:squids-package]{squids::squids-package}}).
 }
 \examples{
-numericToBase30(654321);
-base30toNumeric(numericToBase30(654321));
+rock::numericToBase30(
+  654321
+);
+rock::base30toNumeric(
+  rock::numericToBase30(
+    654321
+  )
+);
 }

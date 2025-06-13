@@ -14,12 +14,15 @@ collect_coded_fragments(
   headingLevel = 3,
   add_html_tags = TRUE,
   cleanUtterances = FALSE,
+  omitEmptyCodes = TRUE,
   output = NULL,
   outputViewer = "viewer",
   template = "default",
   rawResult = FALSE,
   includeCSS = TRUE,
+  preserveSpaces = TRUE,
   codeHeadingFormatting = rock::opts$get("codeHeadingFormatting"),
+  codeHeadingFormatting_html = rock::opts$get("codeHeadingFormatting_html"),
   includeBootstrap = rock::opts$get("includeBootstrap"),
   preventOverwriting = rock::opts$get("preventOverwriting"),
   silent = rock::opts$get("silent")
@@ -67,6 +70,9 @@ instead of \code{headingLevel+1} hashes.}
 when constructing the fragments (the raw versions contain all codes). Note that
 this should be set to \code{FALSE} to have \code{add_html_tags} be of the most use.}
 
+\item{omitEmptyCodes}{Whether to still show the title for codes that do not
+occur or not.}
+
 \item{output}{Here, a path and filename can be provided where the
 result will be written. If provided, the result will be returned
 invisibly.}
@@ -86,10 +92,14 @@ fragments, or one character value in markdown format.}
 
 \item{includeCSS}{Whether to include the ROCK CSS in the returned HTML.}
 
-\item{codeHeadingFormatting}{A character value of the
+\item{preserveSpaces}{Whether to preserve spaces in the output (replacing
+double spaces with "\verb{&nbsp;&nbsp;}").}
+
+\item{codeHeadingFormatting, codeHeadingFormatting_html}{A character value of the
 form \verb{\%s *(path: \%s)*} (the default) or \verb{\\n\\n### \%s\\n\\n*path:* ``\%s``\\n\\n}.
 The first \verb{\%s} is replaced by the code identifier; the second \verb{\%s} by the
-corresponding path in the code tree.}
+corresponding path in the code tree; for markdown/console and html output,
+respectively.}
 
 \item{includeBootstrap}{Whether to include the default bootstrap CSS.}
 
@@ -120,7 +130,7 @@ examplePath <-
 ### Get a path to one example file
 exampleFile <-
   file.path(
-    examplePath, "example-1.rock"
+    examplePath, "example-.rock"
   );
 
 ### Parse single example source
@@ -136,12 +146,30 @@ cat(
   )
 );
 
-### Only for the codes containing 'Code2'
+### Only for the codes containing 'Code2', with
+### 2 lines of context (both ways)
 cat(
   rock::collect_coded_fragments(
     parsedExample,
-    'Code2'
+    'Code2',
+    context = 2
   )
 );
+
+### Parse multiple example sources
+### Load two example sources
+parsedExamples <- rock::parse_sources(
+  examplePath,
+  regex = "example-[1234].rock"
+);
+
+cat(
+  rock::collect_coded_fragments(
+    parsedExamples,
+    '[cC]ode2',
+    context = 2
+  )
+);
+
 
 }

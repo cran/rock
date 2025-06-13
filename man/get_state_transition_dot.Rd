@@ -2,20 +2,28 @@
 % Please edit documentation in R/get_state_transition_dot.R
 \name{get_state_transition_dot}
 \alias{get_state_transition_dot}
-\title{Get the state transition data frame}
+\title{Get the Dot code for a state transition graph}
 \usage{
-get_state_transition_dot(x)
+get_state_transition_dot(
+  x,
+  labelFun = base::round,
+  labelFunArgs = list(digits = 2)
+)
 }
 \arguments{
 \item{x}{A state transition table as produced by a call
 to \code{\link[=get_state_transition_table]{get_state_transition_table()}}.}
+
+\item{labelFun}{A function to apply to the edge labels in preprocessing.}
+
+\item{labelFunArgs}{Arguments to specify to \code{labelFun} in addition to the
+first argument (the edge weight, a number).}
 }
 \value{
-A dataframe with columns \code{fromState}, \code{toState},
-and \code{nrOfTransitions}.
+The Dot code for a state transition graph.
 }
 \description{
-Get the state transition data frame
+Get the Dot code for a state transition graph
 }
 \examples{
 ### Get path to example source

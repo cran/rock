@@ -1,20 +1,6 @@
-#' Cleaning & editing sources
+#' Wordwrapping a source
 #'
-#' These functions can be used to 'clean' one or more sources or perform search and
-#' replace taks. Cleaning consists of two operations: splitting the source at
-#' utterance markers, and conducting search and replaces using regular expressions.
-#'
-#' The cleaning functions, when called with their default arguments, will do the following:
-#'
-#' - Double periods (`..`) will be replaced with single periods (`.`)
-#' - Four or more periods (`...` or `.....`) will be replaced with three periods
-#' - Three or more newline characters will be replaced by one newline character (which
-#' will become more, if the sentence before that character marks the end of an
-#' utterance)
-#' - All sentences will become separate utterances (in a semi-smart manner;
-#' specifically, breaks in speaking, if represented by three periods, are not
-#' considered sentence ends, wheread ellipses ("…" or unicode 2026, see the example) *are*.
-#' - If there are comma's without a space following them, a space will be inserted.
+#' This function wordwraps a source.
 #'
 #' @param input For `clean_source` and `search_and_replace_in_source`, either a character
 #' vector containing the text of the relevant source *or* a path to a file that contains
@@ -27,81 +13,52 @@
 #' directory where to store the processed sources. This path will be created with a
 #' warning if it does not exist. An exception is if "`same`" is specified - in that
 #' case, every file will be written to the same directory it was read from.
-#' @param replacementsPre,replacementsPost Each is a list of two-element vectors,
-#' where the first element in each vector contains a regular expression to search for
-#' in the source(s), and the second element contains the replacement (these are passed
-#' as `perl` regular expressions; see \code{\link{regex}} for more information).
-#' Instead of regular expressions, simple words or phrases can also be entered of
-#' course (since those are valid regular expressions). `replacementsPre` are executed
-#' before the `utteranceSplits` are applied; `replacementsPost` afterwards.
-#' @param extraReplacementsPre,extraReplacementsPost To perform more replacements
-#' than the default set, these can be conveniently specified in `extraReplacementsPre`
-#'  and `extraReplacementsPost`. This prevents you from having to
-#' manually copypaste the list of defaults to retain it.
-#' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
-#' with a newline character.
-#' @param utteranceSplits This is a vector of regular expressions that specify where to
-#' insert breaks between utterances in the source(s). Such breakes are specified using
-#' `utteranceMarker`.
 #' @param length At how many characters to word wrap.
-#' @param preventOverwriting Whether to prevent overwriting of output files.
 #' @param removeNewlines Whether to remove all newline characters from the source before
 #' starting to clean them. **Be careful**: if the source contains YAML fragments, these
 #' will also be affected by this, and will probably become invalid!
 #' @param removeTrailingNewlines Whether to remove trailing newline characters
 #' (i.e. at the end of a character value in a character vector);
+#' @param rlWarn Whether to let [readLines()] warn, e.g. if files do not end
+#' with a newline character.
+#' @param preventOverwriting Whether to prevent overwriting of output files.
 #' @param encoding The encoding of the source(s).
+#' @param silent Whether to suppress the warning about not editing the cleaned source.
 #' @param utteranceMarker The character(s) between utterances (i.e. marking where
 #' one utterance ends and the next one starts). By default, this is a line
 #' break, and only change this if you know what you are doing.
-#' @param silent Whether to suppress the warning about not editing the cleaned source.
 #'
-#' @return A character vector for `clean_source`, or a list of character vectors,
-#' for `clean_sources`.
-#' @rdname cleaning_sources
-#'
-#' @examples exampleSource <-
-#' "Do you like icecream?
-#'
-#'
-#' Well, that depends\u2026 Sometimes, when it's..... Nice. Then I do,
-#' but otherwise... not really, actually."
-#'
-#' ### Default settings:
-#' cat(clean_source(exampleSource));
-#'
-#' ### First remove existing newlines:
-#' cat(clean_source(exampleSource,
-#'                  removeNewlines=TRUE));
-#'
-#' ### Example with a YAML fragment
-#' exampleWithYAML <-
-#' c(
-#'   "Do you like icecream?",
-#'   "",
-#'   "",
-#'   "Well, that depends\u2026 Sometimes, when it's..... Nice.",
-#'   "Then I do,",
-#'   "but otherwise... not really, actually.",
-#'   "",
-#'   "---",
-#'   "This acts as some YAML. So this won't be split.",
-#'   "Not real YAML, mind... It just has the delimiters, really.",
-#'   "---",
-#'   "This is an utterance again."
-#' );
-#'
-#' cat(
-#'   rock::clean_source(
-#'     exampleWithYAML
-#'   ),
-#'   sep="\n"
-#' );
+#' @return A character vector.
 #'
 #' @export
+#' @examples exampleText <-
+#'   paste0(
+#'     "Lorem ipsum dolor sit amet, consectetur ",
+#'     "adipiscing elit. Nunc non commodo ex, ac ",
+#'     "varius mi. Praesent feugiat nunc eget urna ",
+#'     "euismod lobortis. Sed hendrerit suscipit ",
+#'     "nisl, ac tempus magna porta et. ",
+#'     "Quisque libero massa, tempus vel tristique ",
+#'     "lacinia, tristique in nulla. Nam cursus enim ",
+#'     "dui, non ornare est tempor eu. Vivamus et massa ",
+#'     "consectetur, tristique magna eget, viverra elit."
+#'   );
+#'
+#' ### Show example text
+#' cat(exampleText);
+#'
+#' ### Show preprocessed example text
+#' cat(
+#'   paste0(
+#'     rock::wordwrap_source(
+#'       exampleText
+#'     ),
+#'     collapse = "\n"
+#'   )
+#' );
 wordwrap_source <- function(input,
                             output = NULL,
-                            length = 60,
+                            length = 40,
                             removeNewlines = FALSE,
                             removeTrailingNewlines = TRUE,
                             rlWarn = rock::opts$get(rlWarn),
@@ -110,32 +67,31 @@ wordwrap_source <- function(input,
                             silent = rock::opts$get(silent),
                             utteranceMarker = rock::opts$get('utteranceMarker')) {
 
-  if ((length(input) == 1) && file.exists(input)) {
-    res <- readLines(input,
-                     encoding=encoding,
-                     warn=rlWarn);
+  if ((length(input) == 1) && file.exists(input) && (!dir.exists(input))) {
+    text <- readLines(input,
+                      encoding=encoding,
+                      warn=rlWarn);
 
     if (removeNewlines) {
-      res <-
-        paste0(res, collapse="");
+      text <-
+        paste0(text, collapse="");
     } else {
-      # res <-
-      #   paste0(res, collapse="\n");
+      text <-
+        paste0(text, collapse="\n");
     }
   } else {
-    res <- input;
+    text <- input;
     if (removeNewlines) {
-      res <-
-        paste0(res, collapse="");
-      res <-
-        gsub("\\n", "", res);
+      text <-
+        paste0(text, collapse="");
+        gsub("\\n", "", text);
     }
   }
 
   non_YAML_indices <-
     unlist(
       yum::find_yaml_fragment_indices(
-        text=res,
+        text=text,
         delimiterRegEx=rock::opts$get('delimiterRegEx'),
         ignoreOddDelimiters=rock::opts$get('ignoreOddDelimiters'),
         invert = TRUE
@@ -144,9 +100,16 @@ wordwrap_source <- function(input,
 
   ### Store full source and get only those lines we want to replace
   fullSource <-
-    res;
+    text;
 
-  res <- fullSource[non_YAML_indices];
+  if ((length(non_YAML_indices) == 1) && (is.numeric(non_YAML_indices))) {
+    ### If no YAML fragments are present, non_YAML_indices is just c(1)
+    res <- fullSource
+  } else {
+    res <- fullSource[non_YAML_indices];
+  }
+
+  res <- splitString(res, "\\n");
 
   res <- rock::split_long_lines(
     x = res,
@@ -154,9 +117,15 @@ wordwrap_source <- function(input,
     splitString = utteranceMarker
   );
 
-  ### Insert lines that were potentially cleaned back in
-  fullResult <- fullSource;
-  fullResult[non_YAML_indices] <- res;
+  if ((length(non_YAML_indices) == 1) && (is.numeric(non_YAML_indices))) {
+    ### If no YAML fragments are present, non_YAML_indices is just c(1)
+    fullResult <- res;
+  } else {
+    ### Insert lines that were potentially cleaned back in
+    fullResult <- fullSource;
+    fullResult[non_YAML_indices] <- res;
+  }
+
   res <- fullResult;
 
   if (removeTrailingNewlines) {

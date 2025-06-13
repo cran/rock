@@ -4,13 +4,22 @@
 #'
 #' @return The code book specification as a `rock` code book object
 #' @export
-#' @examples ### This requires an active internet connection
-#' if (FALSE) {
+#' @examples ### Note that this will require an active
+#' ### internet connection! This if statement
+#' ### checks for that.
+#' \donttest{
+#' if (tryCatch({readLines("https://google.com",n=1); TRUE}, error=function(x) FALSE)) {
+#'
+#'   ### Read the example ROCK codebook
 #'   gs_url <- paste0(
 #'     "https://docs.google.com/spreadsheets/d/",
 #'     "1gVx5uhYzqcTH6Jq7AYmsLvHSBaYaT-23c7ZhZF4jmps"
 #'   );
-#'   codebook <- rock::codebook_fromSpreadsheet(gs_url);
+#'   ROCK_codebook <- rock::codebook_fromSpreadsheet(gs_url);
+#'
+#'   ### Show a bit
+#'   ROCK_codebook$metadata[1:3, ];
+#' }
 #' }
 codebook_fromSpreadsheet <- function(x,
                                      localBackup = NULL,

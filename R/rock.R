@@ -6,7 +6,7 @@
 #'
 #' @section The ROCK File Format:
 #'
-#' The .rock files are plain text files where a number of conventions are used
+#' The `.rock` files are plain text files where a number of conventions are used
 #' to add metadata. Normally these are the following conventions:
 #'
 #' - The smallest 'codeable unit' is called an utterance, and utterances are separated by newline characters (i.e. every line of the file is an utterance);
@@ -25,6 +25,5 @@
 #' For analysis, [create_cooccurrence_matrix()], [collapse_occurrences()], and
 #'  [collect_coded_fragments()] can be used.
 #'
-#' @docType package
 #' @name rock
-NULL
+"_PACKAGE"

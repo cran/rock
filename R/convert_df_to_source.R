@@ -48,6 +48,10 @@
 #' yields something like "`[[originalColName=colName_1]]`" above all utterances
 #' from the column named `colName_1`). When writing multiple utterance columns,
 #' it is not possible to also write codes (i.e. `cols_to_codes` must be `NULL`).
+#' @param utterance_comments A column with comments to be added to each
+#' utterance.
+#' @param commentPrefix If adding in comments, the prefix to use, typically
+#' a number of hashes. Note that comment lines must start with a hash (`#`).
 #' @param oneFile Whether to store everything in one source, or create one
 #' source for each row of the data (if this is set to `FALSE`, make sure that
 #' `cols_to_sourceFilename` specifies one or more columns that together
@@ -76,6 +80,14 @@
 #' an equals sign is less ambiguous.
 #' @param attributesFile Optionally, a file to write the attributes to if you
 #' don't want them to be written to the source file(s).
+#' @param clean,cleaningArgs Whether to clean the utterances using [rock::clean_source()], and the
+#' arguments to pass when calling it as a named list passed in `cleaningArgs`.
+#' @param wordwrap,wrappingArgs Whether to word wrap the utterances
+#' using [rock::wordwrap_source()], and the
+#' arguments to pass when calling it as a named list passed in  `wrappingArgs`.
+#' @param prependUIDs,UIDArgs Whether to prepend utterance identifiers (UIDs)
+#' using [rock::prepend_ids_to_source()], and the
+#' arguments to pass when calling it as a named list passed in  `UIDArgs`.
 #' @param preventOverwriting Whether to prevent overwriting of output files.
 #' @param encoding The encoding of the source(s).
 #' @param silent Whether to suppress the warning about not editing the cleaned source.
@@ -123,14 +135,27 @@ convert_df_to_source <- function(data,
                                  cols_to_codes = NULL,
                                  cols_to_attributes = NULL,
                                  utterance_classId = NULL,
+                                 utterance_comments = NULL,
+                                 commentPrefix =
+                                   ifelse(
+                                     prependUIDs,
+                                     repStr("#", 16),
+                                     repStr("#", 3)
+                                   ),
                                  oneFile = TRUE,
                                  cols_to_sourceFilename = cols_to_ciids,
-                                 cols_in_sourceFilename_sep = "=",
+                                 cols_in_sourceFilename_sep = "_is_",
                                  sourceFilename_prefix = "source_",
                                  sourceFilename_suffix = "",
                                  ciid_labels = NULL,
                                  ciid_separator = "=",
                                  attributesFile = NULL,
+                                 clean = TRUE,
+                                 cleaningArgs = NULL,
+                                 wordwrap = TRUE,
+                                 wrappingArgs = NULL,
+                                 prependUIDs = TRUE,
+                                 UIDArgs = NULL,
                                  preventOverwriting = rock::opts$get(preventOverwriting),
                                  encoding = rock::opts$get(encoding),
                                  silent = rock::opts$get(silent)) {
@@ -232,18 +257,132 @@ convert_df_to_source <- function(data,
     codeVector <- rep("", nrow(data));
   }
 
+  ### Optionally prepare comments to attach to the utterances
+
+  if (!is.null(utterance_comments)) {
+
+    if (!is.character(utterance_comments) || is.null(names(utterance_comments))) {
+
+      stop("`utterance_comments` must be a named character vector, where ",
+           "each element is a comment and each element's name is a column ",
+           "in the data set you want to take utterances from.");
+
+    }
+
+    utterance_comments_colNames <- names(utterance_comments);
+
+    if (!all(utterance_comments_colNames %in% names(data))) {
+
+      stop("`utterance_comments` must be a named character vector, where ",
+           "each element is a comment and each element's name is a column ",
+           "in the data set you want to take utterances from, but not all ",
+           "element names correspond to existing columns!");
+
+    }
+
+    ### Potentially clean and word wrap the comments
+
+    utterance_comments <-
+      lapply(
+        utterance_comments,
+        preprocess_source,
+        clean = FALSE,
+        wordwrap = wordwrap,
+        wrappingArgs = wrappingArgs,
+        prependUIDs = FALSE
+      );
+
+    ### Prepend comment prefix
+
+    utterance_comments <-
+      lapply(
+        utterance_comments,
+        function(commentVector) {
+          return(
+            paste0(
+              commentPrefix,
+              " ",
+              commentVector
+            )
+          )
+        }
+      );
+
+  }
+
+  ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  ### Process each row of the data frame
+  ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  ### First set SQUIDs_to_follow if we prepend UIDs
+  if (prependUIDs) {
+    SQUIDs_to_follow <- NULL
+  };
+
   for (i in 1:nrow(data)) {
 
-    sourceList[[i]] <- "";
+    ### Prepare for UID generation or continuation
+
+    if (prependUIDs) {
+
+      if (!is.null(SQUIDs_to_follow)) {
+
+        ### If this is NULL, this is the first time we run this loop;
+        ### so if we need to follow a SQUID, it was specified by the
+        ### user. So if it is not NULL, we have to store/override the
+        ### argument in the UIDArgs list.
+
+        if (is.null(UIDArgs)) {
+          UIDArgs <- list(follow = SQUIDs_to_follow);
+        } else {
+          UIDArgs$follow <- SQUIDs_to_follow;
+        }
+
+      }
+
+      sourceList[[i]] <-
+        do.call(
+          prepend_ids_to_source,
+          c(list(input = ""),
+            UIDArgs)
+        );
+
+      ### Will be used to guarantee unique UIDs
+      SQUIDs_to_follow <- extract_uids(sourceList[[i]], returnSQUIDs  = TRUE);
+
+    } else {
+
+      ### Just include an empty line
+      sourceList[[i]] <- "";
+
+    }
 
     if (!is.null(cols_to_ciids)) {
 
       ### Add the class instance identifiers
 
       for (j in seq_along(cols_to_ciids)) {
+
+        if (prependUIDs) {
+
+          ### This is always set, since we set it above for the first time and
+          ### below in this loop from that point onwards; and if the user
+          ### specified something, that was handled above so we override this.
+          UIDArgs$follow <- SQUIDs_to_follow;
+
+          potentialUID_prefix <-
+            do.call(prepend_ids_to_source, c(list(input = ""), UIDArgs));
+
+          SQUIDs_to_follow <- extract_uids(potentialUID_prefix, returnSQUIDs = TRUE);
+
+        } else {
+          potentialUID_prefix <- "";
+        }
+
         sourceList[[i]] <-
           c(sourceList[[i]],
             paste0(
+              potentialUID_prefix,
               codeDelimiters[1],
               names(cols_to_ciids)[j],
               ciid_separator,
@@ -253,70 +392,207 @@ convert_df_to_source <- function(data,
           );
       }
 
-      ### Add the utterances and codes
+    }
 
-      if (is.null(utterance_classId)) {
-        for (j in cols_to_utterances) {
-          sourceList[[i]] <-
-            c(sourceList[[i]],
-              "",
-              paste0(data[i, j], codeVector[i])
-            );
+    ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ### Add the utterances and codes
+    ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    if (is.null(utterance_classId)) {
+
+      ### No class identifier column specified for utterances; so
+      ### just writing the utterances to the source (origin columns
+      ### will not be visible in the source)
+
+      for (j in cols_to_utterances) {
+
+        if (prependUIDs) {
+
+          ### This is always set, since we set it above; and we
+          ### always need to override any
+          UIDArgs$follow <- SQUIDs_to_follow;
+
+          potentialUID_prefix <-
+            do.call(prepend_ids_to_source, c(list(input = ""), UIDArgs));
+
+          SQUIDs_to_follow <- extract_uids(potentialUID_prefix, returnSQUIDs = TRUE);
+
+          UIDArgs$follow <- SQUIDs_to_follow;
+
+        } else {
+          potentialUID_prefix <- "";
         }
-      } else {
-        for (j in cols_to_utterances) {
+
+        dataToWrite <-
+          preprocess_source(
+            paste0(data[i, j], codeVector[i]),
+            clean = clean,
+            cleaningArgs = cleaningArgs,
+            wordwrap = wordwrap,
+            wrappingArgs = wrappingArgs,
+            prependUIDs = prependUIDs,
+            UIDArgs = UIDArgs
+          );
+
+        SQUIDs_to_follow <-
+          extract_uids(
+            dataToWrite,
+            returnSQUIDs  = TRUE
+          );
+
+        ### Add the fragment for this row and column to this row's source
+
+        if (is.null(utterance_comments)) {
+
+          ### No comments specified
+
           sourceList[[i]] <-
             c(sourceList[[i]],
-              "",
+              potentialUID_prefix,
+              dataToWrite
+              #paste0(data[i, j], codeVector[i])
+            );
+
+        } else {
+
+          ### So comments are specified for the utterance columns;
+          ### Add these in as ROCK comments.
+
+          sourceList[[i]] <-
+            c(sourceList[[i]],
+              commentPrefix,
+              utterance_comments[j],
+              potentialUID_prefix,
+              dataToWrite
+              #paste0(data[i, j], codeVector[i])
+            );
+
+        }
+
+      }
+
+    } else {
+
+      for (j in cols_to_utterances) {
+
+        if (prependUIDs) {
+
+          ### This is always set, since we set it above; and we
+          ### always need to override any
+          UIDArgs$follow <- SQUIDs_to_follow;
+
+          potentialUID_prefix <-
+            do.call(prepend_ids_to_source, c(list(input = c("", "", "")), UIDArgs));
+
+          SQUIDs_to_follow <- extract_uids(potentialUID_prefix, returnSQUIDs = TRUE);
+
+          UIDArgs$follow <- SQUIDs_to_follow;
+
+        } else {
+          potentialUID_prefix <- c("", "", "");
+        }
+
+        dataToWrite <-
+          preprocess_source(
+            data[i, j],
+            clean = clean,
+            cleaningArgs = cleaningArgs,
+            wordwrap = wordwrap,
+            wrappingArgs = wrappingArgs,
+            prependUIDs = prependUIDs,
+            UIDArgs = UIDArgs
+          );
+
+        SQUIDs_to_follow <-
+          extract_uids(
+            dataToWrite,
+            returnSQUIDs  = TRUE
+          );
+
+        ### Add the fragment for this row and column to this row's source
+
+        if (is.null(utterance_comments)) {
+
+          ### No comments specified
+
+          sourceList[[i]] <-
+            c(sourceList[[i]],
+              potentialUID_prefix[1],
               paste0(
+                potentialUID_prefix[2],
                 codeDelimiters[1],
                 utterance_classId,
                 ciid_separator,
                 j,
                 codeDelimiters[2]
               ),
-              "",
-              paste0(data[i, j])
+              potentialUID_prefix[3],
+              dataToWrite
+              #paste0(data[i, j])
             );
+
+        } else {
+
+          ### So comments are specified for the utterance columns;
+          ### Add these in as ROCK comments.
+
+          sourceList[[i]] <-
+            c(sourceList[[i]],
+              potentialUID_prefix[1],
+              paste0(
+                potentialUID_prefix[2],
+                codeDelimiters[1],
+                utterance_classId,
+                ciid_separator,
+                j,
+                codeDelimiters[2]
+              ),
+              commentPrefix,
+              utterance_comments[j],
+              potentialUID_prefix[3],
+              dataToWrite
+              #paste0(data[i, j])
+            );
+
         }
-      }
-
-      ### Create an object with attributes
-
-      if (!is.null(cols_to_attributes)) {
-
-        currentAttributes <-
-          stats::setNames(
-            c(list(as.character(data[i, cols_to_ciids])),
-              as.list(as.character(data[i, cols_to_attributes]))
-            ),
-            nm = c(ciid_labels[names(cols_to_ciids)],
-                   cols_to_attributes)
-          );
-
-        attributeList[[i]] <-
-          currentAttributes;
-
-        attributesAsYamlList[[i]] <-
-          attributeList_to_yaml(
-            currentAttributes,
-            delimiterString = delimiterString,
-            attributeContainer = attributeContainer
-          );
-
-      } else {
-
-        attributeList <- c();
 
       }
+    }
+
+    ### Create an object with attributes
+
+    if (!is.null(cols_to_attributes)) {
+
+      currentAttributes <-
+        stats::setNames(
+          c(list(as.character(data[i, cols_to_ciids])),
+            as.list(as.character(data[i, cols_to_attributes]))
+          ),
+          nm = c(ciid_labels[names(cols_to_ciids)],
+                 cols_to_attributes)
+        );
+
+      attributeList[[i]] <-
+        currentAttributes;
+
+      attributesAsYamlList[[i]] <-
+        attributeList_to_yaml(
+          currentAttributes,
+          delimiterString = delimiterString,
+          attributeContainer = attributeContainer
+        );
+
+    } else {
+
+      attributeList <- c();
 
     }
 
-    ### Add empty line to the end
-    sourceList[[i]] <-
-      c(sourceList[[i]], "");
-
   }
+
+  ### Add empty line to the end
+  sourceList[[i]] <-
+    c(sourceList[[i]], "");
 
   if (length(attributeList) > 0) {
 
@@ -329,7 +605,9 @@ convert_df_to_source <- function(data,
 
   }
 
+  ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   ### Check whether we should save the attributes to one separate file
+  ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   if (!is.null(attributesFile)) {
 
@@ -356,7 +634,13 @@ convert_df_to_source <- function(data,
 
   }
 
+  ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  ### Write and/or return output
+  ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   if (oneFile) {
+
+    ### Writing to one file; compose it
 
     allInOneSource <-
       unlist(
@@ -404,32 +688,13 @@ convert_df_to_source <- function(data,
 
   } else {
 
-    if (!dir.exists(output)) {
-      stop("You indicated that you wanted to write the produced sources ",
-           "to directory '", output, "', but it doesn't seem to exist.");
-    }
+    ### Writing to multiple files or returning sources in a list
 
     res <- list();
 
-    filenames_to_write_to <-
-      file.path(
-        output,
-        paste0(
-          sourceFilename_prefix,
-          apply(
-            data[, cols_to_ciids],
-            1,
-            paste,
-            sep = cols_in_sourceFilename_sep
-          ),
-          sourceFilename_suffix,
-          ".rock"
-        )
-      );
-
     for (i in seq_along(sourceList)) {
 
-      if (is.null(attributesFile)) {
+      if (is.null(attributesFile) && (length(attributesAsYamlList) > 0)) {
 
         res[[i]] <-
           c(sourceList[[i]],
@@ -439,12 +704,21 @@ convert_df_to_source <- function(data,
 
       } else {
 
-        res[[i]] <-
-          c(sourceList[[i]]);
+        res[[i]] <- unlist(unname(sourceList[[i]]));
 
       }
 
     }
+
+    resNames <-
+      apply(
+        data[, cols_to_ciids, drop=FALSE],
+        1,
+        paste,
+        sep = cols_in_sourceFilename_sep
+      );
+
+    names(res) <- resNames;
 
     if (is.null(output)) {
       msg("Nothing specified as `output`, returning a list of the produced ",
@@ -452,6 +726,22 @@ convert_df_to_source <- function(data,
           silent=silent);
       return(res);
     } else {
+
+      if (!dir.exists(output)) {
+        stop("You indicated that you wanted to write the produced sources ",
+             "to directory '", output, "', but it doesn't seem to exist.");
+      }
+
+      filenames_to_write_to <-
+        file.path(
+          output,
+          paste0(
+            sourceFilename_prefix,
+            resNames,
+            sourceFilename_suffix,
+            ".rock"
+          )
+        );
 
       for (i in seq_along(sourceList)) {
 

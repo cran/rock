@@ -38,6 +38,17 @@ get_state_transition_df <- function(x) {
   totalTransitionsFromState <-
     rep(rowSums(x), each = nrow(x));
 
+  # if (length() != 1) {
+    # browser();
+  # }
+
+  #missingRowNames <-
+
+  # if (!all(rownames(x) %in% colnames(x))) {
+  #
+  #   x["", ];
+  # }
+
   res <- data.frame(
     fromState =
       rep(rownames(x), each = ncol(x)),

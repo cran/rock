@@ -111,7 +111,7 @@ clean_source <- function(input,
 
   utteranceMarker <- rock::opts$get("utteranceMarker");
 
-  if ((length(input) == 1) && file.exists(input)) {
+  if ((length(input) == 1) && file.exists(input) && (!dir.exists(input))) {
     res <- readLines(input,
                      encoding=encoding,
                      warn=rlWarn);

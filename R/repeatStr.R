@@ -22,6 +22,9 @@ repeatStr <- repStr <- function (n = 1, str = " ") {
     str <- tmp;
     rm(tmp);
   }
+  if (length(n) > 1) {
+    return(unlist(lapply(n, repStr, str = str)));
+  }
   if (n < 1) {
     return("");
   }

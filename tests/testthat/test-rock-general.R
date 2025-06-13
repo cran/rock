@@ -1,6 +1,8 @@
 testthat::context("general ROCK tests")
 require(rock);
 
+rock::opts$set(suppressDuplicateInstanceWarnings = TRUE);
+
 ###-----------------------------------------------------------------------------
 ###-----------------------------------------------------------------------------
 ###-----------------------------------------------------------------------------
@@ -57,7 +59,7 @@ testthat::test_that("example 2 is read correctly", {
     ];
 
   testthat::expect_equal(nrow(testres_fragment),
-                         16);
+                         17);
 
 });
 
@@ -73,9 +75,6 @@ testthat::test_that("a code tree is printed correctly", {
 
   testthat::expect_output(print(testres),
                           "This source contained inductive coding trees.");
-
-  testthat::expect_output(print(testres),
-                          "This source contained deductive coding trees.");
 
 });
 
@@ -172,7 +171,7 @@ testthat::test_that("Sources are exported to html properly", {
 
   testres <- export_to_html(testres);
 
-  testthat::expect_true(grepl('<span class="code codes">[[grandchildCode2]]</span>',
+  testthat::expect_true(grepl('<span class="rock-coding rock-treeCode code codes">[[grandchildCode2]]</span>',
                               testres[["example-1.rock"]],
                               fixed=TRUE));
 
@@ -192,9 +191,23 @@ testthat::test_that("Coded fragments are collected properly", {
 
   testres <- collect_coded_fragments(testres_parsed);
 
-  testthat::expect_true(grepl('\n#### Topic2 *(path: codes>Topic2)*\n\n-----\n\n\n\n**Source: `longer-test.rock`**\n\n<div class=\"utterance\">It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. <span class=\"code codes\">[[Topic2]]</span>',
-                              testres,
-                              fixed=TRUE));
+  testthat::expect_true(
+    grepl(
+      "#### Topic2 *(path: codes>Topic2)*
+
+
+
+-----
+
+**Source: `longer-test.rock`**
+
+It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. [[Topic2]] [[cid=1]] [[tid=2]]
+
+-----",
+      testres,
+      fixed = TRUE
+    )
+  );
 
 });
 

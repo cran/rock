@@ -2,6 +2,7 @@
 % Please edit documentation in R/rock.R
 \docType{package}
 \name{rock}
+\alias{rock-package}
 \alias{rock}
 \title{rock: A Reproducible Open Coding Kit}
 \description{
@@ -12,7 +13,7 @@ and this R package that facilitates working with .rock files.
 \section{The ROCK File Format}{
 
 
-The .rock files are plain text files where a number of conventions are used
+The \code{.rock} files are plain text files where a number of conventions are used
 to add metadata. Normally these are the following conventions:
 \itemize{
 \item The smallest 'codeable unit' is called an utterance, and utterances are separated by newline characters (i.e. every line of the file is an utterance);
@@ -35,3 +36,20 @@ For analysis, \code{\link[=create_cooccurrence_matrix]{create_cooccurrence_matri
 \code{\link[=collect_coded_fragments]{collect_coded_fragments()}} can be used.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://rock.opens.science}
+  \item Report bugs at \url{https://codeberg.org/R-packages/rock/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Gjalt-Jorn Peters \email{rock@opens.science} (\href{https://orcid.org/0000-0002-0336-9589}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Szilvia Zörgő (\href{https://orcid.org/0000-0002-6916-2097}{ORCID})
+}
+
+}

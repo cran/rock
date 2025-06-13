@@ -1,52 +1,101 @@
 #' Generate utterance identifiers (UIDs)
 #'
-#' This function generates utterance identifiers.
+#' This function generates utterance identifiers. Utterance identifiers are
+#' Short Quasi-Unique Identifiers (SQUIDs) generated using
+#' the [squids::squids()] function.
 #'
-#' @param x The number of identifiers te generate.
+#' @param x The number of identifiers to generate.
 #' @param origin The origin to use when generating the actual
-#' identifiers. These identifiers are the present UNIX timestamp
-#' (i.e. the number of seconds elapsed since the UNIX epoch,
-#' the first of january 1970), accurate to two decimal places
-#' (i.e. to centiseconds), converted to the base 30 system using
-#' [numericToBase30()]. By default, the present time is used as
-#' origin, one one centisecond is added for every identifiers to
-#' generate. `origin` can be set to other values to work with
-#' different origins (of course, don't use this unless you
-#' understand very well what you're doing!).
+#' identifiers; see the [squids::squids()] documentation.
+#' @param follow A vector of one or more UIDs (or a list; lists are
+#' recursively `unlist()`ed); the highest UID will be taken, converted
+#' to a timestamp, and used as `origin` (well, 0.01 second later), so that the
+#' new UIDs will follow that sequence.
+#' @param followBy When following a vector of UIDs, this can be used to
+#' specify the distance between the two vectors in centiseconds.
 #'
 #' @return A vector of UIDs.
 #' @export
 #'
-#' @examples rock::generate_uids(5);
+#' @examples ### Produce and store five UIDs
+#' fiveUIDs <-
+#'   rock::generate_uids(5);
 #'
-#' ### Show how UIDs are the converted date/time
-#' x <- rock::generate_uids(1);
-#' x;
-#' x_UID <- gsub(
-#'   "\\[\\[uid=(.*)\\]\\]",
-#'   "\\1",
-#'   x
+#' ### Look at them
+#' fiveUIDs;
+#'
+#' ### Use a specific origin to be able to reproduce
+#' ### a set of UIDs later (e.g. in a script)
+#' uidOrigin <-
+#'   as.POSIXct("2025-05-21 21:53:25 CEST");
+#'
+#' rock::generate_uids(
+#'   5,
+#'   origin = uidOrigin
 #' );
-#' x_as_nr <- rock::base30toNumeric(x_UID);
-#' x_as_timestamp <- x_as_nr / 100;
-#' x_as_date <-
-#'   as.POSIXct(
-#'     x_as_timestamp,
-#'     origin = "1970-01-01",
-#'     tz = "UTC"
-#'   );
-#' x_as_date
+#'
+#' ### Produce five more UIDs to show
+#' ### their 'progression'
+#' rock::generate_uids(5);
+#'
+#' ### Produce a set of five UIDs that follow
+#' ### the first set of five UIDs
+#' rock::generate_uids(
+#'   5,
+#'   follow = fiveUIDs
+#' );
+#'
+#' ### Follow with a 'distance' of 5 utterances
+#' rock::generate_uids(
+#'   5,
+#'   follow = fiveUIDs,
+#'   followBy = 5
+#' );
 generate_uids <- function(x,
-                          origin=Sys.time()) {
+                          origin=Sys.time(),
+                          follow = NULL,
+                          followBy = NULL) {
 
-  uidPrefix <- rock::opts$get(uidPrefix);
-  codeDelimiters <- rock::opts$get(codeDelimiters);
+  uidPrefix <- rock::opts$get("uidPrefix");
+  codeDelimiters <- rock::opts$get("codeDelimiters");
 
-  timeNrString <- as.character(round(as.numeric(origin) * 100, 0));
-  timeNrs <-
-    as.numeric(timeNrString) + (0:(x-1));
+  if (!is.null(follow)) {
+    follow_as_SQUID <-
+      gsub(
+        paste0(
+          codeDelimiters[1],
+          uidPrefix
+        ),
+        "",
+        follow,
+        fixed = TRUE
+      );
+    follow_as_SQUID <-
+      gsub(
+        codeDelimiters[2],
+        "",
+        follow_as_SQUID,
+        fixed = TRUE
+      );
+  } else {
+    follow_as_SQUID <- NULL;
+  }
+
   res <-
-    unlist(lapply(timeNrs,
-                  numericToBase30));
-  return(paste0(codeDelimiters[1], uidPrefix, res, codeDelimiters[2]));
+    squids::squids(
+      x = x,
+      origin = origin,
+      follow = follow_as_SQUID,
+      followBy = followBy
+    );
+
+  return(
+    paste0(
+      codeDelimiters[1],
+      uidPrefix,
+      res,
+      codeDelimiters[2]
+    )
+  );
+
 }

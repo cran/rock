@@ -120,7 +120,8 @@ resultsOverview_allCodedFragments <- function(x,
     } else {
 
       if (outputToViewer) {
-        viewerHTML <- markdown::markdownToHTML(text=res);
+
+        viewerHTML <- markdown::mark(text=res);
 
         if (add_html_tags && includeCSS) {
           viewerHTML <- htmltools::HTML(
@@ -145,7 +146,8 @@ resultsOverview_allCodedFragments <- function(x,
   } else {
 
     if (outputToViewer) {
-      viewerHTML <- markdown::markdownToHTML(text=res);
+      #viewerHTML <- markdown::mark(text=res, template=TRUE);
+      viewerHTML <- markdown::mark(text=res);
       if (add_html_tags && includeCSS) {
         viewerHTML <- htmltools::HTML(
           rock::css(template=template,
@@ -165,9 +167,31 @@ resultsOverview_allCodedFragments <- function(x,
       cat(res)
     }
 
+    ### Convert to HTML for writing to file
+
+    fileHTML <- markdown::mark(text=res);
+
+    fileHTML <-
+      paste0(
+        "<html>\n",
+        "<head>\n",
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">\n',
+        rock::css(template=template,
+                  includeBootstrap = ifelse(is.character(includeBootstrap),
+                                            TRUE,
+                                            includeBootstrap)),
+        "</head>\n",
+        "<body>\n",
+        fileHTML,
+        "</body>\n",
+        "</html>\n"
+      );
+
     if (dir.exists(dirname(output))) {
       if (file.exists(output) | preventOverwriting) {
-        writeLines(res,
+        writeLines(fileHTML,
                    con = con <- file(output,
                                      "w",
                                      encoding="UTF-8"));

@@ -8,8 +8,14 @@
 #' @param anchorsCol The column containing the anchors.
 #' @param sourceId The column containing the source identifiers.
 #' @param streamId The column containing the stream identifiers.
+#' @param neverFill Columns to never fill regardless of whether fill
+#' is `TRUE`. Set to `NULL` to always respect the setting of `fill`. By default,
+#' the raw versions of the class instance identification columns are never
+#' duplicated (found with regular expression `"_raw$"`), since those are used
+#' for state transition computations.
 #' @param prependStreamIdToColName,appendStreamIdToColName Whether to append
 #' or prepend the stream identifier before merging the dataframes together.
+#' @param carryOverAnchors Whether to carry over anchors for each source
 #' @param colNameGlue When appending or prepending stream identifiers, the
 #' character(s) to use as "glue" or separator.
 #' @param silent Whether to be silent (`TRUE`) or chatty (`FALSE`).
@@ -42,9 +48,9 @@
 #' );
 #'
 #' ### Look at two examples
-#' parsedSources$syncResults$mergedSourceDf[
+#' parsedSources$syncResults$qdt[
 #'   ,
-#'   c("streamB_Code3", "streamC_Code1")
+#'   c("streamB_Code3_streamB", "streamC_Code1_streamC")
 #' ];
 sync_streams <- function(x,
                          primaryStream,
@@ -53,12 +59,15 @@ sync_streams <- function(x,
                          sourceId = rock::opts$get('sourceId'),
                          streamId = rock::opts$get('streamId'),
                          prependStreamIdToColName = FALSE,
-                         appendStreamIdToColName = FALSE,
+                         appendStreamIdToColName = TRUE,
                          sep = " ",
                          fill = TRUE,
+                         paddingValue = NA,
+                         neverFill = grep("_raw$", names(x$qdt), value=TRUE),
                          compressFun = NULL,
                          compressFunPart = NULL,
                          expandFun = NULL,
+                         carryOverAnchors = FALSE,
                          colNameGlue = rock::opts$get('colNameGlue'),
                          silent = rock::opts$get('silent')) {
 
@@ -199,6 +208,32 @@ sync_streams <- function(x,
   lapply(
     anchorOnlyVectors,
     function(anchorVectorForCurrentSource) {
+
+      vectorLengths <-
+        unlist(lapply(anchorVectorForCurrentSource, length));
+      if (length(unique(vectorLengths)) > 1) {
+        stop("The number of anchors in each stream is not ",
+             "identical! I encountered the following numbers of ",
+             "anchors: ",
+             vecTxtQ(paste0(vectorLengths, " (for stream with stream identifier ", names(vectorLengths), ")")),
+             "It is possible that for one of the streams, ",
+             "an anchor was omitted; or, alternatively, that for ",
+             "some of the streams, anchors were automatically added ",
+             "to the beginning or the end of the stream, but not for ",
+             "others (because they already started or ended with an anchor). ",
+             "The last anchor in each stream was: ",
+             vecTxtQ(
+               unlist(
+                 lapply(
+                   anchorVectorForCurrentSource,
+                   function(x) return(x[length(x)])
+                 )
+               )
+             ),
+            "."
+          );
+      }
+
       anchorDf <-
         as.data.frame(
           anchorVectorForCurrentSource
@@ -212,16 +247,44 @@ sync_streams <- function(x,
           ),
           unique
         );
+
       if (!all(unlist(lapply(res, length)) == 1)) {
+
+        rowsWithMismatches <-
+          which(unlist(
+            lapply(apply(anchorDf, 1, unique), function(x) return(length(x) > 1))
+          ));
+
+        streamIds <- names(anchorDf);
+
+        mismatchedAnchors <-
+          apply(anchorDf[rowsWithMismatches, ], 1, as.vector,
+                simplify = FALSE);
+
+        errorMessageBits <-
+          lapply(
+            seq_along(rowsWithMismatches),
+            function(i) {
+              return(
+                paste0("anchor in sequence position ",
+                       rowsWithMismatches[i],
+                       ", which has anchor identifiers ",
+                       vecTxt(
+                         paste0(
+                           mismatchedAnchors[[i]],
+                           " (for stream with identifier ",
+                           streamIds,
+                           ")"
+                         )
+                       )
+                )
+              );
+            }
+          );
+
         stop(
-          "Not all anchors align!\n\n",
-          paste0(
-            utils::capture.output(
-              print(anchorDf)
-            ),
-            collapse="\n"
-          ),
-          "\n\n"
+          "Not all anchors align! Specifically, mismatches occur for ",
+          paste0(errorMessageBits, collapse="; ")
         );
       }
       return(anchorDf);
@@ -422,6 +485,7 @@ sync_streams <- function(x,
                       ],
                       newLength = currentSource[[primaryStream]][[anchorPair]]$length,
                       fill = fill,
+                      neverFill = neverFill,
                       expandFun = expandFun,
                       silent = silent
                     );
@@ -454,11 +518,13 @@ sync_streams <- function(x,
 
   mergedStreamDfs <-
     lapply(
-      streamMapping,
-      function(currentSource) {
+      names(streamMapping),
+      function(currentSourceName) {
 
         msg(" - Processing source with identifier: ", currentSourceName, ".\n",
             silent = silent);
+
+        currentSource <- streamMapping[[currentSourceName]];
 
         res <-
           lapply(
@@ -482,11 +548,13 @@ sync_streams <- function(x,
                 #glue_df_list(
                   currentSource[[currentStreamName]]
                 );
+
               if (prependStreamIdToColName) {
                 names(res) <- paste0(currentStreamName,
                                      colNameGlue,
                                      names(res));
               }
+
               if (appendStreamIdToColName) {
                 names(res) <- paste0(names(res),
                                      colNameGlue,
@@ -496,12 +564,21 @@ sync_streams <- function(x,
               msg("    Resulting data frame has ", nrow(res), " rows.\n",
                   silent = silent);
 
+              codeIdentifiers <-
+                x$convenience$codingLeaves;
+
               res <- rbind(
                 res,
-                rep(0, ncol(res))
+                ifelse(
+                  names(res) %in% codeIdentifiers,
+                  0,
+                  NA
+                )
               );
 
-              msg("    Added one more row with just 0s to represent the row with the last anchor.\n",
+              msg("    Added one more row with just 0s ",
+                  "(for code identifier columns) and NAs",
+                  " to represent the row with the last anchor.\n",
                   silent = silent);
 
               return(res);
@@ -511,6 +588,7 @@ sync_streams <- function(x,
         return(res);
       }
     );
+  names(mergedStreamDfs) <- names(streamMapping);
 
   ###---------------------------------------------------------------------------
   ### Merge dataframes for each source
@@ -559,6 +637,25 @@ sync_streams <- function(x,
     );
 
   names(syncedStreamDfs) <- names(dfBySourceAndStream);
+
+  ###---------------------------------------------------------------------------
+  ### Potentially carry-over anchors
+  ###---------------------------------------------------------------------------
+
+  if (carryOverAnchors) {
+    syncedStreamDfs <-
+      lapply(
+        syncedStreamDfs,
+        function(syncedStreamDf) {
+          syncedStreamDf[[paste0(anchorsCol, "_persistent")]] <-
+            rock::carry_over_values(
+              syncedStreamDf[[anchorsCol]]
+            );
+          return(syncedStreamDf);
+        }
+      )
+
+  }
 
   ###---------------------------------------------------------------------------
   ### Merge the synced stream data frames into one new 'mergedSourceDf'

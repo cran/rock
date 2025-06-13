@@ -19,7 +19,9 @@ write_sources(
   output,
   filenamePrefix = "",
   filenameSuffix = "_written",
+  recursive = TRUE,
   encoding = rock::opts$get("encoding"),
+  preventOverwriting = rock::opts$get("preventOverwriting"),
   silent = rock::opts$get("silent")
 )
 }
@@ -38,6 +40,9 @@ file(s) to write. Set to \code{FALSE} to overwrite.}
 
 \item{filenamePrefix, filenameSuffix}{Optional prefixes or suffixes to pre-
 or append to the filenames when writing the files.}
+
+\item{recursive}{Whether to recursively create directories if the \code{output}
+directory does not yet exist.}
 }
 \value{
 Invisibly, the input (\code{x}), to enable chaining in pipes.
@@ -58,8 +63,27 @@ exampleFile <-
 ### Get a temporary file to write to
 tempFile <- tempfile(fileext = ".rock")
 
-### Pipe chain to load the example source; add a code;
-### and write the result to disk
+### For R versions below 4.1
+loadedSource <-
+  rock::load_source(exampleFile);
+
+loadedSource <-
+  rock::code_source(
+    loadedSource,
+    c("Lorem Ipsum" = "lorumIpsum")
+  );
+
+rock::write_source(
+  loadedSource,
+  tempFile
+);
+
+### From R 4.1 onwards, you can also chain
+### these commands using the pipe operator.
+###
+### Note that that means that this example
+### will not run if you have a previous
+### version of R.
 loadedSource <-
 
   rock::load_source(exampleFile) |>

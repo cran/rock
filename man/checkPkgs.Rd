@@ -19,7 +19,7 @@ package versions (see the second example).}
 \item{install}{Whether to install missing packages from \code{repos}.}
 
 \item{load}{Whether to load packages (which is exactly \emph{not} the point
-of this function, but hey, YMMV).}
+of this package, but hey, YMMV).}
 
 \item{repos}{The repository to use if installing packages; default
 is the RStudio repository.}
@@ -38,15 +38,15 @@ are installed, but their namespace won't attach to the search path.
 \donttest{
 rock::checkPkgs('base');
 
-### Require a version
-rock::checkPkgs(rock = "0.5.0");
+### Require a specific version
+rock::checkPkgs(rock = "0.9.1");
 
 ### This will show the error message
 tryCatch(
   rock::checkPkgs(
     base = "99",
     stats = "42.5",
-    ufs = 20
+    rock = 2000
   ),
   error = print
 );

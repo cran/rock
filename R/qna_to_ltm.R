@@ -60,7 +60,7 @@ qna_to_tlm <- function(x,
 
           df <- currentNetworkCode$coded_df;
 
-          uniqueTopics <- unique(unlist(df$from, df$to));
+          uniqueTopics <- unique(unlist(df$from), unlist(df$to));
           uniqueAssocationTypes <- unique(df$type);
 
           topicsBit <- paste0("[", uniqueTopics, "]");

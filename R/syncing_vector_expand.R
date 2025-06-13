@@ -9,6 +9,9 @@
 #' vectors are passed to function `expandFun`, which must accept a vector (to
 #' compress) and a single integer (with the desired resulting length of
 #' the vector).
+#' @param paddingValue The value to insert for rows when not filling (by
+#' default, filling carries over the value from the last preceding row that
+#' had a value specified).
 #' @param silent Whether to be silent or chatty.
 #'
 #' @return The expanded vector
@@ -20,6 +23,7 @@
 syncing_vector_expand <- function(x,
                                   newLength,
                                   fill = TRUE,
+                                  paddingValue = NA,
                                   expandFun = NULL,
                                   silent = rock::opts$get('silent')) {
 
@@ -45,7 +49,7 @@ syncing_vector_expand <- function(x,
       if (fill) {
         return(rep(x, newLength));
       } else {
-        return(c(x, rep("", newLength-1)));
+        return(c(x, rep(paddingValue, newLength-1)));
       }
     }
 
@@ -66,7 +70,7 @@ syncing_vector_expand <- function(x,
         if (fill) {
           newVector[newIndex] <- oldValue;
         } else {
-          newVector[newIndex] <- "";
+          newVector[newIndex] <- paddingValue;
         }
       }
     }

@@ -11,6 +11,8 @@ prepend_ids_to_source(
   input,
   output = NULL,
   origin = Sys.time(),
+  follow = NULL,
+  followBy = NULL,
   rlWarn = rock::opts$get(rlWarn),
   preventOverwriting = rock::opts$get(preventOverwriting),
   encoding = rock::opts$get(encoding),
@@ -23,6 +25,9 @@ prepend_ids_to_sources(
   outputPrefix = "",
   outputSuffix = "_withUIDs",
   origin = Sys.time(),
+  follow = NULL,
+  followBy = NULL,
+  uidSpacing = NULL,
   preventOverwriting = rock::opts$get(preventOverwriting),
   encoding = rock::opts$get(encoding),
   silent = rock::opts$get(silent)
@@ -30,14 +35,22 @@ prepend_ids_to_sources(
 }
 \arguments{
 \item{input}{The filename or contents of the source
-for \code{prepend_ids_to_source} and the directory containing the
-sources for \code{prepend_ids_to_sources}.}
+for \code{prepend_ids_to_source}; and the directory containing the
+sources, or a list of character vectors, for \code{prepend_ids_to_sources}.}
 
 \item{output}{The filename where to write the resulting file for
 \code{prepend_ids_to_source} and the directory where to write the
 resulting files for \code{prepend_ids_to_sources}}
 
 \item{origin}{The time to use for the first identifier.}
+
+\item{follow}{A vector of one or more UIDs (or a list; lists are
+recursively \code{unlist()}ed); the highest UID will be taken, converted
+to a timestamp, and used as \code{origin} (well, 0.01 second later), so that the
+new SQUIDs will follow that sequence (see \code{\link[squids:squids]{squids::squids()}}).}
+
+\item{followBy}{When following a vector of UIDs, this can be used to
+specify the distance between the two vectors (see \code{\link[squids:squids]{squids::squids()}}).}
 
 \item{rlWarn}{Whether to let \code{\link[=readLines]{readLines()}} warn, e.g. if files do not end
 with a newline character.}
@@ -51,6 +64,9 @@ or prevent that from happening (\code{TRUE}).}
 
 \item{outputPrefix, outputSuffix}{The prefix and suffix to add to the
 filenames when writing the processed files to disk.}
+
+\item{uidSpacing}{The number of UID spaces to leave between sources (in case
+more data may follow in with source).}
 }
 \value{
 The source with prepended uids, either invisible (if \code{output}

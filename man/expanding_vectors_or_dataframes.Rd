@@ -9,6 +9,8 @@ syncing_df_expand(
   x,
   newLength,
   fill = TRUE,
+  neverFill = NULL,
+  paddingValue = NA,
   expandFun = NULL,
   silent = rock::opts$get("silent")
 )
@@ -17,6 +19,7 @@ syncing_vector_expand(
   x,
   newLength,
   fill = TRUE,
+  paddingValue = NA,
   expandFun = NULL,
   silent = rock::opts$get("silent")
 )
@@ -28,6 +31,12 @@ syncing_vector_expand(
 
 \item{fill}{When expanding streams, whether to duplicate elements to fill
 the resulting vector. Ignored if \code{fillFun} is specified.}
+
+\item{neverFill}{Columns to never fill regardless of whether fill is \code{TRUE}.}
+
+\item{paddingValue}{The value to insert for rows when not filling (by
+default, filling carries over the value from the last preceding row that
+had a value specified).}
 
 \item{expandFun}{If specified, when expanding streams, instead of potentially
 filling the new larger vector with elements (if \code{fill} is \code{TRUE}), the

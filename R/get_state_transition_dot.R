@@ -1,10 +1,12 @@
-#' Get the state transition data frame
+#' Get the Dot code for a state transition graph
 #'
 #' @param x A state transition table as produced by a call
 #' to [get_state_transition_table()].
+#' @param labelFun A function to apply to the edge labels in preprocessing.
+#' @param labelFunArgs Arguments to specify to `labelFun` in addition to the
+#' first argument (the edge weight, a number).
 #'
-#' @return A dataframe with columns `fromState`, `toState`,
-#' and `nrOfTransitions`.
+#' @return The Dot code for a state transition graph.
 #'
 #' @examples ### Get path to example source
 #' examplePath <-
@@ -33,7 +35,9 @@
 #' DiagrammeR::grViz(exampleDotCode);
 #'
 #' @export
-get_state_transition_dot <- function(x) {
+get_state_transition_dot <- function(x,
+                                     labelFun = base::round,
+                                     labelFunArgs = list(digits = 2)) {
 
   if (!inherits(x, "rock_stateTransitionDf")) {
     stop("As `x`, pass an object of class `rock_stateTransitionDf`, as produced ",
@@ -43,9 +47,24 @@ get_state_transition_dot <- function(x) {
 
   x <- x[x$nrOfTransitions > 0, ];
 
+  x[, 'label'] <- x[, 'propOfTransitions'];
+
+  if (!is.null(labelFun)) {
+    if (is.function(labelFun)) {
+      x[, 'label'] <-
+        do.call(
+          labelFun,
+          c(list(x[, 'propOfTransitions']),
+            labelFunArgs)
+        );
+    }
+  }
+
   res <-
     paste0(
       "digraph {\n",
+      "  node[fontname=Arial]\n\n",
+      "  edge[fontname=Arial]\n\n",
       paste0(
         apply(
           x,
@@ -54,13 +73,13 @@ get_state_transition_dot <- function(x) {
             return(
               paste0(
                 "  ",
-                row[1],
+                row['fromState'],
                 " -> ",
-                row[2],
-                " [label='",
-                row[4],
-                "', penwidth=",
-                3 * as.numeric(row[4]),
+                row['toState'],
+                " [label=\"  ",
+                row['label'],
+                "    \", penwidth=",
+                3 * as.numeric(row['propOfTransitions']),
                 "];"
               )
             );
@@ -75,4 +94,10 @@ get_state_transition_dot <- function(x) {
 
   return(res);
 
+}
+
+#' @export
+print.rock_stateTransitionDot <- function(x, ...) {
+  print(DiagrammeR::grViz(x, ...));
+  return(invisible(x));
 }

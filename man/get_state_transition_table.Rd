@@ -4,13 +4,13 @@
 \alias{get_state_transition_table}
 \title{Get the state transition table}
 \usage{
-get_state_transition_table(x, classIdentifier = "state")
+get_state_transition_table(x, rawClassIdentifierCol = "state_raw")
 }
 \arguments{
 \item{x}{A parsed source document as provided by \code{\link[=parse_source]{parse_source()}}.}
 
-\item{classIdentifier}{The identifier of the class that has the states to
-looks at.}
+\item{rawClassIdentifierCol}{The identifier of the column in \code{x}'s QDT with
+the raw class codings of the class that has the states to look at.}
 }
 \value{
 A table, with the 'from' states as rows and the 'to' states as columns

@@ -35,7 +35,7 @@ search_and_replace_in_source <- function(input,
                                          rlWarn = rock::opts$get(rlWarn),
                                          silent=FALSE) {
 
-  if (file.exists(input)) {
+  if ((length(input) == 1) && file.exists(input)) {
     res <- readLines(input,
                      encoding=encoding,
                      warn = rlWarn);

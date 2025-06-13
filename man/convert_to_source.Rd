@@ -17,14 +17,22 @@ convert_df_to_source(
   cols_to_codes = NULL,
   cols_to_attributes = NULL,
   utterance_classId = NULL,
+  utterance_comments = NULL,
+  commentPrefix = ifelse(prependUIDs, repStr("#", 16), repStr("#", 3)),
   oneFile = TRUE,
   cols_to_sourceFilename = cols_to_ciids,
-  cols_in_sourceFilename_sep = "=",
+  cols_in_sourceFilename_sep = "_is_",
   sourceFilename_prefix = "source_",
   sourceFilename_suffix = "",
   ciid_labels = NULL,
   ciid_separator = "=",
   attributesFile = NULL,
+  clean = TRUE,
+  cleaningArgs = NULL,
+  wordwrap = TRUE,
+  wrappingArgs = NULL,
+  prependUIDs = TRUE,
+  UIDArgs = NULL,
   preventOverwriting = rock::opts$get(preventOverwriting),
   encoding = rock::opts$get(encoding),
   silent = rock::opts$get(silent)
@@ -160,6 +168,12 @@ yields something like "\verb{[[originalColName=colName_1]]}" above all utterance
 from the column named \code{colName_1}). When writing multiple utterance columns,
 it is not possible to also write codes (i.e. \code{cols_to_codes} must be \code{NULL}).}
 
+\item{utterance_comments}{A column with comments to be added to each
+utterance.}
+
+\item{commentPrefix}{If adding in comments, the prefix to use, typically
+a number of hashes. Note that comment lines must start with a hash (\verb{#}).}
+
 \item{oneFile}{Whether to store everything in one source, or create one
 source for each row of the data (if this is set to \code{FALSE}, make sure that
 \code{cols_to_sourceFilename} specifies one or more columns that together
@@ -194,6 +208,17 @@ an equals sign is less ambiguous.}
 
 \item{attributesFile}{Optionally, a file to write the attributes to if you
 don't want them to be written to the source file(s).}
+
+\item{clean, cleaningArgs}{Whether to clean the utterances using \code{\link[=clean_source]{clean_source()}}, and the
+arguments to pass when calling it as a named list passed in \code{cleaningArgs}.}
+
+\item{wordwrap, wrappingArgs}{Whether to word wrap the utterances
+using \code{\link[=wordwrap_source]{wordwrap_source()}}, and the
+arguments to pass when calling it as a named list passed in  \code{wrappingArgs}.}
+
+\item{prependUIDs, UIDArgs}{Whether to prepend utterance identifiers (UIDs)
+using \code{\link[=prepend_ids_to_source]{prepend_ids_to_source()}}, and the
+arguments to pass when calling it as a named list passed in  \code{UIDArgs}.}
 
 \item{preventOverwriting}{Whether to prevent overwriting of output files.}
 

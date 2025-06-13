@@ -25,8 +25,27 @@
 #' ### Get a temporary file to write to
 #' tempFile <- tempfile(fileext = ".rock")
 #'
-#' ### Pipe chain to load the example source; add a code;
-#' ### and write the result to disk
+#' ### For R versions below 4.1
+#' loadedSource <-
+#'   rock::load_source(exampleFile);
+#'
+#' loadedSource <-
+#'   rock::code_source(
+#'     loadedSource,
+#'     c("Lorem Ipsum" = "lorumIpsum")
+#'   );
+#'
+#' rock::write_source(
+#'   loadedSource,
+#'   tempFile
+#' );
+#'
+#' ### From R 4.1 onwards, you can also chain
+#' ### these commands using the pipe operator.
+#' ###
+#' ### Note that that means that this example
+#' ### will not run if you have a previous
+#' ### version of R.
 #' loadedSource <-
 #'
 #'   rock::load_source(exampleFile) |>
@@ -63,8 +82,22 @@ write_source <- function(x,
         "'.",
         silent = silent);
   } else {
-    warning("Could not write source to `",
-            output, "`.");
+
+    if (file.exists(output)) {
+      if (preventOverwriting) {
+        warning("Could not write source to `",
+                output, "` - the file exists already, and ",
+                "preventOverwriting is set to TRUE.");
+      } else {
+        warning("Could not write source to `",
+                output, "` - the file exists already, but ",
+                "preventOverwriting is set to FALSE, so not sure what went wrong.");
+      }
+    } else {
+      warning("Could not write source to `",
+              output, "` - but the file does not exist already, so ",
+              "not sure what went wrong.");
+    }
   }
 
   return(invisible(x));

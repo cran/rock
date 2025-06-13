@@ -7,6 +7,7 @@
 split_long_lines(
   x,
   length = 60,
+  collapseResult = FALSE,
   splitString = rock::opts$get("utteranceMarker")
 )
 }
@@ -14,6 +15,10 @@ split_long_lines(
 \item{x}{The string (e.g. a source)}
 
 \item{length}{The maximum length}
+
+\item{collapseResult}{Whether to collapse the result from a vector (with
+line breaks separating the elements) to a single character value (where
+the vector elements are glued together using \code{splitString}) or not.}
 
 \item{splitString}{The character to use to split lines.}
 }
